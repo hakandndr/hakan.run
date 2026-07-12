@@ -15,4 +15,8 @@ export default defineConfig({
 			'@': path.resolve(__dirname, './src'),
 		},
 	},
+	build: {
+		// Clean the output dir on every build so old hashed bundles don't pile up.
+		emptyOutDir: true,
+	},
 });
