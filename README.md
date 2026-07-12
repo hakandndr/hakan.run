@@ -4,7 +4,7 @@ Personal portfolio and content platform for **Hakan Dundar** — Software Develo
 
 Live: **[hakan.run](https://hakan.run)**
 
-[![Playwright Tests](https://github.com/hakandndr/hakan-run/actions/workflows/playwright.yml/badge.svg)](https://github.com/hakandndr/hakan-run/actions/workflows/playwright.yml)
+[![Playwright Tests](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml/badge.svg)](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml)
 
 This repository is intentionally public: the site is also a working demonstration of full-stack development, a database-backed CMS, authentication with 2FA, end-to-end testing, and CI/CD.
 

@@ -162,8 +162,8 @@ const Project = () => {
   const project = projectData[projectId] || projectData['full-stack-development'];
   const repoName = projectId || 'full-stack-development';
   const repoUrls = {
-    'full-stack-development': 'https://github.com/hakandndr/hakan-run',
-    'ai-and-automation': 'https://github.com/hakandndr/hakan-run',
+    'full-stack-development': 'https://github.com/hakandndr/hakan.run',
+    'ai-and-automation': 'https://github.com/hakandndr/hakan.run',
   };
   const repoUrl = repoUrls[projectId];
 
