@@ -1,0 +1,34 @@
+# ── Dependencies ──────────────────────────────────────────
+node_modules/
+
+# ── Environment & secrets (NEVER commit) ──────────────────
+.env
+.env.*
+!.env.example
+# server-side PHP secrets (JWT secret for the visitor log)
+**/secure-config.php
+
+# ── Build output ──────────────────────────────────────────
+dist/
+distcd/
+apps/web/dist/
+apps/web/distcd/
+
+# ── Logs & runtime data ───────────────────────────────────
+*.log
+**/hakanrun_panel_log.txt
+**/rate_*.tmp
+
+# ── Playwright ────────────────────────────────────────────
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+apps/web/test-results/
+apps/web/playwright-report/
+
+# ── OS / editor cruft ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.local

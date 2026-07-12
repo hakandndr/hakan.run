@@ -1,0 +1,14 @@
+# Protect secrets and raw log data in this folder
+<FilesMatch "^(secure-config\.php|.*\.txt)$">
+	Order allow,deny
+	Deny from all
+</FilesMatch>
+
+# Pass the Authorization header through to PHP (needed by get_log.php bearer auth)
+<IfModule mod_setenvif.c>
+	SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+<IfModule mod_headers.c>
+	Header always set X-Content-Type-Options "nosniff"
+</IfModule>

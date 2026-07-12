@@ -1,0 +1,300 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="#0D0D14"/>
+
+  <!-- Editor chrome bar -->
+  <rect width="1200" height="42" fill="#111118"/>
+  <line x1="0" y1="42" x2="1200" y2="42" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="20" cy="21" r="6" fill="#EF4444" fill-opacity="0.55"/>
+  <circle cx="44" cy="21" r="6" fill="#FBBF24" fill-opacity="0.55"/>
+  <circle cx="68" cy="21" r="6" fill="#4ADE80" fill-opacity="0.55"/>
+
+  <!-- Tab bar -->
+  <rect x="100" y="8" width="180" height="26" rx="3" fill="#0D0D14" stroke="#1E2030" stroke-width="1"/>
+  <text x="116" y="26" font-family="monospace" font-size="10" fill="#57B8FF">UserTable.tsx</text>
+  <rect x="290" y="8" width="160" height="26" rx="3" fill="#131320"/>
+  <text x="306" y="26" font-family="monospace" font-size="10" fill="#6B7280">api/users.ts</text>
+  <rect x="460" y="8" width="170" height="26" rx="3" fill="#131320"/>
+  <text x="476" y="26" font-family="monospace" font-size="10" fill="#6B7280">useAuth.hook.ts</text>
+
+  <!-- Activity bar (far left) -->
+  <rect width="48" height="675" fill="#0C0C18"/>
+  <line x1="48" y1="0" x2="48" y2="675" stroke="#1E2030" stroke-width="1"/>
+  <!-- Activity icons -->
+  <rect x="12" y="58" width="24" height="24" rx="3" fill="#57B8FF" fill-opacity="0.15"/>
+  <rect x="14" y="60" width="20" height="20" rx="2" fill="none" stroke="#57B8FF" stroke-width="1.5"/>
+  <rect x="16" y="62" width="8" height="6" rx="1" fill="#57B8FF" fill-opacity="0.5"/>
+  <rect x="16" y="70" width="16" height="2" rx="1" fill="#57B8FF" fill-opacity="0.3"/>
+  <rect x="16" y="74" width="12" height="2" rx="1" fill="#57B8FF" fill-opacity="0.3"/>
+
+  <rect x="14" y="98" width="20" height="20" rx="2" fill="none" stroke="#4B5563" stroke-width="1.5"/>
+  <circle cx="24" cy="108" r="3" fill="none" stroke="#4B5563" stroke-width="1.5"/>
+  <line x1="28" y1="112" x2="33" y2="117" stroke="#4B5563" stroke-width="1.5" stroke-linecap="round"/>
+
+  <rect x="14" y="134" width="20" height="20" rx="2" fill="none" stroke="#4B5563" stroke-width="1.5"/>
+  <line x1="17" y1="144" x2="31" y2="144" stroke="#4B5563" stroke-width="1.5"/>
+  <line x1="24" y1="137" x2="24" y2="151" stroke="#4B5563" stroke-width="1.5"/>
+
+  <!-- File explorer sidebar -->
+  <rect x="48" y="42" width="200" height="633" fill="#0F0F1C"/>
+  <line x1="248" y1="42" x2="248" y2="675" stroke="#1E2030" stroke-width="1"/>
+  <text x="60" y="62" font-family="monospace" font-size="9" fill="#6B7280" letter-spacing="0.08em">EXPLORER</text>
+
+  <!-- Folder tree -->
+  <text x="60" y="84" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; saas-platform</text>
+  <text x="72" y="102" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; src</text>
+  <text x="84" y="120" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; components</text>
+  <rect x="84" y="130" width="156" height="18" rx="2" fill="#57B8FF" fill-opacity="0.08"/>
+  <text x="96" y="143" font-family="monospace" font-size="9" fill="#57B8FF">UserTable.tsx</text>
+  <text x="96" y="161" font-family="monospace" font-size="9" fill="#6B7280">MetricCard.tsx</text>
+  <text x="96" y="179" font-family="monospace" font-size="9" fill="#6B7280">Sidebar.tsx</text>
+  <text x="96" y="197" font-family="monospace" font-size="9" fill="#6B7280">LineChart.tsx</text>
+  <text x="84" y="215" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; hooks</text>
+  <text x="96" y="233" font-family="monospace" font-size="9" fill="#6B7280">useAuth.hook.ts</text>
+  <text x="96" y="251" font-family="monospace" font-size="9" fill="#6B7280">useUsers.ts</text>
+  <text x="84" y="269" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; api</text>
+  <text x="96" y="287" font-family="monospace" font-size="9" fill="#6B7280">users.ts</text>
+  <text x="96" y="305" font-family="monospace" font-size="9" fill="#6B7280">auth.ts</text>
+  <text x="72" y="323" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; pages</text>
+  <text x="84" y="341" font-family="monospace" font-size="9" fill="#6B7280">Dashboard.tsx</text>
+  <text x="84" y="359" font-family="monospace" font-size="9" fill="#6B7280">Login.tsx</text>
+  <text x="72" y="377" font-family="monospace" font-size="9" fill="#9CA3AF">&#x25BC; types</text>
+  <text x="84" y="395" font-family="monospace" font-size="9" fill="#6B7280">user.types.ts</text>
+  <text x="84" y="413" font-family="monospace" font-size="9" fill="#6B7280">api.types.ts</text>
+  <text x="60" y="435" font-family="monospace" font-size="9" fill="#4B5563">package.json</text>
+  <text x="60" y="453" font-family="monospace" font-size="9" fill="#4B5563">tsconfig.json</text>
+  <text x="60" y="471" font-family="monospace" font-size="9" fill="#4B5563">vite.config.ts</text>
+
+  <!-- Main editor area -->
+  <rect x="248" y="42" width="720" height="490" fill="#0D0D14"/>
+
+  <!-- Line numbers gutter -->
+  <rect x="248" y="42" width="40" height="490" fill="#0C0C18"/>
+  <!-- Line numbers -->
+  <text x="278" y="72" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">1</text>
+  <text x="278" y="90" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">2</text>
+  <text x="278" y="108" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">3</text>
+  <text x="278" y="126" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">4</text>
+  <text x="278" y="144" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">5</text>
+  <text x="278" y="162" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">6</text>
+  <text x="278" y="180" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">7</text>
+  <text x="278" y="198" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">8</text>
+  <text x="278" y="216" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">9</text>
+  <text x="278" y="234" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">10</text>
+  <text x="278" y="252" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">11</text>
+  <text x="278" y="270" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">12</text>
+  <text x="278" y="288" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">13</text>
+  <text x="278" y="306" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">14</text>
+  <text x="278" y="324" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">15</text>
+  <text x="278" y="342" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">16</text>
+  <text x="278" y="360" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">17</text>
+  <text x="278" y="378" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">18</text>
+  <text x="278" y="396" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">19</text>
+  <text x="278" y="414" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">20</text>
+  <text x="278" y="432" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">21</text>
+  <text x="278" y="450" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">22</text>
+  <text x="278" y="468" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">23</text>
+  <text x="278" y="486" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">24</text>
+  <text x="278" y="504" text-anchor="end" font-family="monospace" font-size="10" fill="#374151">25</text>
+
+  <!-- Code content — line 1 -->
+  <text x="300" y="72" font-family="monospace" font-size="10.5" fill="#C084FC">import</text>
+  <text x="344" y="72" font-family="monospace" font-size="10.5" fill="#E5E7EB"> React, </text>
+  <text x="390" y="72" font-family="monospace" font-size="10.5" fill="#C084FC">&#x7B; useState, useEffect &#x7D;</text>
+  <text x="560" y="72" font-family="monospace" font-size="10.5" fill="#C084FC"> from</text>
+  <text x="596" y="72" font-family="monospace" font-size="10.5" fill="#86EFAC"> 'react'</text>
+  <text x="648" y="72" font-family="monospace" font-size="10.5" fill="#E5E7EB">;</text>
+
+  <!-- line 2 -->
+  <text x="300" y="90" font-family="monospace" font-size="10.5" fill="#C084FC">import</text>
+  <text x="344" y="90" font-family="monospace" font-size="10.5" fill="#E5E7EB"> </text>
+  <text x="350" y="90" font-family="monospace" font-size="10.5" fill="#C084FC">&#x7B; fetchUsers &#x7D;</text>
+  <text x="446" y="90" font-family="monospace" font-size="10.5" fill="#C084FC"> from</text>
+  <text x="482" y="90" font-family="monospace" font-size="10.5" fill="#86EFAC"> '../api/users'</text>
+  <text x="582" y="90" font-family="monospace" font-size="10.5" fill="#E5E7EB">;</text>
+
+  <!-- line 3 -->
+  <text x="300" y="108" font-family="monospace" font-size="10.5" fill="#C084FC">import</text>
+  <text x="344" y="108" font-family="monospace" font-size="10.5" fill="#E5E7EB"> type </text>
+  <text x="378" y="108" font-family="monospace" font-size="10.5" fill="#C084FC">&#x7B; User &#x7D;</text>
+  <text x="422" y="108" font-family="monospace" font-size="10.5" fill="#C084FC"> from</text>
+  <text x="458" y="108" font-family="monospace" font-size="10.5" fill="#86EFAC"> '../types/user.types'</text>
+  <text x="630" y="108" font-family="monospace" font-size="10.5" fill="#E5E7EB">;</text>
+
+  <!-- line 4 blank -->
+
+  <!-- line 5 -->
+  <text x="300" y="144" font-family="monospace" font-size="10.5" fill="#6B7280">// Props interface</text>
+
+  <!-- line 6 -->
+  <text x="300" y="162" font-family="monospace" font-size="10.5" fill="#60A5FA">interface</text>
+  <text x="368" y="162" font-family="monospace" font-size="10.5" fill="#FBBF24"> UserTableProps </text>
+  <text x="474" y="162" font-family="monospace" font-size="10.5" fill="#E5E7EB">&#x7B;</text>
+
+  <!-- line 7 -->
+  <text x="318" y="180" font-family="monospace" font-size="10.5" fill="#9CA3AF">  planFilter</text>
+  <text x="408" y="180" font-family="monospace" font-size="10.5" fill="#E5E7EB">:</text>
+  <text x="418" y="180" font-family="monospace" font-size="10.5" fill="#60A5FA"> 'all'</text>
+  <text x="452" y="180" font-family="monospace" font-size="10.5" fill="#E5E7EB"> | </text>
+  <text x="470" y="180" font-family="monospace" font-size="10.5" fill="#60A5FA">'free'</text>
+  <text x="508" y="180" font-family="monospace" font-size="10.5" fill="#E5E7EB"> | </text>
+  <text x="526" y="180" font-family="monospace" font-size="10.5" fill="#60A5FA">'pro'</text>
+  <text x="560" y="180" font-family="monospace" font-size="10.5" fill="#E5E7EB"> | </text>
+  <text x="578" y="180" font-family="monospace" font-size="10.5" fill="#60A5FA">'business'</text>
+  <text x="646" y="180" font-family="monospace" font-size="10.5" fill="#E5E7EB">;</text>
+
+  <!-- line 8 -->
+  <text x="318" y="198" font-family="monospace" font-size="10.5" fill="#9CA3AF">  onSelectUser</text>
+  <text x="426" y="198" font-family="monospace" font-size="10.5" fill="#E5E7EB">:</text>
+  <text x="436" y="198" font-family="monospace" font-size="10.5" fill="#E5E7EB"> (user: </text>
+  <text x="490" y="198" font-family="monospace" font-size="10.5" fill="#FBBF24">User</text>
+  <text x="514" y="198" font-family="monospace" font-size="10.5" fill="#E5E7EB">) =&gt; </text>
+  <text x="548" y="198" font-family="monospace" font-size="10.5" fill="#60A5FA">void</text>
+  <text x="578" y="198" font-family="monospace" font-size="10.5" fill="#E5E7EB">;</text>
+
+  <!-- line 9 -->
+  <text x="300" y="216" font-family="monospace" font-size="10.5" fill="#E5E7EB">&#x7D;</text>
+
+  <!-- line 10 blank -->
+
+  <!-- line 11 -->
+  <text x="300" y="252" font-family="monospace" font-size="10.5" fill="#C084FC">export const</text>
+  <text x="384" y="252" font-family="monospace" font-size="10.5" fill="#FBBF24"> UserTable</text>
+  <text x="452" y="252" font-family="monospace" font-size="10.5" fill="#E5E7EB">: </text>
+  <text x="466" y="252" font-family="monospace" font-size="10.5" fill="#60A5FA">React.FC</text>
+  <text x="522" y="252" font-family="monospace" font-size="10.5" fill="#E5E7EB">&lt;</text>
+  <text x="532" y="252" font-family="monospace" font-size="10.5" fill="#FBBF24">UserTableProps</text>
+  <text x="630" y="252" font-family="monospace" font-size="10.5" fill="#E5E7EB">&gt; = (&#x7B;</text>
+
+  <!-- line 12 -->
+  <rect x="300" y="259" width="700" height="18" rx="2" fill="#57B8FF" fill-opacity="0.06"/>
+  <text x="318" y="270" font-family="monospace" font-size="10.5" fill="#9CA3AF">  planFilter, onSelectUser</text>
+
+  <!-- line 13 -->
+  <text x="300" y="288" font-family="monospace" font-size="10.5" fill="#E5E7EB">&#x7D;) =&gt; &#x7B;</text>
+
+  <!-- line 14 -->
+  <text x="318" y="306" font-family="monospace" font-size="10.5" fill="#C084FC">  const</text>
+  <text x="360" y="306" font-family="monospace" font-size="10.5" fill="#E5E7EB"> [users, setUsers] = </text>
+  <text x="504" y="306" font-family="monospace" font-size="10.5" fill="#FBBF24">useState</text>
+  <text x="554" y="306" font-family="monospace" font-size="10.5" fill="#E5E7EB">&lt;</text>
+  <text x="564" y="306" font-family="monospace" font-size="10.5" fill="#FBBF24">User</text>
+  <text x="588" y="306" font-family="monospace" font-size="10.5" fill="#E5E7EB">[]&gt;([]);</text>
+
+  <!-- line 15 -->
+  <text x="318" y="324" font-family="monospace" font-size="10.5" fill="#C084FC">  const</text>
+  <text x="360" y="324" font-family="monospace" font-size="10.5" fill="#E5E7EB"> [loading, setLoading] = </text>
+  <text x="504" y="324" font-family="monospace" font-size="10.5" fill="#FBBF24">useState</text>
+  <text x="554" y="324" font-family="monospace" font-size="10.5" fill="#E5E7EB">(</text>
+  <text x="560" y="324" font-family="monospace" font-size="10.5" fill="#60A5FA">true</text>
+  <text x="586" y="324" font-family="monospace" font-size="10.5" fill="#E5E7EB">);</text>
+
+  <!-- line 16 blank -->
+
+  <!-- line 17 -->
+  <text x="318" y="360" font-family="monospace" font-size="10.5" fill="#FBBF24">  useEffect</text>
+  <text x="388" y="360" font-family="monospace" font-size="10.5" fill="#E5E7EB">(() =&gt; &#x7B;</text>
+
+  <!-- line 18 -->
+  <text x="336" y="378" font-family="monospace" font-size="10.5" fill="#C084FC">    const</text>
+  <text x="384" y="378" font-family="monospace" font-size="10.5" fill="#E5E7EB"> load = </text>
+  <text x="426" y="378" font-family="monospace" font-size="10.5" fill="#C084FC">async</text>
+  <text x="460" y="378" font-family="monospace" font-size="10.5" fill="#E5E7EB">() =&gt; &#x7B;</text>
+
+  <!-- line 19 -->
+  <text x="354" y="396" font-family="monospace" font-size="10.5" fill="#C084FC">      const</text>
+  <text x="404" y="396" font-family="monospace" font-size="10.5" fill="#E5E7EB"> data = </text>
+  <text x="444" y="396" font-family="monospace" font-size="10.5" fill="#C084FC">await</text>
+  <text x="480" y="396" font-family="monospace" font-size="10.5" fill="#FBBF24"> fetchUsers</text>
+  <text x="548" y="396" font-family="monospace" font-size="10.5" fill="#E5E7EB">(planFilter);</text>
+
+  <!-- line 20 -->
+  <text x="354" y="414" font-family="monospace" font-size="10.5" fill="#FBBF24">      setUsers</text>
+  <text x="426" y="414" font-family="monospace" font-size="10.5" fill="#E5E7EB">(data); </text>
+  <text x="484" y="414" font-family="monospace" font-size="10.5" fill="#FBBF24">setLoading</text>
+  <text x="556" y="414" font-family="monospace" font-size="10.5" fill="#E5E7EB">(</text>
+  <text x="562" y="414" font-family="monospace" font-size="10.5" fill="#60A5FA">false</text>
+  <text x="590" y="414" font-family="monospace" font-size="10.5" fill="#E5E7EB">);</text>
+
+  <!-- line 21 -->
+  <text x="336" y="432" font-family="monospace" font-size="10.5" fill="#E5E7EB">    &#x7D;;</text>
+  <text x="358" y="432" font-family="monospace" font-size="10.5" fill="#FBBF24"> load</text>
+  <text x="388" y="432" font-family="monospace" font-size="10.5" fill="#E5E7EB">();</text>
+
+  <!-- line 22 -->
+  <text x="318" y="450" font-family="monospace" font-size="10.5" fill="#E5E7EB">  &#x7D;, [planFilter]);</text>
+
+  <!-- line 23 blank -->
+
+  <!-- line 24 -->
+  <text x="318" y="486" font-family="monospace" font-size="10.5" fill="#C084FC">  if</text>
+  <text x="336" y="486" font-family="monospace" font-size="10.5" fill="#E5E7EB"> (loading) </text>
+  <text x="398" y="486" font-family="monospace" font-size="10.5" fill="#C084FC">return</text>
+  <text x="440" y="486" font-family="monospace" font-size="10.5" fill="#E5E7EB"> &lt;</text>
+  <text x="454" y="486" font-family="monospace" font-size="10.5" fill="#60A5FA">Skeleton</text>
+  <text x="516" y="486" font-family="monospace" font-size="10.5" fill="#E5E7EB"> rows=&#x7B;</text>
+  <text x="562" y="486" font-family="monospace" font-size="10.5" fill="#86EFAC">5</text>
+  <text x="572" y="486" font-family="monospace" font-size="10.5" fill="#E5E7EB">&#x7D; /&gt;;</text>
+
+  <!-- line 25 -->
+  <text x="318" y="504" font-family="monospace" font-size="10.5" fill="#C084FC">  return</text>
+  <text x="366" y="504" font-family="monospace" font-size="10.5" fill="#E5E7EB"> (</text>
+
+  <!-- Cursor blink at end of line 25 -->
+  <rect x="390" y="493" width="2" height="13" fill="#57B8FF" opacity="0.9"/>
+
+  <!-- Scrollbar -->
+  <rect x="960" y="42" width="8" height="490" fill="#0C0C18"/>
+  <rect x="961" y="100" width="6" height="80" rx="3" fill="#374151"/>
+
+  <!-- Terminal panel at bottom -->
+  <rect x="48" y="532" width="920" height="143" fill="#0A0A12"/>
+  <line x1="48" y1="532" x2="968" y2="532" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- Terminal tabs -->
+  <rect x="48" y="532" width="920" height="26" fill="#0F0F1C"/>
+  <line x1="48" y1="558" x2="968" y2="558" stroke="#1E2030" stroke-width="1"/>
+  <rect x="60" y="538" width="80" height="14" rx="2" fill="#1E2030"/>
+  <text x="100" y="549" text-anchor="middle" font-family="monospace" font-size="9" fill="#9CA3AF">TERMINAL</text>
+  <rect x="148" y="538" width="80" height="14" rx="2"/>
+  <text x="188" y="549" text-anchor="middle" font-family="monospace" font-size="9" fill="#4B5563">PROBLEMS</text>
+  <rect x="236" y="538" width="60" height="14" rx="2"/>
+  <text x="266" y="549" text-anchor="middle" font-family="monospace" font-size="9" fill="#4B5563">OUTPUT</text>
+
+  <!-- Terminal content -->
+  <text x="64" y="578" font-family="monospace" font-size="9.5" fill="#4ADE80">$ npm run dev</text>
+  <text x="64" y="596" font-family="monospace" font-size="9.5" fill="#6B7280">&#x3E; saas-platform@1.0.0 dev</text>
+  <text x="64" y="614" font-family="monospace" font-size="9.5" fill="#6B7280">&#x3E; vite</text>
+  <text x="64" y="632" font-family="monospace" font-size="9.5" fill="#9CA3AF">  VITE v5.2.1 ready in 248 ms</text>
+  <text x="64" y="650" font-family="monospace" font-size="9.5" fill="#4ADE80">  &#x279C;</text>
+  <text x="84" y="650" font-family="monospace" font-size="9.5" fill="#9CA3AF">  Local:  </text>
+  <text x="150" y="650" font-family="monospace" font-size="9.5" fill="#57B8FF">http://localhost:3000/</text>
+  <text x="64" y="668" font-family="monospace" font-size="9.5" fill="#374151">  &#x279C;  Network: http://192.168.1.42:3000/</text>
+
+  <!-- Minimap (right side of editor) -->
+  <rect x="968" y="42" width="232" height="633" fill="#0B0B16"/>
+  <line x1="968" y1="42" x2="968" y2="675" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- Minimap code lines (abstract) -->
+  <text x="980" y="60" font-family="monospace" font-size="4" fill="#374151" opacity="0.7">import React, &#x7B; useState, useEffect &#x7D; from 'react'</text>
+  <text x="980" y="68" font-family="monospace" font-size="4" fill="#374151" opacity="0.7">import &#x7B; fetchUsers &#x7D; from '../api/users'</text>
+  <text x="980" y="76" font-family="monospace" font-size="4" fill="#374151" opacity="0.7">import type &#x7B; User &#x7D; from '../types/user.types'</text>
+  <text x="980" y="92" font-family="monospace" font-size="4" fill="#4B5563" opacity="0.7">interface UserTableProps &#x7B;</text>
+  <text x="988" y="100" font-family="monospace" font-size="4" fill="#374151" opacity="0.6">  planFilter: 'all' | 'free' | 'pro' | 'business'</text>
+  <text x="988" y="108" font-family="monospace" font-size="4" fill="#374151" opacity="0.6">  onSelectUser: (user: User) =&#x3E; void</text>
+  <text x="980" y="116" font-family="monospace" font-size="4" fill="#4B5563" opacity="0.7">&#x7D;</text>
+
+  <!-- Minimap highlight viewport -->
+  <rect x="968" y="42" width="232" height="140" fill="#57B8FF" fill-opacity="0.04" stroke="#57B8FF" stroke-opacity="0.1" stroke-width="1"/>
+
+  <!-- Status bar at bottom -->
+  <rect x="0" y="655" width="1200" height="20" fill="#1565C0"/>
+  <text x="60" y="668" font-family="monospace" font-size="9" fill="#BFDBFE">&#x26A1; main</text>
+  <text x="130" y="668" font-family="monospace" font-size="9" fill="#BFDBFE">&#x2714; TypeScript</text>
+  <text x="240" y="668" font-family="monospace" font-size="9" fill="#BFDBFE">0 errors, 0 warnings</text>
+  <text x="900" y="668" font-family="monospace" font-size="9" fill="#BFDBFE">Ln 25, Col 6</text>
+  <text x="1000" y="668" font-family="monospace" font-size="9" fill="#BFDBFE">TypeScript React</text>
+  <text x="1100" y="668" font-family="monospace" font-size="9" fill="#BFDBFE">UTF-8</text>
+
+</svg>

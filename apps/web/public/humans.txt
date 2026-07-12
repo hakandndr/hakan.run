@@ -1,0 +1,12 @@
+/* TEAM */
+	Developer & Designer: Hakan Dundar
+	Role: Software Developer / QA Automation Engineer
+	Location: Irvine, California, USA
+	Site: https://hakan.run
+	GitHub: https://github.com/hakandndr
+	LinkedIn: https://www.linkedin.com/in/hdundar/
+
+/* SITE */
+	Built by: Hakan Dundar
+	Stack: React, Vite, Tailwind CSS, Supabase
+	Standards: HTML5, CSS3, ES2022

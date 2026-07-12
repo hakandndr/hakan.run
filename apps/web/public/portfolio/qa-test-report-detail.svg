@@ -1,0 +1,278 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="#0D0D14"/>
+
+  <!-- Top header bar -->
+  <rect width="1200" height="52" fill="#111118"/>
+  <line x1="0" y1="52" x2="1200" y2="52" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="22" cy="26" r="7" fill="#EF4444" fill-opacity="0.55"/>
+  <circle cx="50" cy="26" r="7" fill="#FBBF24" fill-opacity="0.55"/>
+  <circle cx="78" cy="26" r="7" fill="#4ADE80" fill-opacity="0.55"/>
+  <text x="600" y="33" text-anchor="middle" font-family="monospace" font-size="13" fill="#E5E7EB" font-weight="bold">CI/CD Pipeline &#x2014; Test Coverage Report</text>
+
+  <!-- =================== TOP: CI/CD Pipeline stages =================== -->
+  <rect x="0" y="52" width="1200" height="140" fill="#0F0F1C"/>
+  <line x1="0" y1="192" x2="1200" y2="192" stroke="#1E2030" stroke-width="1"/>
+  <text x="24" y="76" font-family="monospace" font-size="10" fill="#6B7280" letter-spacing="0.08em">PIPELINE  &#x2014;  push to main  &#x2022;  run #247  &#x2022;  2m 14s</text>
+
+  <!-- Stage 1: Install -->
+  <rect x="24" y="86" width="148" height="90" rx="6" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <rect x="24" y="86" width="148" height="6" rx="3" fill="#4ADE80"/>
+  <text x="98" y="110" text-anchor="middle" font-family="monospace" font-size="9" fill="#6B7280">INSTALL</text>
+  <text x="98" y="130" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ADE80" font-weight="bold">&#x2713; passed</text>
+  <text x="98" y="148" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">npm ci</text>
+  <text x="98" y="166" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">14.2s</text>
+
+  <!-- Arrow -->
+  <line x1="172" y1="131" x2="196" y2="131" stroke="#374151" stroke-width="2"/>
+  <polygon points="196,127 204,131 196,135" fill="#374151"/>
+
+  <!-- Stage 2: Build -->
+  <rect x="204" y="86" width="148" height="90" rx="6" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <rect x="204" y="86" width="148" height="6" rx="3" fill="#4ADE80"/>
+  <text x="278" y="110" text-anchor="middle" font-family="monospace" font-size="9" fill="#6B7280">BUILD</text>
+  <text x="278" y="130" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ADE80" font-weight="bold">&#x2713; passed</text>
+  <text x="278" y="148" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">vite build</text>
+  <text x="278" y="166" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">22.8s</text>
+
+  <!-- Arrow -->
+  <line x1="352" y1="131" x2="376" y2="131" stroke="#374151" stroke-width="2"/>
+  <polygon points="376,127 384,131 376,135" fill="#374151"/>
+
+  <!-- Stage 3: Unit Tests -->
+  <rect x="384" y="86" width="148" height="90" rx="6" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <rect x="384" y="86" width="148" height="6" rx="3" fill="#4ADE80"/>
+  <text x="458" y="110" text-anchor="middle" font-family="monospace" font-size="9" fill="#6B7280">UNIT TESTS</text>
+  <text x="458" y="130" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ADE80" font-weight="bold">&#x2713; 142/142</text>
+  <text x="458" y="148" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">vitest run</text>
+  <text x="458" y="166" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">8.4s</text>
+
+  <!-- Arrow -->
+  <line x1="532" y1="131" x2="556" y2="131" stroke="#374151" stroke-width="2"/>
+  <polygon points="556,127 564,131 556,135" fill="#374151"/>
+
+  <!-- Stage 4: E2E Tests -->
+  <rect x="564" y="86" width="148" height="90" rx="6" fill="#131320" stroke="#EF4444" stroke-width="1" stroke-opacity="0.4"/>
+  <rect x="564" y="86" width="148" height="6" rx="3" fill="#EF4444"/>
+  <text x="638" y="110" text-anchor="middle" font-family="monospace" font-size="9" fill="#6B7280">E2E TESTS</text>
+  <text x="638" y="130" text-anchor="middle" font-family="monospace" font-size="11" fill="#EF4444" font-weight="bold">&#x2717; 71/75</text>
+  <text x="638" y="148" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">playwright</text>
+  <text x="638" y="166" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">22.6s</text>
+
+  <!-- Arrow (dashed = blocked) -->
+  <line x1="712" y1="131" x2="736" y2="131" stroke="#374151" stroke-width="2" stroke-dasharray="4,3"/>
+  <polygon points="736,127 744,131 736,135" fill="#374151" opacity="0.4"/>
+
+  <!-- Stage 5: Deploy -->
+  <rect x="744" y="86" width="148" height="90" rx="6" fill="#0C0C18" stroke="#374151" stroke-width="1" opacity="0.6"/>
+  <rect x="744" y="86" width="148" height="6" rx="3" fill="#374151"/>
+  <text x="818" y="110" text-anchor="middle" font-family="monospace" font-size="9" fill="#4B5563">DEPLOY</text>
+  <text x="818" y="130" text-anchor="middle" font-family="monospace" font-size="11" fill="#4B5563">&#x23F8; blocked</text>
+  <text x="818" y="148" text-anchor="middle" font-family="monospace" font-size="8" fill="#374151">vercel deploy</text>
+  <text x="818" y="166" text-anchor="middle" font-family="monospace" font-size="8" fill="#374151">—</text>
+
+  <!-- Run summary right -->
+  <text x="950" y="100" font-family="monospace" font-size="9" fill="#6B7280">Branch: main</text>
+  <text x="950" y="118" font-family="monospace" font-size="9" fill="#6B7280">Commit: a3f8c12</text>
+  <text x="950" y="136" font-family="monospace" font-size="9" fill="#6B7280">Triggered by: push</text>
+  <text x="950" y="154" font-family="monospace" font-size="9" fill="#6B7280">Duration: 2m 14s</text>
+  <rect x="950" y="162" width="100" height="18" rx="3" fill="#EF4444" fill-opacity="0.1" stroke="#EF4444" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="1000" y="175" text-anchor="middle" font-family="monospace" font-size="9" fill="#EF4444">FAILED</text>
+
+  <!-- =================== BOTTOM LEFT: Coverage breakdown =================== -->
+  <line x1="600" y1="192" x2="600" y2="675" stroke="#1E2030" stroke-width="1"/>
+
+  <text x="24" y="218" font-family="monospace" font-size="11" fill="#E5E7EB" font-weight="bold">Test Coverage</text>
+  <text x="24" y="236" font-family="monospace" font-size="9" fill="#6B7280">src/ &#x2014; all files</text>
+
+  <!-- Coverage table header -->
+  <rect x="24" y="244" width="552" height="22" rx="3" fill="#131320"/>
+  <text x="36" y="259" font-family="monospace" font-size="8.5" fill="#6B7280">File</text>
+  <text x="300" y="259" font-family="monospace" font-size="8.5" fill="#6B7280">Stmts</text>
+  <text x="370" y="259" font-family="monospace" font-size="8.5" fill="#6B7280">Branch</text>
+  <text x="440" y="259" font-family="monospace" font-size="8.5" fill="#6B7280">Funcs</text>
+  <text x="510" y="259" font-family="monospace" font-size="8.5" fill="#6B7280">Lines</text>
+
+  <!-- Coverage rows -->
+  <!-- Row 1 -->
+  <rect x="24" y="266" width="552" height="20" rx="2" fill="#0F1A0F"/>
+  <text x="36" y="280" font-family="monospace" font-size="8.5" fill="#9CA3AF">UserTable.tsx</text>
+  <text x="300" y="280" font-family="monospace" font-size="8.5" fill="#4ADE80">96.3%</text>
+  <text x="370" y="280" font-family="monospace" font-size="8.5" fill="#4ADE80">88.2%</text>
+  <text x="440" y="280" font-family="monospace" font-size="8.5" fill="#4ADE80">100%</text>
+  <text x="510" y="280" font-family="monospace" font-size="8.5" fill="#4ADE80">96.3%</text>
+
+  <!-- Row 2 -->
+  <text x="36" y="300" font-family="monospace" font-size="8.5" fill="#9CA3AF">MetricCard.tsx</text>
+  <text x="300" y="300" font-family="monospace" font-size="8.5" fill="#4ADE80">100%</text>
+  <text x="370" y="300" font-family="monospace" font-size="8.5" fill="#4ADE80">100%</text>
+  <text x="440" y="300" font-family="monospace" font-size="8.5" fill="#4ADE80">100%</text>
+  <text x="510" y="300" font-family="monospace" font-size="8.5" fill="#4ADE80">100%</text>
+
+  <!-- Row 3 -->
+  <rect x="24" y="306" width="552" height="20" rx="2" fill="#0F1A0F"/>
+  <text x="36" y="320" font-family="monospace" font-size="8.5" fill="#9CA3AF">useAuth.hook.ts</text>
+  <text x="300" y="320" font-family="monospace" font-size="8.5" fill="#4ADE80">91.7%</text>
+  <text x="370" y="320" font-family="monospace" font-size="8.5" fill="#FBBF24">72.4%</text>
+  <text x="440" y="320" font-family="monospace" font-size="8.5" fill="#4ADE80">90.0%</text>
+  <text x="510" y="320" font-family="monospace" font-size="8.5" fill="#4ADE80">91.7%</text>
+
+  <!-- Row 4 -->
+  <text x="36" y="340" font-family="monospace" font-size="8.5" fill="#9CA3AF">api/users.ts</text>
+  <text x="300" y="340" font-family="monospace" font-size="8.5" fill="#4ADE80">94.8%</text>
+  <text x="370" y="340" font-family="monospace" font-size="8.5" fill="#4ADE80">85.7%</text>
+  <text x="440" y="340" font-family="monospace" font-size="8.5" fill="#4ADE80">93.3%</text>
+  <text x="510" y="340" font-family="monospace" font-size="8.5" fill="#4ADE80">94.8%</text>
+
+  <!-- Row 5 -->
+  <rect x="24" y="346" width="552" height="20" rx="2" fill="#0F1A0F"/>
+  <text x="36" y="360" font-family="monospace" font-size="8.5" fill="#9CA3AF">Sidebar.tsx</text>
+  <text x="300" y="360" font-family="monospace" font-size="8.5" fill="#EF4444">68.2%</text>
+  <text x="370" y="360" font-family="monospace" font-size="8.5" fill="#EF4444">55.0%</text>
+  <text x="440" y="360" font-family="monospace" font-size="8.5" fill="#FBBF24">75.0%</text>
+  <text x="510" y="360" font-family="monospace" font-size="8.5" fill="#EF4444">68.2%</text>
+
+  <!-- Row 6 -->
+  <text x="36" y="380" font-family="monospace" font-size="8.5" fill="#9CA3AF">LineChart.tsx</text>
+  <text x="300" y="380" font-family="monospace" font-size="8.5" fill="#FBBF24">78.9%</text>
+  <text x="370" y="380" font-family="monospace" font-size="8.5" fill="#FBBF24">70.0%</text>
+  <text x="440" y="380" font-family="monospace" font-size="8.5" fill="#4ADE80">84.6%</text>
+  <text x="510" y="380" font-family="monospace" font-size="8.5" fill="#FBBF24">78.9%</text>
+
+  <!-- Totals row -->
+  <line x1="24" y1="390" x2="576" y2="390" stroke="#1E2030" stroke-width="1"/>
+  <rect x="24" y="392" width="552" height="22" rx="3" fill="#131320"/>
+  <text x="36" y="407" font-family="monospace" font-size="8.5" fill="#E5E7EB" font-weight="bold">All files</text>
+  <text x="300" y="407" font-family="monospace" font-size="8.5" fill="#4ADE80" font-weight="bold">88.3%</text>
+  <text x="370" y="407" font-family="monospace" font-size="8.5" fill="#FBBF24" font-weight="bold">78.6%</text>
+  <text x="440" y="407" font-family="monospace" font-size="8.5" fill="#4ADE80" font-weight="bold">90.5%</text>
+  <text x="510" y="407" font-family="monospace" font-size="8.5" fill="#4ADE80" font-weight="bold">88.3%</text>
+
+  <!-- Coverage bar charts -->
+  <text x="24" y="440" font-family="monospace" font-size="10" fill="#9CA3AF">Overall Coverage</text>
+
+  <!-- Statements bar -->
+  <text x="36" y="460" font-family="monospace" font-size="9" fill="#6B7280">Statements</text>
+  <rect x="150" y="450" width="380" height="14" rx="3" fill="#1E2030"/>
+  <rect x="150" y="450" width="335" height="14" rx="3" fill="#4ADE80" fill-opacity="0.7"/>
+  <text x="542" y="461" font-family="monospace" font-size="9" fill="#4ADE80">88.3%</text>
+
+  <!-- Branches bar -->
+  <text x="36" y="482" font-family="monospace" font-size="9" fill="#6B7280">Branches</text>
+  <rect x="150" y="472" width="380" height="14" rx="3" fill="#1E2030"/>
+  <rect x="150" y="472" width="299" height="14" rx="3" fill="#FBBF24" fill-opacity="0.7"/>
+  <text x="542" y="483" font-family="monospace" font-size="9" fill="#FBBF24">78.6%</text>
+
+  <!-- Functions bar -->
+  <text x="36" y="504" font-family="monospace" font-size="9" fill="#6B7280">Functions</text>
+  <rect x="150" y="494" width="380" height="14" rx="3" fill="#1E2030"/>
+  <rect x="150" y="494" width="344" height="14" rx="3" fill="#4ADE80" fill-opacity="0.7"/>
+  <text x="542" y="505" font-family="monospace" font-size="9" fill="#4ADE80">90.5%</text>
+
+  <!-- Lines bar -->
+  <text x="36" y="526" font-family="monospace" font-size="9" fill="#6B7280">Lines</text>
+  <rect x="150" y="516" width="380" height="14" rx="3" fill="#1E2030"/>
+  <rect x="150" y="516" width="335" height="14" rx="3" fill="#4ADE80" fill-opacity="0.7"/>
+  <text x="542" y="527" font-family="monospace" font-size="9" fill="#4ADE80">88.3%</text>
+
+  <!-- Threshold note -->
+  <line x1="150" y1="450" x2="150" y2="530" stroke="#374151" stroke-width="1" stroke-dasharray="2,2"/>
+  <rect x="524" y="449" width="2" height="82" fill="#374151" opacity="0.4"/>
+  <text x="36" y="558" font-family="monospace" font-size="8" fill="#4B5563">Threshold: 80% (statements, functions, lines)</text>
+  <text x="36" y="573" font-family="monospace" font-size="8" fill="#4B5563">Generated by: c8 &#x2022; vitest &#x2022; nyc</text>
+
+  <!-- =================== BOTTOM RIGHT: Pass rate history =================== -->
+  <text x="624" y="218" font-family="monospace" font-size="11" fill="#E5E7EB" font-weight="bold">Pass Rate History &#x2014; Last 14 Runs</text>
+
+  <!-- Sparkline chart area -->
+  <rect x="624" y="230" width="552" height="160" rx="6" fill="#0F0F1C" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- Y-axis labels -->
+  <text x="636" y="250" font-family="monospace" font-size="7.5" fill="#374151">100%</text>
+  <text x="636" y="290" font-family="monospace" font-size="7.5" fill="#374151">90%</text>
+  <text x="636" y="330" font-family="monospace" font-size="7.5" fill="#374151">80%</text>
+  <text x="636" y="370" font-family="monospace" font-size="7.5" fill="#374151">70%</text>
+
+  <!-- Grid lines -->
+  <line x1="668" y1="246" x2="1168" y2="246" stroke="#1E2030" stroke-width="1"/>
+  <line x1="668" y1="286" x2="1168" y2="286" stroke="#1E2030" stroke-width="1"/>
+  <line x1="668" y1="326" x2="1168" y2="326" stroke="#1E2030" stroke-width="1"/>
+  <line x1="668" y1="366" x2="1168" y2="366" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- Pass rate line (data: ~95, 97, 94, 98, 96, 100, 95, 97, 93, 98, 97, 100, 95, 94.7) -->
+  <!-- Area fill under line -->
+  <polygon points="668,264 704,254 740,272 776,248 812,258 848,246 884,264 920,254 956,276 992,250 1028,254 1064,246 1100,264 1136,268 1168,268 1168,366 668,366" fill="#4ADE80" fill-opacity="0.08"/>
+
+  <!-- The line -->
+  <polyline points="668,264 704,254 740,272 776,248 812,258 848,246 884,264 920,254 956,276 992,250 1028,254 1064,246 1100,264 1136,268" fill="none" stroke="#4ADE80" stroke-width="2" stroke-linejoin="round"/>
+
+  <!-- Data points -->
+  <circle cx="668" cy="264" r="3" fill="#4ADE80"/>
+  <circle cx="704" cy="254" r="3" fill="#4ADE80"/>
+  <circle cx="740" cy="272" r="3" fill="#FBBF24"/>
+  <circle cx="776" cy="248" r="3" fill="#4ADE80"/>
+  <circle cx="812" cy="258" r="3" fill="#4ADE80"/>
+  <circle cx="848" cy="246" r="3" fill="#4ADE80"/>
+  <circle cx="884" cy="264" r="3" fill="#4ADE80"/>
+  <circle cx="920" cy="254" r="3" fill="#4ADE80"/>
+  <circle cx="956" cy="276" r="3" fill="#FBBF24"/>
+  <circle cx="992" cy="250" r="3" fill="#4ADE80"/>
+  <circle cx="1028" cy="254" r="3" fill="#4ADE80"/>
+  <circle cx="1064" cy="246" r="3" fill="#4ADE80"/>
+  <circle cx="1100" cy="264" r="3" fill="#4ADE80"/>
+  <!-- Last point (current run, failed) -->
+  <circle cx="1136" cy="268" r="4" fill="#EF4444"/>
+  <line x1="1136" y1="246" x2="1136" y2="376" stroke="#EF4444" stroke-width="1" stroke-dasharray="3,2" stroke-opacity="0.4"/>
+  <text x="1110" y="244" font-family="monospace" font-size="7.5" fill="#EF4444">&#x2717; #247</text>
+
+  <!-- Run number labels -->
+  <text x="668" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#234</text>
+  <text x="740" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#236</text>
+  <text x="812" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#238</text>
+  <text x="884" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#240</text>
+  <text x="956" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#242</text>
+  <text x="1028" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#244</text>
+  <text x="1100" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#374151">#246</text>
+  <text x="1136" y="385" text-anchor="middle" font-family="monospace" font-size="7" fill="#EF4444">#247</text>
+
+  <!-- Summary stats right-of-chart -->
+  <text x="624" y="418" font-family="monospace" font-size="10" fill="#9CA3AF">Run #247 Summary</text>
+
+  <rect x="624" y="428" width="168" height="52" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="636" y="447" font-family="monospace" font-size="8.5" fill="#6B7280">Unit Tests</text>
+  <text x="636" y="466" font-family="monospace" font-size="14" fill="#4ADE80" font-weight="bold">142 / 142</text>
+  <text x="636" y="476" font-family="monospace" font-size="7.5" fill="#4ADE80">100% passed</text>
+
+  <rect x="804" y="428" width="168" height="52" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="816" y="447" font-family="monospace" font-size="8.5" fill="#6B7280">E2E Tests</text>
+  <text x="816" y="466" font-family="monospace" font-size="14" fill="#EF4444" font-weight="bold">71 / 75</text>
+  <text x="816" y="476" font-family="monospace" font-size="7.5" fill="#EF4444">4 failing</text>
+
+  <rect x="984" y="428" width="168" height="52" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="996" y="447" font-family="monospace" font-size="8.5" fill="#6B7280">Coverage</text>
+  <text x="996" y="466" font-family="monospace" font-size="14" fill="#FBBF24" font-weight="bold">88.3%</text>
+  <text x="996" y="476" font-family="monospace" font-size="7.5" fill="#FBBF24">target: 90%</text>
+
+  <!-- Failing test list -->
+  <text x="624" y="510" font-family="monospace" font-size="10" fill="#9CA3AF">Failing Tests</text>
+  <rect x="624" y="518" width="552" height="20" rx="3" fill="#EF4444" fill-opacity="0.06" stroke="#EF4444" stroke-opacity="0.15" stroke-width="1"/>
+  <text x="636" y="532" font-family="monospace" font-size="8.5" fill="#EF4444">&#x2717;  navigation.spec.ts &#x203A; sidebar collapse animation</text>
+  <text x="1148" y="532" text-anchor="end" font-family="monospace" font-size="8" fill="#6B7280">5,013ms</text>
+
+  <text x="636" y="552" font-family="monospace" font-size="8.5" fill="#EF4444">&#x2717;  navigation.spec.ts &#x203A; mobile nav drawer toggle</text>
+  <text x="1148" y="552" text-anchor="end" font-family="monospace" font-size="8" fill="#6B7280">5,007ms</text>
+
+  <text x="636" y="572" font-family="monospace" font-size="8.5" fill="#EF4444">&#x2717;  billing.spec.ts &#x203A; upgrade plan modal renders</text>
+  <text x="1148" y="572" text-anchor="end" font-family="monospace" font-size="8" fill="#6B7280">8,442ms</text>
+
+  <text x="636" y="592" font-family="monospace" font-size="8.5" fill="#EF4444">&#x2717;  billing.spec.ts &#x203A; payment form validation</text>
+  <text x="1148" y="592" text-anchor="end" font-family="monospace" font-size="8" fill="#6B7280">5,221ms</text>
+
+  <line x1="624" y1="606" x2="1176" y2="606" stroke="#1E2030" stroke-width="1"/>
+
+  <text x="624" y="625" font-family="monospace" font-size="8.5" fill="#4B5563">Root cause: sidebar-toggle selector missing in mobile viewport (CSS regression)</text>
+  <text x="624" y="643" font-family="monospace" font-size="8.5" fill="#4B5563">Fix: update .sidebar-toggle selector + add viewport-specific locators</text>
+  <text x="624" y="661" font-family="monospace" font-size="8.5" fill="#374151">GitHub Actions &#x2022; Node 20.12 &#x2022; Playwright v1.44 &#x2022; c8 coverage</text>
+
+</svg>

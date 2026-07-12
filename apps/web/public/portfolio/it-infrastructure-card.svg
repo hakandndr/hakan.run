@@ -1,0 +1,224 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+
+  <!-- Background -->
+  <rect width="800" height="500" fill="#0C0D14"/>
+
+  <!-- Header bar -->
+  <rect width="800" height="44" fill="#0F0F1C"/>
+  <line x1="0" y1="44" x2="800" y2="44" stroke="#1E2030" stroke-width="1"/>
+  <text x="24" y="28" font-family="monospace" font-size="12" fill="#9CA3AF">Infrastructure Overview &#x2014; RACK-01</text>
+  <rect x="604" y="11" width="90" height="22" rx="4" fill="#4ADE80" fill-opacity="0.1" stroke="#4ADE80" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="649" y="26" text-anchor="middle" font-family="monospace" font-size="9" fill="#4ADE80">&#x25CF; Operational</text>
+  <rect x="704" y="11" width="78" height="22" rx="4" fill="#57B8FF" fill-opacity="0.1" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="743" y="26" text-anchor="middle" font-family="monospace" font-size="9" fill="#57B8FF">Monitoring</text>
+
+  <!-- LEFT: Server rack diagram -->
+  <!-- Rack cabinet outer -->
+  <rect x="32" y="58" width="230" height="428" rx="3" fill="#0F0F1C" stroke="#374151" stroke-width="2"/>
+  <!-- Rail channels -->
+  <rect x="42" y="66" width="14" height="412" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="252" y="66" width="14" height="412" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <text x="147" y="56" text-anchor="middle" font-family="monospace" font-size="8" fill="#4B5563">RACK-01 / 42U</text>
+
+  <!-- Rack units -->
+  <!-- Patch panel 1U -->
+  <rect x="60" y="70" width="178" height="18" rx="2" fill="#13131E" stroke="#2D2D3D" stroke-width="1"/>
+  <text x="70" y="83" font-family="monospace" font-size="7" fill="#6B7280">Patch Panel &#x2014; 24pt Cat6</text>
+  <circle cx="178" cy="79" r="2" fill="#4ADE80"/>
+  <circle cx="186" cy="79" r="2" fill="#4ADE80"/>
+  <circle cx="194" cy="79" r="2" fill="#374151"/>
+  <circle cx="202" cy="79" r="2" fill="#4ADE80"/>
+  <circle cx="210" cy="79" r="2" fill="#FBBF24"/>
+  <circle cx="218" cy="79" r="2" fill="#4ADE80"/>
+  <circle cx="226" cy="79" r="2" fill="#4ADE80"/>
+
+  <!-- Core Switch 2U -->
+  <rect x="60" y="92" width="178" height="30" rx="2" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="92" width="5" height="30" rx="1" fill="#57B8FF" fill-opacity="0.7"/>
+  <text x="73" y="105" font-family="monospace" font-size="7" fill="#9CA3AF">Core Switch &#x2014; Cisco 3850</text>
+  <text x="73" y="116" font-family="monospace" font-size="7" fill="#4B5563">24G PoE+ &#x2022; VLAN &#x2022; Uplink</text>
+  <circle cx="218" cy="102" r="2.5" fill="#4ADE80"/>
+  <circle cx="226" cy="102" r="2.5" fill="#4ADE80"/>
+  <rect x="212" y="112" width="24" height="7" rx="1" fill="#57B8FF" fill-opacity="0.25"/>
+
+  <!-- Firewall 1U -->
+  <rect x="60" y="126" width="178" height="18" rx="2" fill="#13131E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="126" width="5" height="18" rx="1" fill="#FBBF24" fill-opacity="0.7"/>
+  <text x="73" y="139" font-family="monospace" font-size="7" fill="#9CA3AF">Firewall / UTM &#x2022; 8 ports</text>
+  <circle cx="218" cy="135" r="2.5" fill="#4ADE80"/>
+  <circle cx="226" cy="135" r="2.5" fill="#FBBF24"/>
+
+  <!-- Empty 1U -->
+  <rect x="60" y="148" width="178" height="18" rx="2" fill="#0C0D14" stroke="#1E2030" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="149" y="161" text-anchor="middle" font-family="monospace" font-size="7" fill="#2D2D3D">&#x2014; available &#x2014;</text>
+
+  <!-- SRV-01 Web/App 2U -->
+  <rect x="60" y="170" width="178" height="30" rx="2" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="170" width="5" height="30" rx="1" fill="#4ADE80" fill-opacity="0.7"/>
+  <text x="73" y="183" font-family="monospace" font-size="7" fill="#9CA3AF">SRV-01 &#x2022; Web / App Server</text>
+  <text x="73" y="194" font-family="monospace" font-size="7" fill="#4B5563">16c / 64GB RAM / 2TB NVMe</text>
+  <circle cx="214" cy="180" r="2" fill="#4ADE80"/>
+  <circle cx="222" cy="180" r="2" fill="#4ADE80"/>
+  <circle cx="230" cy="180" r="2" fill="#4ADE80"/>
+
+  <!-- SRV-02 Database 2U -->
+  <rect x="60" y="204" width="178" height="30" rx="2" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="204" width="5" height="30" rx="1" fill="#4ADE80" fill-opacity="0.7"/>
+  <text x="73" y="217" font-family="monospace" font-size="7" fill="#9CA3AF">SRV-02 &#x2022; Database Server</text>
+  <text x="73" y="228" font-family="monospace" font-size="7" fill="#4B5563">16c / 128GB RAM / RAID10</text>
+  <circle cx="214" cy="214" r="2" fill="#4ADE80"/>
+  <circle cx="222" cy="214" r="2" fill="#4ADE80"/>
+  <circle cx="230" cy="214" r="2" fill="#4ADE80"/>
+
+  <!-- DC-01 Active Directory 2U -->
+  <rect x="60" y="238" width="178" height="30" rx="2" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="238" width="5" height="30" rx="1" fill="#57B8FF" fill-opacity="0.7"/>
+  <text x="73" y="251" font-family="monospace" font-size="7" fill="#9CA3AF">DC-01 &#x2022; Active Directory</text>
+  <text x="73" y="262" font-family="monospace" font-size="7" fill="#4B5563">Win Server 2022 &#x2022; GPO &#x2022; DNS</text>
+  <circle cx="214" cy="248" r="2" fill="#4ADE80"/>
+  <circle cx="222" cy="248" r="2" fill="#4ADE80"/>
+
+  <!-- SCCM / MDT 2U -->
+  <rect x="60" y="272" width="178" height="30" rx="2" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="272" width="5" height="30" rx="1" fill="#4ADE80" fill-opacity="0.7"/>
+  <text x="73" y="285" font-family="monospace" font-size="7" fill="#9CA3AF">SRV-03 &#x2022; SCCM / MDT Deploy</text>
+  <text x="73" y="296" font-family="monospace" font-size="7" fill="#4B5563">Endpoint Imaging &#x2022; OSD</text>
+  <circle cx="214" cy="282" r="2" fill="#4ADE80"/>
+  <circle cx="222" cy="282" r="2" fill="#4ADE80"/>
+  <circle cx="230" cy="282" r="2" fill="#4ADE80"/>
+
+  <!-- NAS 2U -->
+  <rect x="60" y="306" width="178" height="30" rx="2" fill="#1A1A2E" stroke="#2D2D3D" stroke-width="1"/>
+  <rect x="60" y="306" width="5" height="30" rx="1" fill="#4ADE80" fill-opacity="0.6"/>
+  <text x="73" y="319" font-family="monospace" font-size="7" fill="#9CA3AF">NAS-01 &#x2022; File / Backup</text>
+  <text x="73" y="330" font-family="monospace" font-size="7" fill="#4B5563">8c / 32GB / 48TB JBOD</text>
+  <circle cx="214" cy="316" r="2" fill="#4ADE80"/>
+  <circle cx="222" cy="316" r="2" fill="#FBBF24"/>
+
+  <!-- UPS 1U -->
+  <rect x="60" y="340" width="178" height="18" rx="2" fill="#13131E" stroke="#2D2D3D" stroke-width="1"/>
+  <text x="73" y="353" font-family="monospace" font-size="7" fill="#6B7280">UPS-01 &#x2022; 3000VA &#x2022; Protected</text>
+  <circle cx="226" cy="349" r="2.5" fill="#4ADE80"/>
+
+  <!-- Empty slots -->
+  <rect x="60" y="362" width="178" height="16" rx="1" fill="#0C0D14" stroke="#1E2030" stroke-width="1" stroke-dasharray="2,2"/>
+  <rect x="60" y="382" width="178" height="16" rx="1" fill="#0C0D14" stroke="#1E2030" stroke-width="1" stroke-dasharray="2,2"/>
+  <rect x="60" y="402" width="178" height="16" rx="1" fill="#0C0D14" stroke="#1E2030" stroke-width="1" stroke-dasharray="2,2"/>
+  <rect x="60" y="422" width="178" height="62" rx="2" fill="#0C0D14" stroke="#1E2030" stroke-width="1" stroke-dasharray="2,2"/>
+  <text x="149" y="456" text-anchor="middle" font-family="monospace" font-size="8" fill="#2D2D3D">Available</text>
+
+  <!-- RIGHT PANEL -->
+  <rect x="282" y="58" width="490" height="428" rx="4" fill="#0F0F1C"/>
+  <line x1="282" y1="58" x2="282" y2="486" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- Right panel metrics -->
+  <rect x="298" y="70" width="108" height="58" rx="5" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <text x="308" y="87" font-family="monospace" font-size="8" fill="#6B7280">ENDPOINTS</text>
+  <text x="308" y="113" font-family="monospace" font-size="20" fill="#F9FAFB" font-weight="bold">400+</text>
+  <text x="308" y="125" font-family="monospace" font-size="7" fill="#4ADE80">per year</text>
+
+  <rect x="416" y="70" width="108" height="58" rx="5" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <text x="426" y="87" font-family="monospace" font-size="8" fill="#6B7280">SMART BOARDS</text>
+  <text x="426" y="113" font-family="monospace" font-size="20" fill="#F9FAFB" font-weight="bold">100+</text>
+  <text x="426" y="125" font-family="monospace" font-size="7" fill="#57B8FF">annual</text>
+
+  <rect x="534" y="70" width="108" height="58" rx="5" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <text x="544" y="87" font-family="monospace" font-size="8" fill="#6B7280">LABS / YEAR</text>
+  <text x="544" y="113" font-family="monospace" font-size="20" fill="#F9FAFB" font-weight="bold">20+</text>
+  <text x="544" y="125" font-family="monospace" font-size="7" fill="#FBBF24">configured</text>
+
+  <rect x="652" y="70" width="104" height="58" rx="5" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <text x="662" y="87" font-family="monospace" font-size="8" fill="#6B7280">EXPERIENCE</text>
+  <text x="662" y="113" font-family="monospace" font-size="20" fill="#F9FAFB" font-weight="bold">15+</text>
+  <text x="662" y="125" font-family="monospace" font-size="7" fill="#4ADE80">years</text>
+
+  <!-- Services -->
+  <text x="298" y="152" font-family="monospace" font-size="10" fill="#6B7280">Active Services</text>
+
+  <rect x="298" y="160" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="172" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="176" font-family="monospace" font-size="9" fill="#9CA3AF">Active Directory (AD DS)</text>
+
+  <rect x="298" y="190" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="202" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="206" font-family="monospace" font-size="9" fill="#9CA3AF">DHCP &#x2014; 3 scopes</text>
+
+  <rect x="298" y="220" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="232" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="236" font-family="monospace" font-size="9" fill="#9CA3AF">DNS &#x2014; Primary + Secondary</text>
+
+  <rect x="298" y="250" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="262" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="266" font-family="monospace" font-size="9" fill="#9CA3AF">VPN &#x2014; Site-to-Site</text>
+
+  <rect x="298" y="280" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="292" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="296" font-family="monospace" font-size="9" fill="#9CA3AF">SCCM &#x2014; Endpoint Management</text>
+
+  <rect x="298" y="310" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="322" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="326" font-family="monospace" font-size="9" fill="#9CA3AF">Microsoft 365 Admin</text>
+
+  <rect x="298" y="340" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="352" r="3.5" fill="#FBBF24"/>
+  <text x="326" y="356" font-family="monospace" font-size="9" fill="#9CA3AF">Wi-Fi Optimization (WPA3)</text>
+
+  <rect x="298" y="370" width="224" height="24" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="314" cy="382" r="3.5" fill="#4ADE80"/>
+  <text x="326" y="386" font-family="monospace" font-size="9" fill="#9CA3AF">Remote Desktop Services</text>
+
+  <!-- Tech tags column -->
+  <line x1="540" y1="144" x2="540" y2="486" stroke="#1E2030" stroke-width="1"/>
+  <text x="554" y="152" font-family="monospace" font-size="10" fill="#6B7280">Tech Stack</text>
+
+  <rect x="554" y="160" width="100" height="20" rx="3" fill="#57B8FF" fill-opacity="0.07" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="604" y="174" text-anchor="middle" font-family="monospace" font-size="8" fill="#57B8FF">Windows Server</text>
+  <rect x="662" y="160" width="90" height="20" rx="3" fill="#57B8FF" fill-opacity="0.07" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="707" y="174" text-anchor="middle" font-family="monospace" font-size="8" fill="#57B8FF">Active Dir.</text>
+  <rect x="554" y="188" width="60" height="20" rx="3" fill="#57B8FF" fill-opacity="0.07" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="584" y="202" text-anchor="middle" font-family="monospace" font-size="8" fill="#57B8FF">GPO</text>
+  <rect x="622" y="188" width="60" height="20" rx="3" fill="#57B8FF" fill-opacity="0.07" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="652" y="202" text-anchor="middle" font-family="monospace" font-size="8" fill="#57B8FF">SCCM</text>
+  <rect x="690" y="188" width="62" height="20" rx="3" fill="#4ADE80" fill-opacity="0.07" stroke="#4ADE80" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="721" y="202" text-anchor="middle" font-family="monospace" font-size="8" fill="#4ADE80">DNS/DHCP</text>
+  <rect x="554" y="216" width="50" height="20" rx="3" fill="#4ADE80" fill-opacity="0.07" stroke="#4ADE80" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="579" y="230" text-anchor="middle" font-family="monospace" font-size="8" fill="#4ADE80">VPN</text>
+  <rect x="612" y="216" width="78" height="20" rx="3" fill="#4ADE80" fill-opacity="0.07" stroke="#4ADE80" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="651" y="230" text-anchor="middle" font-family="monospace" font-size="8" fill="#4ADE80">LAN/WAN</text>
+  <rect x="698" y="216" width="54" height="20" rx="3" fill="#FBBF24" fill-opacity="0.07" stroke="#FBBF24" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="725" y="230" text-anchor="middle" font-family="monospace" font-size="8" fill="#FBBF24">Wi-Fi</text>
+  <rect x="554" y="244" width="56" height="20" rx="3" fill="#FBBF24" fill-opacity="0.07" stroke="#FBBF24" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="582" y="258" text-anchor="middle" font-family="monospace" font-size="8" fill="#FBBF24">Jira</text>
+  <rect x="618" y="244" width="78" height="20" rx="3" fill="#9CA3AF" fill-opacity="0.07" stroke="#9CA3AF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="657" y="258" text-anchor="middle" font-family="monospace" font-size="8" fill="#9CA3AF">M365 Admin</text>
+  <rect x="704" y="244" width="48" height="20" rx="3" fill="#9CA3AF" fill-opacity="0.07" stroke="#9CA3AF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="728" y="258" text-anchor="middle" font-family="monospace" font-size="8" fill="#9CA3AF">RDS</text>
+
+  <line x1="554" y1="278" x2="762" y2="278" stroke="#1E2030" stroke-width="1"/>
+  <text x="554" y="298" font-family="monospace" font-size="9" fill="#6B7280">Role Summary</text>
+
+  <rect x="554" y="306" width="204" height="26" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <rect x="554" y="306" width="3" height="26" rx="1" fill="#57B8FF"/>
+  <text x="565" y="316" font-family="monospace" font-size="8" fill="#9CA3AF">Regional IT Project Coordinator</text>
+  <text x="565" y="327" font-family="monospace" font-size="7" fill="#4B5563">FATIH Project &#x2022; MOE Turkey</text>
+
+  <rect x="554" y="340" width="204" height="26" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <rect x="554" y="340" width="3" height="26" rx="1" fill="#4ADE80"/>
+  <text x="565" y="350" font-family="monospace" font-size="8" fill="#9CA3AF">Tier-2 / Tier-3 Field Support</text>
+  <text x="565" y="361" font-family="monospace" font-size="7" fill="#4B5563">Network &#x2022; Hardware &#x2022; Software</text>
+
+  <rect x="554" y="374" width="204" height="26" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <rect x="554" y="374" width="3" height="26" rx="1" fill="#FBBF24"/>
+  <text x="565" y="384" font-family="monospace" font-size="8" fill="#9CA3AF">Endpoint Imaging + OSD</text>
+  <text x="565" y="395" font-family="monospace" font-size="7" fill="#4B5563">400+ workstations annually</text>
+
+  <rect x="554" y="408" width="204" height="26" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <rect x="554" y="408" width="3" height="26" rx="1" fill="#9CA3AF"/>
+  <text x="565" y="418" font-family="monospace" font-size="8" fill="#9CA3AF">Smart Board Deployment</text>
+  <text x="565" y="429" font-family="monospace" font-size="7" fill="#4B5563">100+ IFP displays annually</text>
+
+  <rect x="554" y="442" width="204" height="26" rx="4" fill="#13131E" stroke="#1E2030" stroke-width="1"/>
+  <rect x="554" y="442" width="3" height="26" rx="1" fill="#9CA3AF"/>
+  <text x="565" y="452" font-family="monospace" font-size="8" fill="#9CA3AF">Computer Lab Setup</text>
+  <text x="565" y="463" font-family="monospace" font-size="7" fill="#4B5563">20+ labs/year &#x2022; full cabling</text>
+</svg>

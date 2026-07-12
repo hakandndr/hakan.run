@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675">
+
+  <!-- Background -->
+  <rect width="1200" height="675" fill="#0D0D14"/>
+
+  <!-- Terminal chrome bar -->
+  <rect width="1200" height="44" fill="#111118"/>
+  <line x1="0" y1="44" x2="1200" y2="44" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="22" cy="22" r="7" fill="#EF4444" fill-opacity="0.55"/>
+  <circle cx="50" cy="22" r="7" fill="#FBBF24" fill-opacity="0.55"/>
+  <circle cx="78" cy="22" r="7" fill="#4ADE80" fill-opacity="0.55"/>
+  <text x="600" y="29" text-anchor="middle" font-family="monospace" font-size="12" fill="#6B7280">Playwright Tests &#x2014; Regression Suite &#x2022; CI Pipeline &#x2014; Chromium &#x2022; Firefox &#x2022; WebKit</text>
+
+  <!-- Summary stats bar -->
+  <rect x="0" y="44" width="1200" height="50" fill="#0F0F1C"/>
+  <line x1="0" y1="94" x2="1200" y2="94" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- Passed badge -->
+  <rect x="24" y="57" width="110" height="24" rx="3" fill="#4ADE80" fill-opacity="0.1" stroke="#4ADE80" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="79" y="74" text-anchor="middle" font-family="monospace" font-size="11" fill="#4ADE80">&#x2713;  71 passed</text>
+
+  <!-- Failed badge -->
+  <rect x="144" y="57" width="100" height="24" rx="3" fill="#EF4444" fill-opacity="0.1" stroke="#EF4444" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="194" y="74" text-anchor="middle" font-family="monospace" font-size="11" fill="#EF4444">&#x2717;  4 failed</text>
+
+  <!-- Skipped badge -->
+  <rect x="254" y="57" width="108" height="24" rx="3" fill="#6B7280" fill-opacity="0.08"/>
+  <text x="308" y="74" text-anchor="middle" font-family="monospace" font-size="11" fill="#6B7280">&#x25CB;  3 skipped</text>
+
+  <text x="382" y="74" font-family="monospace" font-size="11" fill="#4B5563">22.6s</text>
+  <text x="460" y="74" font-family="monospace" font-size="11" fill="#4B5563">Workers: 6</text>
+  <text x="580" y="74" font-family="monospace" font-size="11" fill="#4B5563">CI Pipeline</text>
+  <text x="680" y="74" font-family="monospace" font-size="11" fill="#4B5563">Regression Suite</text>
+
+  <!-- Divider between left and right panes -->
+  <line x1="600" y1="94" x2="600" y2="675" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- =================== LEFT PANE: Test Output =================== -->
+
+  <!-- auth.spec.ts -->
+  <text x="24" y="118" font-family="monospace" font-size="11" fill="#E5E7EB" font-weight="bold">auth.spec.ts</text>
+  <text x="40" y="137" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  login with valid credentials                            421ms</text>
+  <text x="40" y="155" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  redirect after successful login                          88ms</text>
+  <text x="40" y="173" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  logout clears session cookie                            134ms</text>
+  <text x="40" y="191" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  wrong password shows error state                        209ms</text>
+  <text x="40" y="209" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  rate-limit after 5 attempts                           1,204ms</text>
+
+  <!-- dashboard.spec.ts -->
+  <text x="24" y="232" font-family="monospace" font-size="11" fill="#E5E7EB" font-weight="bold">dashboard.spec.ts</text>
+  <text x="40" y="251" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  renders dashboard on load                               312ms</text>
+  <text x="40" y="269" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  metric cards display correct values                     188ms</text>
+  <text x="40" y="287" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  chart component renders                                 224ms</text>
+  <text x="40" y="305" font-family="monospace" font-size="10" fill="#6B7280">&#x25CB;  (skipped) export CSV button</text>
+
+  <!-- forms.spec.ts -->
+  <text x="24" y="328" font-family="monospace" font-size="11" fill="#E5E7EB" font-weight="bold">forms.spec.ts</text>
+  <text x="40" y="347" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  form submission returns success                          96ms</text>
+  <text x="40" y="365" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  required fields block submission                        143ms</text>
+  <text x="40" y="383" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  email format validated client-side                       78ms</text>
+  <text x="40" y="401" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  phone field masks input correctly                       112ms</text>
+
+  <!-- navigation.spec.ts FAILED -->
+  <text x="24" y="424" font-family="monospace" font-size="11" fill="#EF4444" font-weight="bold">navigation.spec.ts</text>
+  <text x="40" y="443" font-family="monospace" font-size="10" fill="#EF4444">&#x2717;  sidebar collapse animation</text>
+  <text x="56" y="459" font-family="monospace" font-size="8.5" fill="#6B7280">Error: element not visible after 5000ms</text>
+  <text x="56" y="473" font-family="monospace" font-size="8.5" fill="#4B5563">at locator('.sidebar-toggle').click()</text>
+  <text x="56" y="487" font-family="monospace" font-size="8.5" fill="#4B5563">at navigation.spec.ts:24:18</text>
+  <text x="40" y="506" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  breadcrumb renders correctly                             67ms</text>
+  <text x="40" y="524" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  tab navigation works</text>
+
+  <!-- api.spec.ts -->
+  <text x="24" y="547" font-family="monospace" font-size="11" fill="#E5E7EB" font-weight="bold">api.spec.ts</text>
+  <text x="40" y="566" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  GET /users returns 200                                   44ms</text>
+  <text x="40" y="584" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  POST /auth returns 201                                   62ms</text>
+  <text x="40" y="602" font-family="monospace" font-size="10" fill="#4ADE80">&#x2713;  DELETE /user/:id returns 204                             51ms</text>
+
+  <!-- Bottom timing line -->
+  <line x1="24" y1="625" x2="576" y2="625" stroke="#1E2030" stroke-width="1"/>
+  <text x="24" y="644" font-family="monospace" font-size="10" fill="#4B5563">9 suites</text>
+  <text x="100" y="644" font-family="monospace" font-size="10" fill="#4B5563">78 tests</text>
+  <text x="192" y="644" font-family="monospace" font-size="10" fill="#4B5563">Finished in 22.6s</text>
+  <text x="380" y="644" font-family="monospace" font-size="10" fill="#6B7280">Playwright v1.44 &#x2022; TypeScript</text>
+
+  <!-- =================== RIGHT PANE: Browser Preview =================== -->
+
+  <!-- Browser chrome -->
+  <rect x="600" y="94" width="600" height="40" fill="#131320"/>
+  <line x1="600" y1="134" x2="1200" y2="134" stroke="#1E2030" stroke-width="1"/>
+  <circle cx="622" cy="114" r="5" fill="#EF4444" fill-opacity="0.4"/>
+  <circle cx="642" cy="114" r="5" fill="#FBBF24" fill-opacity="0.4"/>
+  <circle cx="662" cy="114" r="5" fill="#4ADE80" fill-opacity="0.4"/>
+  <!-- Address bar -->
+  <rect x="682" y="105" width="470" height="20" rx="3" fill="#0C0D14" stroke="#374151" stroke-width="1"/>
+  <text x="694" y="119" font-family="monospace" font-size="9" fill="#4B5563">localhost:3000/dashboard</text>
+
+  <!-- Browser viewport -->
+  <rect x="600" y="134" width="600" height="541" fill="#0A0A12"/>
+
+  <!-- Mini dashboard in browser -->
+  <!-- Sidebar -->
+  <rect x="600" y="134" width="140" height="541" fill="#0F0F1C"/>
+  <line x1="740" y1="134" x2="740" y2="675" stroke="#1E2030" stroke-width="1"/>
+  <text x="618" y="168" font-family="monospace" font-size="9" fill="#9CA3AF">&#x26A1; AppDash</text>
+  <rect x="612" y="182" width="116" height="22" rx="3" fill="#57B8FF" fill-opacity="0.12"/>
+  <text x="624" y="198" font-family="monospace" font-size="8.5" fill="#57B8FF">&#9632;  Dashboard</text>
+  <text x="624" y="220" font-family="monospace" font-size="8.5" fill="#6B7280">&#9632;  Users</text>
+  <text x="624" y="240" font-family="monospace" font-size="8.5" fill="#6B7280">&#9632;  Analytics</text>
+  <text x="624" y="260" font-family="monospace" font-size="8.5" fill="#6B7280">&#9632;  Billing</text>
+  <text x="624" y="280" font-family="monospace" font-size="8.5" fill="#6B7280">&#9632;  Settings</text>
+
+  <!-- Dashboard main content -->
+  <!-- Top bar -->
+  <rect x="740" y="134" width="460" height="36" fill="#111118"/>
+  <line x1="740" y1="170" x2="1200" y2="170" stroke="#1E2030" stroke-width="1"/>
+  <text x="756" y="157" font-family="monospace" font-size="10" fill="#E5E7EB" font-weight="bold">Dashboard</text>
+  <rect x="1060" y="141" width="90" height="20" rx="3" fill="#57B8FF" fill-opacity="0.1" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="1105" y="155" text-anchor="middle" font-family="monospace" font-size="8" fill="#57B8FF">Last 30 days &#x25BC;</text>
+
+  <!-- Metric cards row -->
+  <rect x="750" y="180" width="100" height="54" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="762" y="198" font-family="monospace" font-size="7.5" fill="#6B7280">Total Users</text>
+  <text x="762" y="218" font-family="monospace" font-size="14" fill="#F9FAFB" font-weight="bold">24,891</text>
+  <text x="762" y="228" font-family="monospace" font-size="7" fill="#4ADE80">&#x2191; +12.4%</text>
+
+  <rect x="860" y="180" width="100" height="54" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="872" y="198" font-family="monospace" font-size="7.5" fill="#6B7280">MRR</text>
+  <text x="872" y="218" font-family="monospace" font-size="14" fill="#F9FAFB" font-weight="bold">$8,340</text>
+  <text x="872" y="228" font-family="monospace" font-size="7" fill="#4ADE80">&#x2191; +8.1%</text>
+
+  <rect x="970" y="180" width="100" height="54" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="982" y="198" font-family="monospace" font-size="7.5" fill="#6B7280">Live Sessions</text>
+  <text x="982" y="218" font-family="monospace" font-size="14" fill="#F9FAFB" font-weight="bold">1,204</text>
+  <text x="982" y="228" font-family="monospace" font-size="7" fill="#4ADE80">&#x2191; +5.3%</text>
+
+  <rect x="1080" y="180" width="100" height="54" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="1092" y="198" font-family="monospace" font-size="7.5" fill="#6B7280">API Uptime</text>
+  <text x="1092" y="218" font-family="monospace" font-size="14" fill="#F9FAFB" font-weight="bold">99.8%</text>
+  <text x="1092" y="228" font-family="monospace" font-size="7" fill="#FBBF24">= stable</text>
+
+  <!-- Chart area -->
+  <rect x="750" y="245" width="430" height="110" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="766" y="263" font-family="monospace" font-size="8" fill="#9CA3AF">User Growth</text>
+
+  <!-- Chart bars (simplified) -->
+  <rect x="766" y="330" width="18" height="20" rx="1" fill="#57B8FF" fill-opacity="0.3"/>
+  <rect x="792" y="310" width="18" height="40" rx="1" fill="#57B8FF" fill-opacity="0.4"/>
+  <rect x="818" y="295" width="18" height="55" rx="1" fill="#57B8FF" fill-opacity="0.5"/>
+  <rect x="844" y="285" width="18" height="65" rx="1" fill="#57B8FF" fill-opacity="0.55"/>
+  <rect x="870" y="275" width="18" height="75" rx="1" fill="#57B8FF" fill-opacity="0.6"/>
+  <rect x="896" y="268" width="18" height="82" rx="1" fill="#57B8FF" fill-opacity="0.65"/>
+  <rect x="922" y="262" width="18" height="88" rx="1" fill="#57B8FF" fill-opacity="0.7"/>
+  <rect x="948" y="270" width="18" height="80" rx="1" fill="#57B8FF" fill-opacity="0.65"/>
+  <rect x="974" y="255" width="18" height="95" rx="1" fill="#57B8FF" fill-opacity="0.75"/>
+  <rect x="1000" y="248" width="18" height="102" rx="1" fill="#57B8FF" fill-opacity="0.8"/>
+  <rect x="1026" y="272" width="18" height="78" rx="1" fill="#57B8FF" fill-opacity="0.65"/>
+  <rect x="1052" y="268" width="18" height="82" rx="1" fill="#57B8FF"/>
+  <line x1="756" y1="350" x2="1176" y2="350" stroke="#1E2030" stroke-width="1"/>
+
+  <!-- User table -->
+  <rect x="750" y="365" width="430" height="130" rx="4" fill="#131320" stroke="#1E2030" stroke-width="1"/>
+  <text x="766" y="382" font-family="monospace" font-size="8" fill="#9CA3AF">Recent Users</text>
+  <line x1="750" y1="390" x2="1180" y2="390" stroke="#1E2030" stroke-width="1"/>
+  <text x="766" y="404" font-family="monospace" font-size="7.5" fill="#4B5563">NAME</text>
+  <text x="920" y="404" font-family="monospace" font-size="7.5" fill="#4B5563">PLAN</text>
+  <text x="1020" y="404" font-family="monospace" font-size="7.5" fill="#4B5563">JOINED</text>
+  <text x="1120" y="404" font-family="monospace" font-size="7.5" fill="#4B5563">STATUS</text>
+  <line x1="750" y1="410" x2="1180" y2="410" stroke="#1E2030" stroke-width="1"/>
+
+  <text x="766" y="424" font-family="monospace" font-size="7.5" fill="#E5E7EB">Alex Morgan</text>
+  <rect x="912" y="416" width="46" height="13" rx="2" fill="#57B8FF" fill-opacity="0.15"/>
+  <text x="935" y="426" text-anchor="middle" font-family="monospace" font-size="7" fill="#57B8FF">Business</text>
+  <text x="1020" y="424" font-family="monospace" font-size="7.5" fill="#6B7280">Apr 12</text>
+  <rect x="1112" y="416" width="48" height="13" rx="2" fill="#4ADE80" fill-opacity="0.12"/>
+  <text x="1136" y="426" text-anchor="middle" font-family="monospace" font-size="7" fill="#4ADE80">Active</text>
+
+  <text x="766" y="441" font-family="monospace" font-size="7.5" fill="#E5E7EB">Sam Torres</text>
+  <rect x="912" y="433" width="34" height="13" rx="2" fill="#C084FC" fill-opacity="0.12"/>
+  <text x="929" y="443" text-anchor="middle" font-family="monospace" font-size="7" fill="#C084FC">Pro</text>
+  <text x="1020" y="441" font-family="monospace" font-size="7.5" fill="#6B7280">Apr 18</text>
+  <rect x="1112" y="433" width="48" height="13" rx="2" fill="#4ADE80" fill-opacity="0.12"/>
+  <text x="1136" y="443" text-anchor="middle" font-family="monospace" font-size="7" fill="#4ADE80">Active</text>
+
+  <text x="766" y="458" font-family="monospace" font-size="7.5" fill="#E5E7EB">Jamie Lee</text>
+  <rect x="912" y="450" width="30" height="13" rx="2" fill="#374151"/>
+  <text x="927" y="460" text-anchor="middle" font-family="monospace" font-size="7" fill="#9CA3AF">Free</text>
+  <text x="1020" y="458" font-family="monospace" font-size="7.5" fill="#6B7280">Apr 22</text>
+  <rect x="1112" y="450" width="54" height="13" rx="2" fill="#EF4444" fill-opacity="0.1"/>
+  <text x="1139" y="460" text-anchor="middle" font-family="monospace" font-size="7" fill="#EF4444">Suspended</text>
+
+  <!-- Playwright overlay annotations -->
+  <rect x="608" y="510" width="240" height="18" rx="3" fill="#57B8FF" fill-opacity="0.08" stroke="#57B8FF" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="616" y="523" font-family="monospace" font-size="8" fill="#57B8FF">&#x25B6; locator('[data-testid=metric-card]').nth(0)</text>
+
+  <rect x="608" y="534" width="224" height="18" rx="3" fill="#4ADE80" fill-opacity="0.06" stroke="#4ADE80" stroke-opacity="0.2" stroke-width="1"/>
+  <text x="616" y="547" font-family="monospace" font-size="8" fill="#4ADE80">&#x2713; expect(card).toHaveText('24,891')</text>
+
+  <!-- Progress bar -->
+  <rect x="608" y="560" width="560" height="4" rx="2" fill="#1E2030"/>
+  <rect x="608" y="560" width="448" height="4" rx="2" fill="#57B8FF"/>
+
+  <text x="608" y="578" font-family="monospace" font-size="8.5" fill="#6B7280">Running: dashboard.spec.ts › metric cards display correct values</text>
+  <rect x="1048" y="566" width="70" height="18" rx="3" fill="#4ADE80" fill-opacity="0.12" stroke="#4ADE80" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="1083" y="579" text-anchor="middle" font-family="monospace" font-size="8" fill="#4ADE80">PASSED</text>
+  <text x="608" y="598" font-family="monospace" font-size="8.5" fill="#374151">188ms &#x2022; Chromium &#x2022; test 38 of 78</text>
+  <text x="608" y="618" font-family="monospace" font-size="8.5" fill="#374151">Playwright v1.44 &#x2022; TypeScript &#x2022; Node 20.12</text>
+
+  <!-- Multi-browser icons -->
+  <text x="608" y="645" font-family="monospace" font-size="8.5" fill="#4B5563">Browsers:</text>
+  <rect x="680" y="632" width="66" height="18" rx="3" fill="#1E2030"/>
+  <text x="713" y="645" text-anchor="middle" font-family="monospace" font-size="8" fill="#9CA3AF">Chromium</text>
+  <rect x="754" y="632" width="60" height="18" rx="3" fill="#1E2030"/>
+  <text x="784" y="645" text-anchor="middle" font-family="monospace" font-size="8" fill="#9CA3AF">Firefox</text>
+  <rect x="822" y="632" width="56" height="18" rx="3" fill="#1E2030"/>
+  <text x="850" y="645" text-anchor="middle" font-family="monospace" font-size="8" fill="#9CA3AF">WebKit</text>
+
+  <text x="608" y="665" font-family="monospace" font-size="8.5" fill="#4B5563">CI: GitHub Actions &#x2022; parallel workers: 6 &#x2022; headless mode</text>
+
+</svg>
