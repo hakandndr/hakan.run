@@ -16,12 +16,14 @@ test.describe('Home page', () => {
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   });
 
-  test('exposes the primary navigation (desktop)', async ({ page, isMobile }) => {
+  test('exposes the primary navigation in page order (desktop)', async ({ page, isMobile }) => {
     // On mobile the nav collapses behind a menu button, so this is a desktop-layout check.
     test.skip(isMobile, 'Mobile navigation lives behind the menu button.');
     await page.goto('/');
-    for (const label of ['Services', 'About', 'Portfolio']) {
-      await expect(page.getByRole('link', { name: new RegExp(label, 'i') }).first()).toBeVisible();
-    }
+    await expect(page.locator('header nav a')).toHaveText([
+      /Services/i,
+      /Portfolio/i,
+      /About/i,
+    ]);
   });
 });

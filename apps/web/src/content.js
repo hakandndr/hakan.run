@@ -32,8 +32,8 @@ export const siteContent = {
     ctaButton: "Let's Run",
     navLinks: [
       { name: 'Services', href: '/#services'  },
-      { name: 'About',    href: '/#about'     },
       { name: 'Portfolio', href: '/#portfolio' },
+      { name: 'About',    href: '/#about'     },
     ],
   },
 
