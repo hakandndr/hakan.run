@@ -117,7 +117,16 @@ const Footer = () => {
       <div className="border-t border-white/[0.06]">
         <div className="container mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-mono text-[11px] text-gray-500">
-            © {new Date().getFullYear()} {f.copyright}
+            © {new Date().getFullYear()} Hakan.run — Built under{' '}
+            <a
+              href="https://dndr.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-accent-purple transition-colors"
+            >
+              DNDR Labs
+            </a>
+            .
           </p>
           <p className="font-mono text-[11px] text-gray-600">
             Irvine, CA USA
