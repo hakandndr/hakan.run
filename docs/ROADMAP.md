@@ -18,7 +18,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Modifying legacy state; mixing current and planned architecture; documentation discontinuity.
 - Acceptance gates: Fresh clone, exact base, owner identity, local branch, documentation validation, one local governance commit.
 - Authorization boundaries: Clone, branch, documentation, and one local commit only; no push or deployment.
-- Status: Current.
+- Status: Complete at `392d333b2da2ffc1754d6f0e3ba79c542ff0144a`.
 
 ## Phase 1B — Visual/frontend baseline freeze
 
@@ -27,7 +27,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Incomplete route/state coverage; unstable captures; accidental redesign.
 - Acceptance gates: Approved viewport/state matrix, reference captures, behavioral inventory, parity criteria, documented exceptions.
 - Authorization boundaries: Inspection and approved baseline artifacts; build, commit, or browser automation only when separately authorized.
-- Status: Next.
+- Status: Complete in the local Phase 1B commit containing the tracked visual baseline.
 
 ## Phase 2 — Cloudflare staging foundation
 
@@ -36,7 +36,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Premature provider coupling; shared mutable resources; secret or DNS exposure.
 - Acceptance gates: Reviewed resource map, environment isolation, source-controlled non-secret configuration, rollback plan.
 - Authorization boundaries: PROVIDER, ACCESS, SECRET, DATABASE, DNS, and ACTIVATE remain independently approved.
-- Status: Planned.
+- Status: Next; not started.
 
 ## Phase 3 — React/Vite on Cloudflare staging
 

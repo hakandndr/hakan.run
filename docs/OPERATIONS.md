@@ -32,7 +32,15 @@ npm run start --prefix apps/web
 npx --no-install playwright test --reporter=line --workers=1
 ```
 
-Legacy validation recorded 19 passing tests and 1 conditional skip with exit code 0. That historical result is not a claim that tests ran in Phase 1A.
+Phase 1B revalidated the existing suite with 19 passing tests and 1 conditional skip. The focused visual suite is:
+
+```powershell
+npx --no-install playwright test tests/visual/visual-baseline.spec.ts --project=chromium --workers=1 --reporter=line
+```
+
+It compares 21 tracked Windows Chromium snapshots at the required desktop/mobile viewports plus 1024 px and 768 px transition evidence. Snapshot updates are reviewable product changes and must not be accepted automatically.
+
+Phase 1B used already installed dependency trees through ignored local directory junctions because installation was outside scope. Those junctions are machine-local tooling state, are not repository prerequisites, and are not committed.
 
 ## Documentation validation
 

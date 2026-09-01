@@ -79,3 +79,27 @@
 - Reusable rule: Obtain and report authorization and outcome for each material operational boundary independently.
 - Applies when: Work can affect repositories, data, users, providers, or production.
 - Exceptions / caveats: A pre-approved automated pipeline may bundle actions, but its exact boundaries must be explicit in advance.
+
+## 11. A green build is not visual parity evidence
+
+- Problem: Compilation and functional smoke tests can pass while spacing, typography, responsive geometry, or motion has drifted.
+- Evidence / context: Phase 1B's production build and existing Playwright suite passed independently of the new section, route, and viewport image comparisons.
+- Reusable rule: Pair build and behavior checks with a reviewed visual contract before replatforming a user-facing frontend.
+- Applies when: Migrating delivery platforms, frameworks, component systems, or global styling.
+- Exceptions / caveats: Non-visual services do not need screenshot coverage, but their consumer-visible contracts still need explicit evidence.
+
+## 12. Measure responsive boundaries at their exact inclusive widths
+
+- Problem: Labels such as tablet or desktop conceal inclusive breakpoint behavior and mixed component transitions.
+- Evidence / context: At exactly 768 px the desktop header is active, while the hero photo remains hidden until 1024 px; the portfolio grid changes independently at 768 px.
+- Reusable rule: Test the exact breakpoint widths and record component-specific transitions rather than inferring them from a single desktop and mobile capture.
+- Applies when: Preserving responsive layouts or changing CSS frameworks and breakpoints.
+- Exceptions / caveats: Fluid behavior between breakpoints still needs overflow and content-stress checks where risk warrants them.
+
+## 13. Deterministic screenshots require state and network boundaries
+
+- Problem: Session loaders, viewport-triggered animation, browser storage, analytics, and external requests can produce timing-dependent images.
+- Evidence / context: Stable Phase 1B captures required a fixed viewport, loader-session state, cleared local storage, local-only network, font readiness, completed section entrances, and test-only motion stabilization.
+- Reusable rule: Document and isolate nondeterministic inputs without masking actual design elements or changing production behavior.
+- Applies when: Maintaining pixel baselines for SPAs with animation, client storage, and external services.
+- Exceptions / caveats: Truly dynamic product content may require narrowly masked regions, but masks must never hide layout or design regressions.

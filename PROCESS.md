@@ -230,3 +230,116 @@ No push, deployment, migration, activation, provider access, secret handling, de
 ### Exact next recommended action
 
 Perform Phase 1B — visual/frontend baseline freeze in the modernization working copy, with separately approved scope and no redesign or deployment.
+
+---
+
+## 2026-09-01 — Phase 1B: Visual/frontend baseline freeze
+
+### Objective
+
+Freeze the inherited public visual, responsive, route, interaction, and motion behavior as source-derived documentation and deterministic regression evidence before infrastructure or framework migration.
+
+### Starting state
+
+- Working copy: `D:\IT\hakan\hakan-run-next`
+- Branch: `develop/hakan-run-v2`
+- HEAD: `392d333b2da2ffc1754d6f0e3ba79c542ff0144a`
+- `origin/main` and merge base: `e3467d221470f5776bf435a5c770a17d0c45f7fb`
+- Ahead/behind relative to `origin/main`: `1 / 0`
+- Working tree: clean
+- Repository-local identity: `Hakan Dundar <hakan@dndr.net>`
+- Runtime: Node `v22.23.2`, npm `10.9.8`; repository recommendation `.nvmrc` `20.19.1`
+- Modernization branch: local only; no push or deployment had occurred
+
+### Approved scope
+
+Source inspection, existing installed dependency use, local build and tests, local browser inspection, deterministic public screenshots, test-only visual regression coverage, documentation, and one local commit. Dependency installation or upgrade, source/runtime changes, public content changes, private Control Room authentication, provider changes, push, deployment, migration, activation, DNS, secrets, and infrastructure were outside scope.
+
+### Files changed
+
+- Added `docs/VISUAL_BASELINE.md` as the canonical source-derived visual contract.
+- Added `tests/visual/visual-baseline.spec.ts` and 21 Windows Chromium reference snapshots.
+- Updated `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/ROADMAP.md`, `docs/OPERATIONS.md`, and `docs/LESSONS.md` for Phase 1B continuity.
+- Appended this entry to `PROCESS.md`.
+- Application source, runtime/backend files, public content, packages, lockfiles, provider configuration, and infrastructure were not changed.
+
+`docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `docs/DECISIONS.md`, and `AGENTS.md` were reviewed and remained factually current, so no artificial edits were made.
+
+### Commands and results
+
+```text
+git branch --show-current; git rev-parse HEAD; git rev-parse origin/main; git status --short --untracked-files=all
+git rev-list --left-right --count origin/main...HEAD; git config --local --get user.name/user.email; git log -5
+node --version; npm --version; Get-Content .nvmrc
+-> PASS — the exact required baseline, clean state, local owner identity, runtime versions, and commit chain were verified before modification.
+
+source inspection with rg, Get-Content, Git metadata, and local image inspection
+-> PASS — public routes, private boundary, component/content authority, assets, typography, colors, spacing, breakpoints, motion, and brand-mark occurrences were inventoried from source.
+
+.\\node_modules\\.bin\\vite.cmd build --outDir ../../dist/apps/web
+-> PASS — Vite 4.5.14 transformed 1,730 modules into dist/apps/web in 3.84 s.
+-> Output — index.html 3.06 kB / 1.08 kB gzip; CSS 42.19 kB / 8.32 kB gzip; JS 643.14 kB / 190.07 kB gzip.
+-> Warning — the JavaScript chunk exceeds Vite's 500 kB advisory threshold.
+
+npm run lint
+-> PASS — application ESLint completed with exit code 0.
+
+.\\node_modules\\.bin\\playwright.cmd test --reporter=line --workers=1
+-> PASS — existing suite: 19 passed, 1 conditional mobile skip, exit code 0.
+
+.\\node_modules\\.bin\\playwright.cmd test tests/visual/visual-baseline.spec.ts --project=chromium --workers=1 --reporter=line --update-snapshots
+-> PASS — 21 snapshots generated after the final required viewport and selector corrections.
+
+.\\node_modules\\.bin\\playwright.cmd test tests/visual/visual-baseline.spec.ts --project=chromium --workers=1 --reporter=line
+-> PASS — 3 focused tests and all 21 snapshot comparisons passed without updates in 33.0 s.
+
+.\\node_modules\\.bin\\playwright.cmd test --reporter=line --workers=1
+-> PASS — final integrated suite: 22 passed and 4 conditional/project skips across 26 cases in 49.7 s; snapshots were not updated.
+```
+
+The build and test processes rewrote `apps/web/public/llms.txt` only through line-ending normalization. A whitespace-insensitive diff proved there was no content difference; each tool-created working-tree change was restored to the original HEAD version before review.
+
+### Visual and behavioral findings
+
+- The public matrix contains `/`, `/contact`, three known project slugs, a source fallback that renders full-stack content for unknown project slugs, a real noindex catch-all 404, `/admin` redirecting home, and the private-intent `/control-room` SPA route.
+- Desktop baseline is `1440 × 1200`; mobile is `390 × 844`. Additional `1024 × 900` and `768 × 900` evidence records distinct `lg` and `md` transitions.
+- At exactly 768 px, desktop header navigation is active while the hero photo remains hidden until 1024 px. Grid transitions occur independently by component.
+- Public pages showed no document-level horizontal overflow in the tested matrix. Mobile navigation opened and closed, and the Expertise row toggled between RUNNING and IDLE.
+- The current Header SVG, favicon, and Footer render `<h>`; Header and Control Room also contain `<hakan.run />`; the OG image uses `</>`. None implements the approved future `<h/>` rule consistently.
+- Expertise triggers are clickable `div` elements without native button semantics or expansion attributes. Mobile menu toggles lack explicit expanded/control attributes. These existing accessibility limitations were documented, not redesigned.
+
+### Screenshot stabilization
+
+The test fixes viewport dimensions, bypasses only the one-time session loader, clears local storage, blocks non-local HTTP requests, waits for fonts, requests reduced motion, completes viewport-triggered entrances, applies test-only near-zero animation/transition duration, hides the caret, and masks no design element. Production animation code and values remain unchanged.
+
+### Failures, failed approaches, and corrections
+
+- A first build attempt used `node apps/web/tools/generate-llms.js` while already inside `apps/web`, producing a doubled path and `MODULE_NOT_FOUND`. The path was corrected.
+- With no dependency tree inside the fresh clone, an `npx` attempt waited for package resolution and was interrupted; no package was installed. A direct generator run first hit a sandbox `EPERM`, then an attempted `NODE_PATH` reuse failed because Vite's ESM plugin resolution does not use `NODE_PATH`.
+- Two ignored machine-local directory junctions were created to reference the already installed legacy dependency trees without copying, installing, or changing package metadata. The successful build and tests used those existing packages. The junctions are not tracked or portable repository requirements.
+- The first visual run used an unsupported file-level conditional-skip callback signature and stopped before snapshots. It was changed to a supported `beforeEach` condition.
+- The next visual run revealed an invalid page-coordinate clip, two matching `[x]` controls in the open mobile menu, and a false assumption that Expertise rows were semantic buttons. The test was corrected to capture CTA and Footer separately, scope the overlay close control, and assert the real RUNNING/IDLE row behavior.
+- The initial desktop capture used `1440 × 1000`; review against the authorization corrected it to the exact required `1440 × 1200` and regenerated affected snapshots before final validation.
+
+### Deliberate non-actions
+
+No production UI or public content was edited. No runtime/backend, dependency, package, lockfile, framework, database, provider, Supabase, Hostinger, Cloudflare, D1, Resend, Turnstile, DNS, secret, or production state was changed. Control Room was not authenticated or captured. No push or deployment occurred. The approved `<h/>` correction was inventoried only and not implemented.
+
+### Commit and external state
+
+- Commit: the single local commit containing this entry, with subject `test: establish visual regression baseline`; resolve its immutable SHA with `git log -1 --format=%H -- PROCESS.md`.
+- Push: not performed.
+- Deployment: not performed.
+- Migration/activation: not performed.
+- Infrastructure/provider state: not accessed or changed.
+
+### Unresolved issues
+
+- The current brand-mark implementations remain inconsistent with the approved future `<h/>` rule.
+- Existing accessibility, unknown-project fallback, mixed content authority, authorization, and bundle-size debt remain unchanged.
+- Snapshot filenames are platform-specific Windows Chromium evidence; cross-platform image baselines require an explicit strategy if CI later runs visual comparisons on another operating system.
+- Cloudflare staging architecture and resources do not exist.
+
+### Exact next recommended action
+
+Perform Phase 2 — design and review the isolated Cloudflare staging architecture/foundation. Do not create, configure, deploy, activate, or connect provider resources without separate authorization.
