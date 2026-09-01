@@ -62,7 +62,6 @@
 
   a,
   button {
-    /* GÜNCELLEME: Linkler ve butonlar için el işaretini (pointer) geri getirdik */
     cursor: pointer;
   }
 }

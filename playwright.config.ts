@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // hakan.run — end-to-end test config.
-// Tests run against a production build served locally (same artifact that ships).
+// Tests run against a production build served locally; deployment is separate.
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,

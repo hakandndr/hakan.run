@@ -29,7 +29,7 @@ CREATE POLICY "Public read"
   ON site_content FOR SELECT
   USING (true);
 
--- Only authenticated users (admin) can write
+-- All users in the authenticated role can write
 CREATE POLICY "Authenticated write"
   ON site_content FOR ALL
   TO authenticated

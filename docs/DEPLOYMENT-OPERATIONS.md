@@ -56,6 +56,8 @@ It also intends:
 
 These rules depend on host support for `.htaccess`, rewrite, headers, expressions, and override permissions. A CDN can add another cache layer, so live headers must be checked separately.
 
+Social platforms may cache Open Graph images and metadata independently of the browser and site CDN. After verifying the deployed source and headers, use the platform's official refresh or inspection mechanism when an old social preview remains visible.
+
 ## PHP deployment
 
 `run/secure-config.sample.php` documents the required server-side Supabase URL and anon key keys. The real file must be created only on the server, protected from direct access, and excluded from Git. Do not use a service-role key.

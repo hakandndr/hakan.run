@@ -79,13 +79,11 @@ const Testimonials = () => {
     <section id="testimonials" className="py-24 overflow-hidden" style={{ backgroundColor: 'var(--color-bg)' }}>
       <div className="container mx-auto px-6">
         
-        {/* ÜST BAŞLIK BÖLÜMÜ */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight uppercase max-w-2xl">
             Colleagues who know how I <span className="text-accent-purple">write code</span>
           </h2>
           
-          {/* MASAÜSTÜ OK BUTONLARI */}
           <div className="hidden md:flex gap-4 shrink-0">
             <button
               onClick={() => scroll('left')}
@@ -106,7 +104,6 @@ const Testimonials = () => {
           </div>
         </div>
         
-        {/* YORUM KARTLARI BÖLÜMÜ */}
         <div
           ref={scrollContainerRef}
           className="flex flex-nowrap gap-8 pb-8 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
@@ -132,7 +129,6 @@ const Testimonials = () => {
           ))}
         </div>
 
-        {/* MOBİL OK BUTONLARI */}
         <div className="mt-8 flex justify-end md:hidden">
           <div className="flex gap-4">
             <button

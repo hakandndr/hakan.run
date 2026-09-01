@@ -68,8 +68,7 @@ A green workflow proves only that these source-level browser checks passed in th
 The repository currently has three relevant observations:
 
 - `.nvmrc`: `20.19.1`;
-- GitHub Actions: moving `lts/*` selector;
-- documentation review host on 2026-09-01: `22.23.2`.
+- GitHub Actions: moving `lts/*` selector.
 
 This can produce different dependency, build, or browser-launch behavior across environments. Aligning CI with `.nvmrc` requires a separately authorized workflow change and validation.
 

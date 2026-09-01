@@ -5,9 +5,9 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AUTH: only a logged-in admin may read visitor logs.
+// AUTH: a valid Supabase authenticated-user token is required to read logs.
 // The admin panel sends its Supabase session token as `Authorization: Bearer …`.
-// We verify it by asking Supabase who the token belongs to. No static key,
+// Supabase verifies that the token resolves to a user. No static key,
 // nothing secret in the URL, nothing to leak in server/proxy logs.
 // ─────────────────────────────────────────────────────────────────────────────
 

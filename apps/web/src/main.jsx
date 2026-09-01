@@ -17,7 +17,7 @@ const app = (
   </BrowserRouter>
 );
 
-// hydrate when the HTML was pre-rendered (react-snap), otherwise mount fresh
+// Hydrate existing root markup when present; otherwise mount the client app.
 if (rootElement.hasChildNodes()) {
   ReactDOM.hydrateRoot(rootElement, app);
 } else {

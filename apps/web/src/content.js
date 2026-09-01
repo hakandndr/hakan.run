@@ -1,4 +1,4 @@
-// Central content config — all site text, numbers, links, and colors live here.
+// Fallback content used before optional local and Supabase section overrides.
 
 export const siteContent = {
 

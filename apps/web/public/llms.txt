@@ -1,5 +1,9 @@
-## Pages
-- [— Hakan Dundar](/project): No description available
-- [404 — Page Not Found | Hakan Dundar](/notfound): No description available
-- [Hakan Dundar | Software Developer & QA Automation Engineer](/home): Professional Software Developer based in California. Specializing in clean code, robust automation frameworks, and high-performance technical solutions.
-- [Untitled Page](/contact): No description available
+# hakan.run
+
+## Public pages
+
+- [Hakan Dundar | Software Developer & QA Automation](/): Software Developer based in California, specializing in clean code, automation frameworks, and high-performance solutions.
+- [Connect - Hakan Dundar](/contact): Reach out to Hakan Dundar for QA Automation, SDET, and Software Development inquiries.
+- [Full Stack Development | Hakan Dundar](/project/full-stack-development): Building scalable web applications with clean architecture, responsive design, and real-world product functionality.
+- [AI & Automation | Hakan Dundar](/project/ai-and-automation): Designing automation workflows and Playwright-based testing solutions to improve quality, speed, and reliability.
+- [IT Infrastructure | Hakan Dundar](/project/it-infrastructure): Hands-on experience in systems support, endpoint deployment, network organization, and IT operations.

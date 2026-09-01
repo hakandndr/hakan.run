@@ -4,7 +4,7 @@
 //
 // secure-config.php is git-ignored and denied by .htaccess, so it is never
 // committed and never served to the public. It holds the values get_log.php
-// needs to verify that a request comes from a logged-in admin.
+// needs to verify a Supabase authenticated-user token.
 //
 // Both values below are PUBLIC (same as the browser bundle) — they are kept in
 // a separate file only to keep the PHP tidy and easy to rotate.

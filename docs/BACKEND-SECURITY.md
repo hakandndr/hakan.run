@@ -54,6 +54,8 @@ Important limits:
 - the endpoint accepts query or POST fields but has no origin, CSRF, or bot challenge check;
 - filesystem permissions, retention, privacy policy, and live transport behavior are not proven by Git.
 
+Browser privacy or content-blocking extensions may block the writer request based on its URL or behavior. A missing browser-side record does not by itself prove that the PHP runtime failed.
+
 ## Authenticated visitor-log reader
 
 `run/get_log.php`:
