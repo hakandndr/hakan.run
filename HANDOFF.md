@@ -6,13 +6,13 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | The local Phase 1B commit containing this document; resolve with `git rev-parse HEAD`. Its parent is `392d333b2da2ffc1754d6f0e3ba79c542ff0144a`; the legacy base is `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
+| HEAD | `cf5cd7ddd67950338ce9f7550039fdc9bf907bf8` before the Phase 1C documentation commit |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Current phase | Phase 1B complete — visual/frontend baseline frozen locally |
-| Completed work | Governance foundation plus source-derived visual specification, responsive/interaction inventory, 21 deterministic Chromium snapshots, and focused visual regression tests |
-| Exact next action | Phase 2 — design the isolated Cloudflare staging architecture/foundation; do not create or activate resources without separate authorization |
+| Current phase | Phase 1C — modernization branch publication |
+| Completed work | Phase 1A/1B governance and visual baseline complete; Phase 1C baseline, remote-branch absence, and non-deployment workflow checks complete |
+| Exact next action | Complete the authorized branch publication, then begin Phase 2A — Cloudflare staging architecture/specification under separate scope |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | Not authorized; modernization branch remains local |
+| Push state | Authorized for `develop/hakan-run-v2`; pending until Phase 1C completes |
 | Deploy state | Not performed and not authorized |
 | Infrastructure state | Modernization infrastructure not started; Cloudflare resources and D1 not created; Resend and Turnstile not configured; production unchanged |
 
@@ -31,6 +31,6 @@ No framework, runtime, data, provider, or visual migration has started. The exis
 5. Read the latest appended entry in `PROCESS.md` for chronological context.
 6. Read `docs/VISUAL_BASELINE.md` before any frontend, framework, or delivery implementation.
 
-## Phase 2 boundary
+## Phase 2A boundary
 
-Phase 2 should produce a reviewed, source-controlled architecture and resource design for isolated Cloudflare staging. Provider access, resource creation, secrets, databases, deployment, activation, DNS, push, and production changes remain separately authorized. Any later frontend delivery must use the Phase 1B baseline as its parity contract.
+Phase 2A should produce a reviewed, source-controlled architecture and specification for isolated Cloudflare staging. Provider access, resource creation, secrets, databases, deployment, activation, DNS, push, and production changes remain separately authorized. Any later frontend delivery must use the Phase 1B baseline as its parity contract.

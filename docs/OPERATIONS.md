@@ -63,6 +63,14 @@ The modernization branch is local. No Cloudflare staging or production resource 
 
 BUILD, COMMIT, PUSH, MIGRATE, DEPLOY, ACTIVATE, DELETE, DNS, ACCESS, SECRET, DATABASE, and PROVIDER require independent approval. A clean commit is not authorization to push or deploy.
 
+For the first publication of an approved local branch, verify that the same-named remote branch is absent and that branch-specific workflows cannot deploy or mutate production. Publish normally and establish tracking with:
+
+```bash
+git push --set-upstream origin develop/hakan-run-v2
+```
+
+This command is branch-specific. It does not authorize a push to `main`, a force push, or any deployment.
+
 ## Rollback and recovery
 
 Until modernization delivery exists, the verified repository rollback/reference point is legacy `main@e3467d221470f5776bf435a5c770a17d0c45f7fb`. This is a source baseline, not a claim that a matching production artifact or provider snapshot has been archived.

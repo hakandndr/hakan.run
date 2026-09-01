@@ -343,3 +343,52 @@ No production UI or public content was edited. No runtime/backend, dependency, p
 ### Exact next recommended action
 
 Perform Phase 2 — design and review the isolated Cloudflare staging architecture/foundation. Do not create, configure, deploy, activate, or connect provider resources without separate authorization.
+
+---
+
+## 2026-09-01 — Phase 1C: Modernization branch publication preparation
+
+### Objective
+
+Document, verify, and publish the reviewed modernization history to `origin/develop/hakan-run-v2` with upstream tracking, without changing `main`, triggering deployment, or mutating production or provider state.
+
+### Starting state
+
+- Working copy: `D:\IT\hakan\hakan-run-next`
+- Branch: `develop/hakan-run-v2`
+- HEAD: `cf5cd7ddd67950338ce9f7550039fdc9bf907bf8`
+- `origin/main`: `e3467d221470f5776bf435a5c770a17d0c45f7fb`
+- Ahead/behind relative to `origin/main`: `2 / 0`
+- Working tree: clean
+- Repository-local identity: `Hakan Dundar <hakan@dndr.net>`
+- Existing upstream: none
+- Remote `develop/hakan-run-v2`: absent
+
+### Approved scope
+
+Inspection, necessary documentation updates, one local documentation commit, one normal push of `develop/hakan-run-v2` with upstream tracking, and post-push verification. Runtime/source changes, dependency changes, main push, merge, rebase, force push, deployment, migration, provider access, secrets, databases, DNS, and infrastructure changes remain outside scope.
+
+### Remote and workflow verification
+
+`git ls-remote --heads origin refs/heads/main refs/heads/develop/hakan-run-v2` returned only `main` at `e3467d221470f5776bf435a5c770a17d0c45f7fb`. The target remote branch therefore did not exist before publication.
+
+The only workflow is `.github/workflows/playwright.yml`. Its push filter includes only `main` and `master`; its pull-request filter also targets only those branches. It contains tests and artifact upload but no deployment, publication, production environment, or provider mutation step. A direct push to `develop/hakan-run-v2` is therefore expected to trigger no workflow and no deployment.
+
+### Documentation changes
+
+- `HANDOFF.md`: Phase 1C and pending publication state.
+- `docs/CURRENT_STATE.md`: local-only branch state until push completion.
+- `docs/ROADMAP.md`: Phase 1C current and Phase 2A planned.
+- `docs/OPERATIONS.md`: verified branch-publication and upstream-tracking procedure.
+- `PROCESS.md`: this append-only preparation record.
+
+No application, runtime, backend, package, lockfile, workflow, provider, infrastructure, or production file was changed.
+
+### Publication checkpoint
+
+- Documentation commit: the single local commit containing this preparation entry, with subject `docs: record modernization branch publication`.
+- Planned push: `git push --set-upstream origin develop/hakan-run-v2`.
+- Push result: pending until the documentation commit is verified.
+- Workflow result: no run expected for a direct push to this branch; observation pending.
+- Deployment: not authorized and not performed.
+- Exact next step after successful publication: Phase 2A — Cloudflare staging architecture/specification.

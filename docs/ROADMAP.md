@@ -29,19 +29,28 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Inspection and approved baseline artifacts; build, commit, or browser automation only when separately authorized.
 - Status: Complete in the local Phase 1B commit containing the tracked visual baseline.
 
-## Phase 2 — Cloudflare staging foundation
+## Phase 1C — Modernization branch publication
 
-- Objective: Define and provision an isolated staging delivery/runtime foundation.
-- Dependencies: Phase 1B baseline and approved resource design.
+- Objective: Publish the reviewed local modernization history to a same-named remote branch and establish upstream tracking.
+- Dependencies: Completed Phase 1A and Phase 1B commits, clean working tree, absent remote branch, and non-deployment workflow verification.
+- Main risks: Pushing the wrong branch; unintended workflow or deployment activation; documentation/remote-state drift.
+- Acceptance gates: Exact baseline, reviewed documentation commit, normal non-force push, matching local/remote SHA, upstream tracking, unchanged `origin/main`, and observed workflow result.
+- Authorization boundaries: Documentation, one local commit, and normal push of `develop/hakan-run-v2` only; no main push, deploy, provider, or runtime change.
+- Status: Current; remote branch publication pending.
+
+## Phase 2A — Cloudflare staging architecture/specification
+
+- Objective: Define the reviewed architecture, resource map, environment isolation, and operational specification for an isolated staging delivery/runtime foundation without provisioning it.
+- Dependencies: Phase 1B baseline and completed Phase 1C branch publication.
 - Main risks: Premature provider coupling; shared mutable resources; secret or DNS exposure.
 - Acceptance gates: Reviewed resource map, environment isolation, source-controlled non-secret configuration, rollback plan.
-- Authorization boundaries: PROVIDER, ACCESS, SECRET, DATABASE, DNS, and ACTIVATE remain independently approved.
-- Status: Next; not started.
+- Authorization boundaries: Specification work does not authorize PROVIDER, ACCESS, SECRET, DATABASE, DNS, DEPLOY, or ACTIVATE.
+- Status: Planned; not current until Phase 1C completes.
 
 ## Phase 3 — React/Vite on Cloudflare staging
 
 - Objective: Deliver the unchanged React/Vite application on staging and demonstrate visual/behavioral parity.
-- Dependencies: Phases 1B and 2.
+- Dependencies: Phases 1B and 2A.
 - Main risks: SPA routing, headers, caching, asset paths, and visual drift.
 - Acceptance gates: Build reproducibility, route matrix, visual parity evidence, staging smoke tests, rollback readiness.
 - Authorization boundaries: BUILD, DEPLOY, ACTIVATE, and any provider change are separate.
