@@ -6,7 +6,7 @@ Live site: [hakan.run](https://hakan.run)
 
 [![Playwright Tests](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml/badge.svg)](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml)
 
-For the maintenance baseline, start with [HANDOFF.md](./HANDOFF.md) and the [documentation index](./docs/README.md).
+For the implemented site, start with the [documentation index](./docs/README.md). Modernization work is governed by [AGENTS.md](./AGENTS.md), continued from [HANDOFF.md](./HANDOFF.md), and tracked through [current state](./docs/CURRENT_STATE.md) and the [roadmap](./docs/ROADMAP.md).
 
 ## Technology
 

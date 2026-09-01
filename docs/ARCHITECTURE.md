@@ -1,119 +1,81 @@
-# System Architecture
+# Architecture
 
-## Baseline and evidence boundary
+## Verified current architecture
 
-This document describes source at `main@50e7bac9198e39f251a45aebe287979e929ecdc7`.
-
-The repository contains three runtime boundaries:
-
-1. a React/Vite static SPA;
-2. Supabase-backed content and authentication used by the browser;
-3. PHP visitor-log endpoints deployed separately under `/run/`.
-
-Formspree, Supabase, GA4, hosting, and CDN behavior depend on external state. Source establishes the intended integration but cannot prove the current live configuration.
-
-## Frontend boot sequence
-
-`apps/web/index.html` loads `/src/main.jsx`. `main.jsx` creates a `BrowserRouter`, `ContentProvider`, `ScrollToTop`, and `App`.
-
-If `#root` already contains nodes, `main.jsx` calls `hydrateRoot`; otherwise it calls `createRoot`. The current build does not generate prerendered route HTML, so normal output uses `createRoot`.
-
-`App.jsx` checks `sessionStorage.booted` at module load. A new tab session displays `TerminalLoader`; completion writes `booted=1`. The application then renders the route tree and the Konami-key overlay.
-
-## Route tree
-
-| Route | Component | Layout | Current behavior |
-| --- | --- | --- | --- |
-| `/` | `Home.jsx` | Public `Layout` | Portfolio home page |
-| `/contact` | `Contact.jsx` | Public `Layout` | CMS-backed form UI posting to Formspree |
-| `/project/:projectId` | `Project.jsx` | Public `Layout` | Hardcoded detail data |
-| `/control-room` | `Admin.jsx` | Standalone admin layout | Supabase Auth, MFA, content editors, tracker |
-| `/admin` | `Navigate` | None | Redirects to `/` |
-| other public nested paths | `NotFound.jsx` | Public `Layout` | Designed client-side 404 |
-
-`Project.jsx` has three known data keys: `full-stack-development`, `ai-and-automation`, and `it-infrastructure`. An unknown project ID does not enter the catch-all route because it matches `/project/:projectId`; instead, `Project.jsx` falls back to the full-stack data while preserving the unknown route parameter.
-
-Apache SPA fallback in `apps/web/public/.htaccess` rewrites non-file and non-directory requests to `index.html`. Direct-route behavior therefore depends on that file being present and active on the host.
-
-## Public layout and home composition
-
-`Layout.jsx` renders `Header`, the route `Outlet`, `Footer`, and the toast viewport. `/control-room` is outside this layout.
-
-`Home.jsx` renders sections in this order:
-
-1. Hero, always rendered;
-2. Stats;
-3. Services;
-4. Portfolio;
-5. About;
-6. CTA.
-
-The last five are controlled by `content.visibility` values; a section is hidden only when its value is exactly `false`. Header navigation is independently hardcoded as Services, Portfolio, About.
-
-## Content flow
+This section describes the implementation inherited from legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb`. It does not prove live provider configuration.
 
 ```text
-content.js fallback
-        |
-        v
-browser localStorage overlay
-        |
-        v
-Supabase site_content overlay after mount
-        |
-        v
-ContentContext consumers and Control Room editors
+Browser
+  -> React 18 / Vite 4 client-side SPA
+     -> static assets and client routes
+     -> Supabase browser client for content and authentication
+     -> Formspree for contact submission
+     -> GA4 loader
+     -> /run/log_hakanrun.php for visitor logging
+  -> /run/get_log.php for authenticated tracker reads
+
+Source-described hosting boundary
+  -> static frontend artifact on the legacy Hostinger-style web root
+  -> separately deployed PHP runtime under /run/
 ```
 
-The initial state is `siteContent` with an optional top-level `localStorage` overlay. After mount, every Supabase row is reduced to `{ [section]: data }` and shallowly spread over current state.
+### Public frontend
 
-The merge is not recursive. If a remote `hero` row exists, that entire remote `hero` object replaces the previous `hero` object. Missing nested keys are not automatically restored from fallback content.
+`apps/web/src/main.jsx` mounts a React Router application. The route tree includes `/`, `/contact`, `/project/:projectId`, `/control-room`, an `/admin` redirect, and a public catch-all page. Apache-style SPA fallback is represented by `apps/web/public/.htaccess`.
 
-`updateContent(section, value)` updates React state and stores the complete next content object in `localStorage`. If Supabase exists, it upserts the selected section by the unique `section` key. There is no schema validation, revision history, conflict resolution, or rollback model.
+The public design combines Tailwind utilities, CSS variables, literal component colors, Framer Motion, responsive navigation, a terminal loader, and the canonical owner presentation. The implementation is unchanged in Phase 1A.
 
-## Visual and interaction system
+### Content authority
 
-- Tailwind CSS supplies utility styles and responsive breakpoints.
-- Framer Motion supplies page, section, menu, loader, and component transitions.
-- Lucide supplies icons.
-- `SectionAnimator` applies one-time viewport entry animation.
-- `index.css` honors `prefers-reduced-motion` and defines visible keyboard focus.
-- `ContentContext` maps selected color values to CSS custom properties and typography settings to body data attributes.
-- Many components also contain literal Tailwind colors or inline hex values, so the Control Room theme fields do not control the complete visual system.
+Content currently has overlapping sources:
 
-The default font stack is Inter if available, then system sans-serif. Headings can switch among mono, sans, and serif through body attributes. Responsive behavior primarily uses Tailwind's `sm`, `md`, `lg`, and `xl` breakpoints; the Control Room collapses its sidebar below 768 pixels.
+1. `apps/web/src/content.js` fallback data;
+2. browser `localStorage` overlay;
+3. Supabase `public.site_content` top-level section overlay;
+4. hardcoded component/page data outside the content model.
 
-## External integrations
+Remote sections replace fallback sections shallowly. Public Header, About, project-detail content, and several Hero/theme values remain hardcoded. The current system therefore does not have one universal CMS authority.
 
-### Supabase
+### Authentication and administration
 
-- client package: `@supabase/supabase-js`;
-- browser environment: `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`;
-- data: `public.site_content` rows keyed by `section`;
-- authentication: email/password sessions and TOTP factor APIs;
-- checked-in RLS: public read and broad authenticated write.
+`/control-room` is part of the public SPA bundle. It uses Supabase email/password sessions and TOTP APIs, edits content sections, and reads visitor records through PHP. Current source does not enforce a specific owner identity in the frontend, RLS, or PHP reader.
 
-### Formspree
+### Forms and analytics
 
-`Contact.jsx` posts JSON to `content.contact.formEndpoint`. The repository test suite checks the form structure and HTML email validation but does not submit to Formspree.
+- Contact form data is posted from the browser to a configured Formspree endpoint.
+- GA4 is loaded statically from `apps/web/index.html`.
+- `run/log_hakanrun.php` writes masked visitor data to a flat file and performs an external geolocation lookup.
+- `run/get_log.php` reads and aggregates the log after validating a Supabase user token.
 
-### Analytics
+### Build and delivery
 
-`apps/web/index.html` loads a fixed GA4 measurement ID. `Header.jsx` also calls `/run/log_hakanrun.php` on mount. The Admin Tracker tab calls `/run/get_log.php` with the current Supabase access token.
+The repository builds the frontend into ignored `dist/apps/web/`. GitHub Actions runs Playwright tests and does not contain a deployment job. The documented legacy deployment model is manual static artifact upload plus separate PHP files. Live hosting state was not inspected in Phase 1A.
 
-## Build output
+## Planned target — not implemented
 
-The Vite build output directory is `dist/apps/web/`, and `emptyOutDir` is enabled. Public assets, including `.htaccess`, metadata files, images, and sitemap files, are copied into the artifact. Vite produces hashed JavaScript and CSS assets.
+The following is an approved direction, not deployed architecture:
 
-The artifact is ignored and is not a source of truth. The repository contains no production deployment workflow.
+```text
+Browser
+  -> Cloudflare edge/runtime
+     -> public static assets
+     -> bounded public APIs
+     -> fail-closed private Boss APIs
+        -> APP_DB
+        -> ANALYTICS_DB
+        -> Resend notification after durable persistence
+```
 
-## Current architectural limits
+Target principles:
 
-- partial CMS coverage and shallow section merges;
-- client-side-only routing and metadata for most routes;
-- no source-enforced owner-only database policy;
-- no owner or AAL2 check in the PHP log reader;
-- no Control Room integration tests;
-- no PHP integration tests;
-- no automated production deployment;
-- live service and hosting state outside version control.
+- preserve the existing visual and behavioral contract;
+- keep React/Vite during early staging migration unless a separate decision changes it;
+- isolate staging and production mutable resources;
+- make application records and analytics distinct authorities;
+- limit initial first-party analytics to PAGE events;
+- persist submissions before notification;
+- enforce private identity and authorization at trusted boundaries;
+- represent configuration and migrations in source while keeping secrets in bindings;
+- stage and validate before production cutover.
+
+Cloudflare resources, databases, access policy, public/private APIs, Resend, Turnstile, staging delivery, and production cutover have not been created or configured. Astro remains optional and requires separate justification and parity evidence.
