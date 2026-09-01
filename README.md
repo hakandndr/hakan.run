@@ -1,76 +1,80 @@
 # hakan.run
 
-Personal portfolio and content platform for **Hakan Dundar** — Software Developer & QA Automation Engineer based in Irvine, California.
+Personal portfolio and content platform for **Hakan Dundar**, a software developer and QA automation engineer based in Irvine, California.
 
-Live: **[hakan.run](https://hakan.run)**
+Live site: [hakan.run](https://hakan.run)
 
 [![Playwright Tests](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml/badge.svg)](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml)
 
-This repository is intentionally public: the site is also a working demonstration of full-stack development, a database-backed CMS, authentication with 2FA, end-to-end testing, and CI/CD.
+For the maintenance baseline, start with [HANDOFF.md](./HANDOFF.md) and the [documentation index](./docs/README.md).
 
----
+## Technology
 
-## Tech stack
+| Area | Implementation |
+| --- | --- |
+| Frontend | React 18, Vite 4, React Router 6, Tailwind CSS, Framer Motion |
+| Content and authentication | Supabase client, Postgres `site_content`, Supabase Auth and TOTP MFA |
+| Contact | Formspree |
+| Analytics | Google Analytics 4 and a separate PHP visitor log |
+| Testing | Playwright |
+| CI | GitHub Actions test workflow; no deployment workflow |
+| Hosting model | Static frontend artifact plus separately deployed PHP endpoints |
 
-| Layer | Choice |
-|-------|--------|
-| Frontend | React 18 + Vite 4, React Router 6 |
-| Styling | Tailwind CSS, shadcn/ui primitives, Framer Motion |
-| Backend / data | Supabase (Postgres) — content CMS, Auth, Row Level Security |
-| Forms | Formspree (+ honeypot spam trap) |
-| Analytics | Google Analytics 4 + a custom PHP visitor log (session-verified) |
-| Testing | Playwright (E2E, desktop + mobile) |
-| CI/CD | GitHub Actions |
-| Hosting | Static build on Hostinger |
+## Repository layout
 
-## Architecture
-
-```
-apps/web/        React + Vite single-page app
-  src/
-    components/  UI + section components
-    pages/       Home, Contact, Project, Admin (Control Room), NotFound
-    contexts/    ContentContext — loads site content from Supabase (falls back to content.js)
-    lib/         Supabase client
-supabase/        SQL migrations + one-time seed script
-run/             Server-side PHP endpoints (visitor log), deployed separately to /run/
-tests/           Playwright end-to-end tests
+```text
+apps/web/       React application, public assets, and web build configuration
+supabase/       Baseline migration and one-time seed utility
+run/            PHP visitor-log writer and authenticated log reader
+tests/          Playwright browser tests
+docs/           Architecture, security, content, CI, and operations documentation
 ```
 
-**Content is data, not hardcoded.** All copy, numbers, links and colors live in a Supabase `site_content` table (JSONB per section) and are edited through a private admin panel at `/control-room`. `src/content.js` is the fallback/seed source.
+## Content model
 
-## Security highlights
+`apps/web/src/content.js` is the fallback content source. `ContentContext.jsx` optionally merges browser `localStorage` state and rows from Supabase `public.site_content` by top-level section.
 
-- **Row Level Security** on all tables: public read, writes locked to the owner's account only.
-- **Two-factor authentication** (TOTP) on the admin panel via Supabase Auth.
-- Server-side session verification for the analytics endpoint (no static keys in URLs).
-- Visitor IPs are **anonymized** before storage; write endpoint is rate-limited.
-- Security headers via `.htaccess`: HSTS, `X-Frame-Options`, `frame-ancestors`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`.
-- Secrets (`.env`, service-role key, server config) are git-ignored and never bundled.
+CMS coverage is partial, not universal. Services, portfolio cards, stats, CTA, contact data, footer data, section visibility, typography, and selected hero fields consume the content model. The public About component, header navigation and identity, hero biography and badges, project detail pages, many labels, and many literal colors remain hardcoded in source. See [docs/CONTENT-CMS.md](./docs/CONTENT-CMS.md).
+
+## Security boundary
+
+- Supabase Auth provides email/password sessions and optional TOTP MFA for `/control-room`.
+- The checked-in migration allows public reads and permits all authenticated users to write `site_content`; it does not enforce owner-only writes.
+- The frontend does not enforce a specific owner email or user ID.
+- `run/get_log.php` validates a bearer token with Supabase, but accepts any valid Supabase user token and does not require owner UID or AAL2.
+- `run/log_hakanrun.php` masks IP addresses, limits stored field lengths, rate-limits by masked IP, caps the log file, and performs an external geolocation lookup.
+- Live Supabase policies, accounts, hosting files, and provider settings are outside Git and must be verified separately.
+
+See [docs/BACKEND-SECURITY.md](./docs/BACKEND-SECURITY.md) for the source-backed boundary.
 
 ## Local development
 
-```bash
-npm install
-cp apps/web/.env.example apps/web/.env   # add your Supabase URL + anon key
-npm run dev                              # http://localhost:3000
-```
-
-## Testing
+The repository recommends Node `20.19.1` through `.nvmrc`. The GitHub Actions workflow currently uses the moving `lts/*` selector.
 
 ```bash
-npm test           # Playwright E2E against a production build (desktop + mobile)
+npm ci
+cp apps/web/.env.example apps/web/.env
+npm run dev
 ```
 
-Tests cover the home page, navigation, the contact form, the 404 page, and SEO/social meta. They run automatically on every push via GitHub Actions (`.github/workflows/playwright.yml`).
+The web application can render fallback content without Supabase environment variables. Supabase-backed content and Control Room functionality require `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 
-## Build & deploy
+## Validation
 
 ```bash
-npm run build      # outputs to dist/apps/web/
+npm run lint
+npm test
 ```
 
-Upload `dist/apps/web/` to the web root, and the contents of `run/` to a `run/` folder on the server (with a filled-in `secure-config.php`). See `run/README.md`.
+Playwright builds the application, starts a Vite preview server, and runs desktop Chrome and Pixel 5 profiles using the Chromium engine. The current suite checks the home page, desktop navigation order, contact form structure, one project route, the designed 404 page, and basic SEO metadata. It does not test live Supabase, RLS, Control Room authentication or saving, PHP endpoints, Formspree submission, hosting, or deployment.
+
+## Build and deployment boundary
+
+```bash
+npm run build
+```
+
+The frontend artifact is written to `dist/apps/web/`. The repository contains no automated production deployment. Operational documentation describes a manual upload model for the frontend artifact and a separate `/run/` PHP deployment, but the current live hosting state cannot be proven from Git alone. See [docs/DEPLOYMENT-OPERATIONS.md](./docs/DEPLOYMENT-OPERATIONS.md).
 
 ---
 
