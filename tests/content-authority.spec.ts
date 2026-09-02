@@ -1,7 +1,117 @@
 import { expect, test } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.route(/^https?:\/\/(?!localhost:3000)/, route => route.abort());
+  await page.route(/^https?:\/\/(?!localhost:3000)/, route => {
+    if (route.request().url().includes('/rest/v1/site_content')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      });
+    }
+    return route.abort();
+  });
+});
+
+test('does not render fallback content while Supabase content is unresolved', async ({ page }) => {
+  let releaseResponse;
+  let markRequestStarted;
+  const responseGate = new Promise(resolve => { releaseResponse = resolve; });
+  const requestStarted = new Promise(resolve => { markRequestStarted = resolve; });
+
+  await page.route('**/rest/v1/site_content*', async route => {
+    markRequestStarted();
+    await responseGate;
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          section: 'hero',
+          data: {
+            badge: 'REMOTE HERO READY',
+            headingLine1: 'REMOTE HERO',
+            headingLine2: 'CONTENT',
+            paragraph: 'REMOTE HERO PARAGRAPH',
+            primaryButton: 'REMOTE PRIMARY',
+            primaryButtonHref: '#portfolio',
+            secondaryButton: 'REMOTE SECONDARY',
+            secondaryButtonHref: '/contact',
+            profile: {
+              image: '/media/HakanDundar.webp',
+              imageAlt: 'Remote hero image',
+              name: 'REMOTE PROFILE',
+              role: 'REMOTE ROLE',
+              location: 'REMOTE LOCATION',
+              topValue: 'REMOTE TOP',
+              topLabel: 'REMOTE TOP LABEL',
+              bottomLabel: 'REMOTE BOTTOM LABEL',
+              bottomValue: 'REMOTE BOTTOM',
+            },
+          },
+        },
+        {
+          section: 'portfolio',
+          data: {
+            badge: 'REMOTE PORTFOLIO BADGE',
+            heading: 'REMOTE PORTFOLIO',
+            headingAccent: 'CONTENT',
+            subtitle: '',
+            cards: [{
+              id: 501,
+              slug: 'remote-project',
+              title: 'REMOTE PROJECT READY',
+              description: 'Remote project description',
+              imgSrc: '/portfolio/full-stack-saas-card.svg',
+              externalUrl: '',
+              technology: 'REMOTE STACK',
+            }],
+          },
+        },
+        {
+          section: 'about',
+          data: {
+            chips: ['REMOTE ABOUT CHIP'],
+            block1: {
+              heading: 'REMOTE ABOUT',
+              headingAccent: 'CONTENT',
+              image: '/media/HakanDundar.webp',
+              imageAlt: 'Remote about image',
+              sections: [],
+            },
+            block2: {
+              visible: false,
+              heading: '',
+              headingAccent: '',
+              image: '/media/hkndesk.webp',
+              imageAlt: '',
+              sections: [],
+            },
+          },
+        },
+      ]),
+    });
+  });
+
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('booted', '1');
+    window.localStorage.removeItem('siteContent');
+  });
+
+  await page.goto('/');
+  await requestStarted;
+
+  await expect(page.locator('#root')).toBeEmpty();
+  await expect(page.getByRole('heading', { name: /BUILD\. DEPLOY\. RUN\./ })).toHaveCount(0);
+  await expect(page.getByText('Full Stack Development', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('AI & Automation', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('From Systems to', { exact: true })).toHaveCount(0);
+
+  releaseResponse();
+
+  await expect(page.getByText('REMOTE HERO READY', { exact: true })).toBeVisible();
+  await expect(page.getByText('REMOTE PROJECT READY', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /REMOTE ABOUT CONTENT/ })).toBeVisible();
 });
 
 test('persisted Hero and About content reaches the public homepage', async ({ page }) => {

@@ -264,3 +264,53 @@ Documentation was reconciled in `HANDOFF.md`, this append-only record, `docs/CUR
 - The first Turkish-text scan used PowerShell's case-insensitive Unicode matching and produced a false positive by equating the Unicode dotted capital I with English `i`. The corrected case-sensitive additions scan passed.
 
 No dependency or lockfile changed. No interactive browser, provider dashboard, live site, hosting, upload, Supabase configuration or rows, Cloudflare, Hostinger, DNS, secret, PHP, infrastructure, push, or deployment action was performed. Generated build and test output remain outside the commit. The final owner-authored commit uses subject `feat: align about and footer content authority`; its SHA is determined only after the commit object is created and is reported in the owner-facing completion report. The exact next action is owner review of that local commit, followed by a separately authorized push if accepted.
+
+## Manual production upload package preparation
+
+On 2026-09-01, clean `main@41d936324affd0d11fc72e59fb2a93664bb80d1a` was verified aligned with `origin/main`. Using existing dependencies only, Node `v22.23.2` and npm `10.9.8` ran `node tools/generate-llms.js` followed by `.\node_modules\.bin\vite.cmd build --outDir ../../dist/apps/web` from `apps/web`. The production build succeeded with 1,730 modules transformed and retained the existing warning for a JavaScript chunk larger than 500 kB.
+
+The inspected artifact is `D:\IT\hakan\hakan-run\dist\apps\web`: 18 files totaling 1,031,800 bytes. `index.html` references `assets/index-43d83692.js` and `assets/index-eaf4cedb.css`; every file from `apps/web/public` is present. The artifact contains no source maps, environment files, `node_modules`, test results, Playwright reports, local tooling directories, obvious secret material, or local workstation path residue.
+
+Manual owner upload is required. Upload the contents of `dist/apps/web`, not the directory itself, to the existing production site web root while preserving separately managed `/run` PHP and unrelated hosting files. This task did not access Hostinger or another provider, upload or deploy files, or perform live production verification. The exact next owner action is to manually upload the inspected artifact contents and then perform separately authorized live route, bundle, and content smoke verification.
+
+## 2026-09-02 — Initial stale-content flash hotfix
+
+The owner reported a reproducible initial-render defect across Chrome, Edge, incognito browsing, and mobile: for the first milliseconds of a fresh page load, the previous fallback version of the public site could appear before the current persisted content replaced it. Examples included the old Hero copy, generic Portfolio cards, and previous About content.
+
+### Root cause
+
+Source inspection confirmed that `ContentProvider` initialized public content from the source/local fallback immediately, while the Supabase `site_content` read started only inside `useEffect` after the initial React paint. The terminal loader was not coupled to content readiness and could also be skipped through session state, so stale fallback DOM could become briefly visible before authoritative persisted content arrived.
+
+### Implementation
+
+A bounded readiness gate was added in `apps/web/src/contexts/ContentContext.jsx`.
+
+When Supabase is configured, public children are not rendered until the initial content request settles. On successful remote content resolution, the provider opens with the merged authoritative content in the same render cycle. If Supabase is unavailable or the request completes without usable authoritative content, the existing fallback path remains available.
+
+No layout, styling, content model, provider configuration, RLS, Supabase row, dependency, package, or infrastructure change was made.
+
+Focused regression coverage was added in `tests/content-authority.spec.ts` to delay the mocked `site_content` response and verify that stale Hero, Portfolio, and About fallback content is absent while the request is unresolved and that remote content appears after the response is released.
+
+### Validation
+
+- `npx playwright test tests/content-authority.spec.ts`
+  -> PASS — 14/14 tests.
+- `npm run lint`
+  -> PASS.
+- `git diff --check`
+  -> PASS; only line-ending conversion warnings were emitted.
+- Production build from `apps/web`
+  -> PASS — 1,730 modules transformed.
+- Generated JavaScript bundle:
+  `assets/index-5af63290.js`
+- Generated CSS bundle:
+  `assets/index-eaf4cedb.css`
+- Existing JavaScript chunk-size warning above 500 kB remains unchanged.
+
+The first attempt to rerun the focused suite after the interrupted session failed because the default test harness had been changed to return a `503` response for every `site_content` request. This caused 12 existing content-authority tests to wait behind the new readiness gate. The harness was restored to a successful empty `200` response for the default path; after that correction, the focused suite passed 14/14.
+
+### Deliberate non-actions
+
+No commit, push, upload, deployment, live production verification, Hostinger change, Supabase configuration change, Supabase row mutation, Cloudflare change, DNS change, provider change, secret change, dependency install, dependency upgrade, package change, or lockfile change has occurred for this hotfix yet.
+
+Exact next action: review the bounded hotfix diff, create one owner-authored local commit, push only after separate approval, rebuild the production artifact, perform the owner-managed manual upload, and verify from a fresh session that the stale-content flash is gone.

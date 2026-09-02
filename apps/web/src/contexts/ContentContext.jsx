@@ -42,6 +42,7 @@ export const ContentProvider = ({ children }) => {
       return siteContent;
     }
   });
+  const [contentReady, setContentReady] = useState(() => !supabase);
 
   useEffect(() => { applyColors(content.colors); },      [content.colors]);
   useEffect(() => { applyTypography(content.typography); }, [content.typography]);
@@ -57,6 +58,8 @@ export const ContentProvider = ({ children }) => {
         setContent(prev => ({ ...prev, ...remote }));
       } catch (e) {
         console.error('[Content] Supabase fetch threw:', e);
+      } finally {
+        setContentReady(true);
       }
     })();
   }, []);
@@ -83,7 +86,7 @@ export const ContentProvider = ({ children }) => {
 
   return (
     <ContentContext.Provider value={{ content, updateContent }}>
-      {children}
+      {contentReady ? children : null}
     </ContentContext.Provider>
   );
 };

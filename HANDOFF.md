@@ -6,13 +6,22 @@ The verified starting point for the current bounded cleanup was `main@0c47b68c39
 
 ## Current release state
 
-The reviewed baseline is `main@e8cc5c41e3aba53e3a2c51ec29793a3d6225e3d5`, with local `main` and `origin/main` aligned before the current bounded change. The local source now adds a Control Room visibility switch for About block 2 and moves the Footer bottom signature and location into the existing Footer content model. Missing `about.block2.visible`, `footer.bottomSignature`, and `footer.bottomLocation` fields use source defaults, so older persisted sections remain renderable. This current change has been validated locally but has not been pushed or deployed. Live Supabase rows and production state were not inspected or changed.
+The current verified source baseline is `main@41d936324affd0d11fc72e59fb2a93664bb80d1a`, aligned with `origin/main` before the stale-content hotfix work began.
 
-The content-authority wiring repair is pushed and has passed CI, but it is not yet deployed. The verified production build produced `index-16cea860.js`; a read-only live check still served the prior `index-16a43140.js`. Hostinger's site-specific File Manager opened an HTTPS privacy interstitial, so the upload was stopped without bypassing the security barrier. No cache purge was performed.
+A bounded local hotfix is now prepared to prevent stale fallback content from flashing before authoritative Supabase-managed content resolves on initial page load. The root cause was the `ContentProvider` rendering fallback content immediately while the Supabase query only started after the first React paint. The fix adds a content-readiness gate so public children remain unrendered while configured Supabase content is unresolved. If Supabase is unavailable or the request completes without authoritative content, the existing fallback path remains available.
 
-The Hostinger File Manager TLS/security path remains blocked and must not be used or bypassed. After a safe deployment through an established alternative, repeat the live smoke checks and perform the owner-only `CONTENT-TEST-2026` Control Room mutation/restoration test. Until that test succeeds from a separate browser session, production Supabase write-through remains unproven.
+The hotfix implementation changes only:
 
-A subsequent FTP-only continuation did not use or bypass the File Manager warning. The repository documents the artifact boundary and a generic manual web-root upload, but it does not define an executable frontend FTP procedure, remote host/port/protocol, secure local profile selector, exact frontend remote root, or stale-asset synchronization rule. No matching established secure FTP deployment capability could therefore be verified, and the FTP deployment was stopped as `NOT AVAILABLE`. Production still serves `index-16a43140.js`; the verified `index-16cea860.js` artifact remains local and ready for deployment once the owner supplies or restores the established non-secret procedure and secure profile.
+- `apps/web/src/contexts/ContentContext.jsx`
+- `tests/content-authority.spec.ts`
+
+The accompanying repository documentation is updated in `HANDOFF.md` and `PROCESS.md`.
+
+Focused content-authority regression coverage passes `14/14`, including the delayed-Supabase case proving stale Hero, Portfolio, and About fallback content is not rendered while authoritative content is unresolved. `npm run lint` passes. The production build also passes using Node `v22.23.2` and npm `10.9.8`; the current generated JavaScript bundle is `assets/index-5af63290.js` and the CSS bundle remains `assets/index-eaf4cedb.css`. The existing Vite warning for a JavaScript chunk larger than 500 kB remains unchanged.
+
+The hotfix has not yet been committed, pushed, uploaded, deployed, or live-verified. Hostinger, Supabase configuration or rows, Cloudflare, DNS, provider configuration, secrets, PHP runtime, and production infrastructure remain unchanged.
+
+Exact next action: review the final source/test/documentation diff, commit the bounded hotfix if accepted, push it separately, rebuild the verified production artifact, perform the owner-managed manual upload, and then verify from a fresh browser session that stale fallback content no longer flashes before the current content.
 
 ## Reading order
 
