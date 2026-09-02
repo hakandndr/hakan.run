@@ -53,10 +53,10 @@ There is no optimistic rollback when the Supabase upsert fails. The browser can 
 | Portfolio listing | `content.portfolio` | Badge, heading, cards, and each card's `technology` label are dynamic; card behavior depends on `externalUrl` or `slug`; the editable subtitle has no public rendering slot |
 | Project details | `Project.jsx` | Three hardcoded detail records; not supplied by CMS |
 | Stats | `content.stats` or explicit prop | Home heading and items are dynamic; the editable subtitle has no public rendering slot; project pages pass hardcoded per-project stats |
-| About | `content.about` | The public layout consumes both block objects, including headings, sections, images, and alt text; profile chips are an editable array; block 1 period labels remain hardcoded |
+| About | `content.about` | The public layout consumes both block objects, including headings, sections, images, and alt text; profile chips are an editable array; block 2 has an independently editable `visible` value; block 1 period labels remain hardcoded |
 | CTA | `content.cta` | Copy and button target are dynamic; handler uses client-side `navigate`, so external URL handling is not implemented |
 | Contact | `content.contact` | Page metadata, copy, info blocks, social links, and Formspree endpoint are dynamic |
-| Footer | Mixed | Data-driven brand/navigation/social values; bottom copyright text, DNDR Labs attribution, and location are hardcoded |
+| Footer | `content.footer` plus fixed presentation | Brand, navigation, social values, bottom signature, and bottom location are editable and consumed; layout and design tokens remain component-owned |
 | Colors | Mixed | Four values are applied to CSS variables, but many components use literal colors |
 | Typography | Mixed | Heading family, body size, and section spacing are applied through body attributes; component-specific classes still constrain results |
 | Visibility | `content.visibility` | Controls Stats, Services, Portfolio, About, and CTA; Hero remains visible |
@@ -68,7 +68,7 @@ An editor field only has public authority when a rendering component consumes it
 - `Header.jsx` does not call `useContent` and defines its own navigation and branding.
 - About block 1 period labels remain in JSX rather than the content model.
 - Portfolio and Stats expose subtitles that their public components do not render.
-- Footer exposes a copyright field, but its public bottom line remains hardcoded.
+- Footer still exposes the older `copyright` field, but the public bottom bar consumes the dedicated `bottomSignature` and `bottomLocation` fields instead.
 - `applyColors` controls accent RGB, page background, card background, and hero overlay variables, but many current components use hardcoded hex colors and arbitrary Tailwind values.
 
 These are source-backed implementation gaps, not live-state assumptions.
@@ -77,7 +77,9 @@ These are source-backed implementation gaps, not live-state assumptions.
 
 `content.hero.profile` owns the portrait image, alt text, name, role, location, and both floating badge value/label pairs. Public rendering merges a missing legacy `profile` object with fallback defaults, so older complete-section rows remain renderable. Saving the Hero section through Control Room writes the extended section shape.
 
-`content.about.chips` is an array edited through a comma-separated Control Room field. A missing legacy array uses the fallback chip list. `content.about.block2` now renders as the second public About content block rather than remaining editor-only.
+`content.about.chips` is an array edited through a comma-separated Control Room field. A missing legacy array uses the fallback chip list. `content.about.block2` renders as the second public About content block. Its Control Room visibility switch stores `block2.visible`; public rendering treats only explicit `false` as hidden, preserving the visible behavior of older rows without the field.
+
+`content.footer.bottomSignature` and `content.footer.bottomLocation` own the public bottom-bar copy. `Footer.jsx` applies field-level source defaults when an older complete Footer row lacks either field. The default DNDR Labs label retains its existing link behavior; the surrounding layout and presentation remain component-owned.
 
 Each `content.portfolio.cards[]` entry may contain `technology`. Missing or empty legacy values render the neutral `Project` label; new Control Room cards start with the same safe value. The decorative dot color still follows card position and is not stored content.
 

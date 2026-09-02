@@ -42,6 +42,7 @@ test('persisted Hero and About content reaches the public homepage', async ({ pa
           ],
         },
         block2: {
+          visible: true,
           heading: 'CMS BLOCK TWO',
           headingAccent: 'CMS BLOCK TWO ACCENT',
           image: '/media/hkndesk.webp',
@@ -81,6 +82,74 @@ test('persisted Hero and About content reaches the public homepage', async ({ pa
   await expect(page.getByAltText('CMS BLOCK TWO IMAGE')).toBeVisible();
 });
 
+test('legacy About content keeps block 2 visible when the visibility field is absent', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('booted', '1');
+    window.localStorage.setItem('siteContent', JSON.stringify({
+      about: {
+        chips: [],
+        block1: {
+          heading: 'LEGACY BLOCK ONE',
+          headingAccent: 'VISIBLE',
+          image: '/media/HakanDundar.webp',
+          imageAlt: 'Legacy block one image',
+          sections: [],
+        },
+        block2: {
+          heading: 'LEGACY BLOCK TWO',
+          headingAccent: 'DEFAULT VISIBLE',
+          image: '/media/hkndesk.webp',
+          imageAlt: 'Legacy block two image',
+          sections: [],
+        },
+      },
+    }));
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: /LEGACY BLOCK TWO DEFAULT VISIBLE/ })).toBeVisible();
+  await expect(page.getByAltText('Legacy block two image')).toBeVisible();
+});
+
+test('About block 2 visibility does not affect block 1', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('booted', '1');
+    window.localStorage.setItem('siteContent', JSON.stringify({
+      about: {
+        chips: [],
+        block1: {
+          heading: 'VISIBLE BLOCK ONE',
+          headingAccent: 'STAYS VISIBLE',
+          image: '/media/HakanDundar.webp',
+          imageAlt: 'Visible block one image',
+          sections: [
+            { title: 'VISIBLE BLOCK ONE TITLE', body: 'VISIBLE BLOCK ONE BODY' },
+          ],
+        },
+        block2: {
+          visible: false,
+          heading: 'HIDDEN BLOCK TWO',
+          headingAccent: 'HIDDEN ACCENT',
+          image: '/media/hkndesk.webp',
+          imageAlt: 'Hidden block two image',
+          sections: [
+            { title: 'HIDDEN BLOCK TWO TITLE', body: 'HIDDEN BLOCK TWO BODY' },
+          ],
+        },
+      },
+    }));
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByRole('heading', { name: /VISIBLE BLOCK ONE STAYS VISIBLE/ })).toBeVisible();
+  await expect(page.getByText('VISIBLE BLOCK ONE BODY', { exact: true })).toBeVisible();
+  await expect(page.getByText('HIDDEN BLOCK TWO', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('HIDDEN BLOCK TWO BODY', { exact: true })).toHaveCount(0);
+  await expect(page.getByAltText('Hidden block two image')).toHaveCount(0);
+});
+
 test('persisted Portfolio badge reaches the public homepage', async ({ page }) => {
   await page.addInitScript(() => {
     window.sessionStorage.setItem('booted', '1');
@@ -112,4 +181,48 @@ test('persisted Portfolio badge reaches the public homepage', async ({ page }) =
   await expect(page.getByText('CMS PORTFOLIO CARD', { exact: true })).toBeVisible();
   await expect(page.getByText('CMS TECHNOLOGY', { exact: true })).toBeVisible();
   await expect(page.getByText('CMS PORTFOLIO SUBTITLE', { exact: true })).toHaveCount(0);
+});
+
+test('persisted Footer bottom bar content reaches the public homepage', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('booted', '1');
+    window.localStorage.setItem('siteContent', JSON.stringify({
+      footer: {
+        logoText: '<cms/>',
+        siteName: 'CMS FOOTER',
+        tagline: 'CMS FOOTER TAGLINE',
+        copyright: 'Legacy editor field',
+        bottomSignature: 'CMS BOTTOM SIGNATURE',
+        bottomLocation: 'CMS BOTTOM LOCATION',
+        sections: [],
+        socialLinks: [],
+      },
+    }));
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByText('CMS BOTTOM SIGNATURE', { exact: true })).toBeVisible();
+  await expect(page.getByText('CMS BOTTOM LOCATION', { exact: true })).toBeVisible();
+});
+
+test('legacy Footer content uses safe bottom bar defaults', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('booted', '1');
+    window.localStorage.setItem('siteContent', JSON.stringify({
+      footer: {
+        logoText: '<legacy/>',
+        siteName: 'LEGACY FOOTER',
+        tagline: 'LEGACY FOOTER TAGLINE',
+        copyright: 'Legacy editor field',
+        sections: [],
+        socialLinks: [],
+      },
+    }));
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByText('© 2026 Hakan.run — Built under DNDR Labs.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Orange County, CA USA', { exact: true })).toBeVisible();
 });

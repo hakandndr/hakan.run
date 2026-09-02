@@ -2,7 +2,7 @@
 
 ## Baseline and evidence boundary
 
-This document describes source at `main@50e7bac9198e39f251a45aebe287979e929ecdc7`.
+This document describes the reviewed `main@e8cc5c41e3aba53e3a2c51ec29793a3d6225e3d5` baseline plus the current bounded About/Footer content-authority change.
 
 The repository contains three runtime boundaries:
 
@@ -68,6 +68,8 @@ ContentContext consumers and Control Room editors
 The initial state is `siteContent` with an optional top-level `localStorage` overlay. After mount, every Supabase row is reduced to `{ [section]: data }` and shallowly spread over current state.
 
 The merge is not recursive. If a remote `hero` row exists, that entire remote `hero` object replaces the previous `hero` object. Missing nested keys are not automatically restored from fallback content.
+
+Consumers may provide explicit compatibility defaults for newly introduced fields. About block 2 remains visible unless `content.about.block2.visible` is exactly `false`. Footer bottom signature and location fall back individually to their source defaults when older complete Footer rows omit those fields. These guards do not change the top-level shallow merge model.
 
 `updateContent(section, value)` updates React state and stores the complete next content object in `localStorage`. If Supabase exists, it upserts the selected section by the unique `section` key. There is no schema validation, revision history, conflict resolution, or rollback model.
 

@@ -2,12 +2,35 @@ import React from 'react';
 import { Github, Twitter, Linkedin, Instagram } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
+import { footerBottomDefaults } from '@/content';
 
 const SOCIAL_ICONS = {
   Linkedin:  <Linkedin  size={16} />,
   Github:    <Github    size={16} />,
   Instagram: <Instagram size={16} />,
   Twitter:   <Twitter   size={16} />,
+};
+
+const renderBottomSignature = (text) => {
+  const label = 'DNDR Labs';
+  const labelIndex = text.indexOf(label);
+
+  if (labelIndex === -1) return text;
+
+  return (
+    <>
+      {text.slice(0, labelIndex)}
+      <a
+        href="https://dndr.net"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-accent-purple transition-colors"
+      >
+        {label}
+      </a>
+      {text.slice(labelIndex + label.length)}
+    </>
+  );
 };
 
 const Footer = () => {
@@ -117,19 +140,10 @@ const Footer = () => {
       <div className="border-t border-white/[0.06]">
         <div className="container mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-mono text-[11px] text-gray-500">
-            © {new Date().getFullYear()} Hakan.run — Built under{' '}
-            <a
-              href="https://dndr.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-accent-purple transition-colors"
-            >
-              DNDR Labs
-            </a>
-            .
+            {renderBottomSignature(f.bottomSignature ?? footerBottomDefaults.signature)}
           </p>
           <p className="font-mono text-[11px] text-gray-600">
-            Irvine, CA USA
+            {f.bottomLocation ?? footerBottomDefaults.location}
           </p>
         </div>
       </div>

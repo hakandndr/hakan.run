@@ -233,3 +233,34 @@ Existing section save behavior and top-level shallow overlay semantics were not 
 - `npx playwright test tests/content-authority.spec.ts`: 4 passed across desktop Chromium and Mobile Chrome after the current artifact was built. The first attempt reused an older local preview and was discarded; one subsequent mobile assertion correctly revealed that the existing Hero portrait is intentionally hidden below the `lg` breakpoint, so the test was adjusted to verify DOM content authority without changing responsive design.
 
 Generated build output, Playwright results, local configuration, and secrets remain ignored and outside the commit. The task creates one owner-authored local commit only after final staged validation. Push and deployment are explicitly out of scope.
+
+## About and Footer content-authority alignment
+
+### Resume state and scope
+
+This task resumed after a session usage interruption. The existing partial diff was preserved and reviewed rather than reverted or restarted. The verified starting state was clean `main@e8cc5c41e3aba53e3a2c51ec29793a3d6225e3d5`, with `origin/main` aligned, upstream `origin/main`, and repository-local identity `Hakan Dundar <hakan@dndr.net>`. The interrupted diff contained only `About.jsx`, `Footer.jsx`, `content.js`, `Admin.jsx`, and `tests/content-authority.spec.ts`.
+
+The bounded implementation adds only two controls. `about.block2.visible` is edited in the existing About Control Room form and hides block 2 only when explicitly `false`; absent values in older Supabase or local JSON preserve the current visible behavior. `footer.bottomSignature` and `footer.bottomLocation` are edited in the existing Footer form and consumed by the public Footer with field-level defaults for older complete Footer rows. The default bottom copy is `© 2026 Hakan.run — Built under DNDR Labs.` and `Orange County, CA USA`. The established DNDR Labs link and all About/Footer layout, responsive, typography, spacing, and styling classes were preserved.
+
+Changed source and test files are:
+
+- `apps/web/src/components/About.jsx`;
+- `apps/web/src/components/Footer.jsx`;
+- `apps/web/src/content.js`;
+- `apps/web/src/pages/Admin.jsx`;
+- `tests/content-authority.spec.ts`.
+
+Documentation was reconciled in `HANDOFF.md`, this append-only record, `docs/CURRENT_STATE.md`, `docs/CONTENT-CMS.md`, `docs/ARCHITECTURE.md`, and the documentation index. No roadmap status or separate lessons file was added because this bounded legacy repository has no existing files at those paths; the compatibility rule is recorded in the canonical current-state and content-model documents instead.
+
+### Validation, corrections, and non-actions
+
+- `npm run lint`: passed.
+- `node tools/generate-llms.js` followed by `.\node_modules\.bin\vite.cmd build --outDir ../../dist/apps/web` from `apps/web`: passed with 1,730 modules transformed. The existing JavaScript chunk-size warning remained; generated entry assets were `index-43d83692.js` and `index-eaf4cedb.css`.
+- The first documented Playwright executable path under `apps/web/node_modules` did not exist and ran no tests. The installed root executable was used instead.
+- The first focused Playwright run executed its then-current ten cases but reproduced the known Windows preview teardown hang before a result line. After the final legacy/explicit-state coverage was added, reusing the separately managed local preview produced a clean result: 12 passed.
+- The full local Playwright suite on the same artifact completed with 31 passed and 1 skipped.
+- Test review added explicit coverage for persisted Footer values, legacy Footer defaults, legacy About rows without `block2.visible`, explicit `true`, and explicit `false` visibility while block 1 remains present.
+- Diff review restored the existing DNDR Labs hyperlink inside the new editable signature path; no public copy other than the requested default location changed.
+- The first Turkish-text scan used PowerShell's case-insensitive Unicode matching and produced a false positive by equating the Unicode dotted capital I with English `i`. The corrected case-sensitive additions scan passed.
+
+No dependency or lockfile changed. No interactive browser, provider dashboard, live site, hosting, upload, Supabase configuration or rows, Cloudflare, Hostinger, DNS, secret, PHP, infrastructure, push, or deployment action was performed. Generated build and test output remain outside the commit. The final owner-authored commit uses subject `feat: align about and footer content authority`; its SHA is determined only after the commit object is created and is reported in the owner-facing completion report. The exact next action is owner review of that local commit, followed by a separately authorized push if accepted.

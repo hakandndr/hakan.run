@@ -254,6 +254,11 @@ const AboutTab = ({ content, updateContent }) => {
         }))} />
       {renderBlock('block1', 'Block 1 — Left Image')}
       <div className="border-t border-gray-800 my-6" />
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-semibold text-gray-300">Show Block 2 publicly</p>
+        <ToggleSwitch value={form.block2.visible !== false}
+          onChange={value => setBlock('block2', 'visible', value)} />
+      </div>
       {renderBlock('block2', 'Block 2 — Right Image')}
       <SaveBtn onClick={() => updateContent('about', form)} />
     </div>
@@ -440,6 +445,10 @@ const FooterTab = ({ content, updateContent }) => {
       <Field label="Site Name" value={form.siteName} onChange={e => setRoot('siteName', e.target.value)} />
       <Field label="Tagline" value={form.tagline} onChange={e => setRoot('tagline', e.target.value)} />
       <Field label="Copyright" value={form.copyright} onChange={e => setRoot('copyright', e.target.value)} />
+      <Field label="Bottom Signature" value={form.bottomSignature ?? siteContent.footer.bottomSignature}
+        onChange={e => setRoot('bottomSignature', e.target.value)} />
+      <Field label="Bottom Location" value={form.bottomLocation ?? siteContent.footer.bottomLocation}
+        onChange={e => setRoot('bottomLocation', e.target.value)} />
       <p className="text-xs text-gray-500 mb-3 mt-1">Navigation Sections</p>
       {form.sections.map((sec, si) => (
         <CardBox key={si}>

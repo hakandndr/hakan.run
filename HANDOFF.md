@@ -6,7 +6,7 @@ The verified starting point for the current bounded cleanup was `main@0c47b68c39
 
 ## Current release state
 
-The local source now exposes the Hero portrait profile values, About profile chips, and Portfolio card technology/category labels through the existing content sections and Control Room. About block 2 is consumed publicly. Missing fields in legacy full-section content rows use source defaults; live Supabase rows were not read or changed. The public header mark and fallback Footer logo text use the canonical `<h/>` form. This cleanup was validated locally but was not pushed or deployed.
+The reviewed baseline is `main@e8cc5c41e3aba53e3a2c51ec29793a3d6225e3d5`, with local `main` and `origin/main` aligned before the current bounded change. The local source now adds a Control Room visibility switch for About block 2 and moves the Footer bottom signature and location into the existing Footer content model. Missing `about.block2.visible`, `footer.bottomSignature`, and `footer.bottomLocation` fields use source defaults, so older persisted sections remain renderable. This current change has been validated locally but has not been pushed or deployed. Live Supabase rows and production state were not inspected or changed.
 
 The content-authority wiring repair is pushed and has passed CI, but it is not yet deployed. The verified production build produced `index-16cea860.js`; a read-only live check still served the prior `index-16a43140.js`. Hostinger's site-specific File Manager opened an HTTPS privacy interstitial, so the upload was stopped without bypassing the security barrier. No cache purge was performed.
 
@@ -84,7 +84,7 @@ npm run build
 
 1. CMS coverage is partial. The presence of an editor field does not prove that the public component consumes it.
 2. Header navigation, header branding, and header CTA are hardcoded in `Header.jsx`; `content.header` is not consumed there.
-3. Public About consumes both block objects and the editable profile-chip array; block 1 period labels remain hardcoded.
+3. Public About consumes both block objects and the editable profile-chip array; block 2 is hidden only when its nested `visible` value is exactly `false`; block 1 period labels remain hardcoded.
 4. Hero portrait image/text/badges are part of `content.hero.profile` and are exposed in Control Room; many visual colors remain hardcoded outside the editor model.
 5. `ContentContext` performs shallow top-level merges. A remote section replaces the corresponding fallback section object rather than deep-merging missing nested keys.
 6. The checked-in RLS migration allows every authenticated role to write. Owner-only authorization is not represented in the repository.
@@ -100,7 +100,8 @@ npm run build
 | Header label, order, CTA, or mark | `Header.jsx`; update tests if behavior changes |
 | Hero badge, biography, heading, or buttons | Control Room/Supabase or fallback `content.js` |
 | Hero image or profile labels | Control Room/Supabase or fallback `content.hero.profile`; `Hero.jsx` consumes the values |
-| Services, portfolio cards and technology labels, stats, CTA, contact, footer | Content model and consuming component |
+| Services, portfolio cards and technology labels, stats, CTA, contact | Content model and consuming component |
+| Footer brand, links, social values, bottom signature, and bottom location | `content.footer`, Footer Control Room tab, and `Footer.jsx` |
 | Public About blocks and profile chips | Control Room/Supabase or fallback `content.js`; `About.jsx` owns the current layout |
 | Project detail copy or unknown-slug behavior | `Project.jsx` |
 | Visibility | `Home.jsx`, `content.visibility`, Control Room |

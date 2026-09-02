@@ -5,6 +5,7 @@
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Runtime boundaries, boot sequence, routes, content flow, and build output |
 | [FILE-MAP.md](./FILE-MAP.md) | Maintainer-oriented repository map |
 | [CONTENT-CMS.md](./CONTENT-CMS.md) | Content authority, CMS coverage, fallback behavior, and hardcoded boundaries |
+| [CURRENT_STATE.md](./CURRENT_STATE.md) | Current repository state, bounded local changes, and external-state limits |
 | [CONTROL-ROOM.md](./CONTROL-ROOM.md) | Admin route, authentication, MFA, editors, saving, and tracker UI |
 | [BACKEND-SECURITY.md](./BACKEND-SECURITY.md) | Supabase policy, PHP endpoints, Apache protection, secrets, and risk boundaries |
 | [DEPLOYMENT-OPERATIONS.md](./DEPLOYMENT-OPERATIONS.md) | Build artifact, manual deployment model, cache, smoke checks, and rollback |

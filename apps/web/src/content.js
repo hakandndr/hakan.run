@@ -19,6 +19,11 @@ export const aboutChipDefaults = [
   'Orange County, CA',
 ];
 
+export const footerBottomDefaults = {
+  signature: '© 2026 Hakan.run — Built under DNDR Labs.',
+  location: 'Orange County, CA USA',
+};
+
 export const siteContent = {
 
   // ─── COLORS ───────────────────────────────────────────────────────────────
@@ -118,6 +123,7 @@ export const siteContent = {
       ],
     },
     block2: {
+      visible: true,
       heading: 'Based in',
       headingAccent: 'Orange County, CA',
       image: '/media/hkndesk.webp',
@@ -242,6 +248,8 @@ export const siteContent = {
     siteName: 'HAKAN DUNDAR',
     tagline: 'Building, deploying, and running clean code solutions from California.',
     copyright: 'Hakan Dundar. All Rights Reserved.',
+    bottomSignature: footerBottomDefaults.signature,
+    bottomLocation: footerBottomDefaults.location,
     sections: [
       {
         title: 'Navigation',
