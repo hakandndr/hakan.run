@@ -6,38 +6,45 @@ The verified starting point for the current bounded cleanup was `main@0c47b68c39
 
 ## Current release state
 
-The current verified source baseline is `main@77ac775bd946b8328b81500ff2b3123f90d9c053`.
+The current verified source baseline is `main@ee5ba2e33dfd951ac948e8c18f65b67792563fb6`.
 
-The stale-content flash fix and the content readiness gate are unchanged and preserved. A bounded follow-up now fixes the remaining refresh scroll-restoration defect confirmed in production: refreshing the homepage while halfway down or near the bottom still reopened at the top.
+A bounded architectural simplification of the initial content flow is now prepared. It replaces the accumulated timing workarounds rather than adding another one.
 
-Preserving document layout during the gate was necessary but not sufficient. In this client-rendered SPA the browser performs native scroll restoration around the load event, before React has mounted and before the document has usable height, so there is nothing left to restore once layout exists.
+### Why
 
-Scroll position is therefore now owned by the application rather than the browser.
+The site had two different initial contents: the shipped source content in `apps/web/src/content.js` rendered first, and authoritative Supabase content arrived afterwards and could differ. Every earlier fix treated a symptom of that one fact — the readiness gate hid the difference but not its layout consequence, keeping the tree mounted preserved a height that was still about to change, and manual scroll restoration re-applied a position against a document that then changed under it. The retry loop re-applying the position after the content swapped is what produced the visible vertical movement on refresh.
 
-- `window.history.scrollRestoration` is set to `manual` at boot so native restoration cannot race the explicit restore.
-- `apps/web/src/components/ScrollToTop.jsx` was renamed to `apps/web/src/components/ScrollRestoration.jsx`. It saves `window.scrollY` per pathname into `sessionStorage` on `pagehide`, `beforeunload`, and `visibilitychange` to hidden, and re-applies it on the initial load only, only for the same pathname, clamped to the reachable height and re-applied while late layout growth extends the page. It settles once the readiness gate has opened and the target position holds, gives up after three seconds, and is cancelled by any deliberate scroll, touch, key, or pointer input from the visitor.
-- In-app route changes still reset to the top, and an in-app return to a saved pathname is never restored.
-- `apps/web/src/contexts/ContentContext.jsx` additionally exposes `contentReady` so the restore can settle only after the gate has opened. The gate itself is unchanged.
+### What changed
 
-Because the position is applied while the gate still hides the content, it is already correct when the content becomes visible, which avoids a visible jump.
+`localStorage.siteContent` is now the single local content authority: the last known-good content, written both by Control Room saves and by every successful Supabase read. A load that holds it paints the confirmed content immediately, the document has its final height while the browser restores, and no correction is required.
 
-The follow-up changes only:
+- The readiness gate now closes for one case only: a first, uncached visit to a Supabase-backed site, where there is nothing known-good to paint and the shipped source content may be stale. Every refresh is ungated.
+- The manual scroll machinery was deleted, not replaced: `sessionStorage` position bookkeeping, the `pagehide` / `beforeunload` / `visibilitychange` writers, the `requestAnimationFrame` retry and clamping loop, the cancel-on-input listeners, and the restore deadline are gone. `apps/web/src/components/ScrollRestoration.jsx` is once again `apps/web/src/components/ScrollToTop.jsx` and only resets scroll on in-app route changes.
+- The `history.scrollRestoration = 'manual'` override was removed, returning refresh and history navigation to native browser restoration.
 
-- `apps/web/src/main.jsx`
-- `apps/web/src/components/ScrollRestoration.jsx` (renamed from `ScrollToTop.jsx`)
+### What remains open
+
+The gate is retained for the uncached first visit because the shipped source content cannot be proven to match current production content. Establishing that requires an owner-supplied export of the Supabase `site_content` rows; the live project was deliberately not read or modified. Once that export exists, `content.js` can be synchronised, a divergence regression test added, and the gate removed entirely.
+
+Two pre-existing, unrelated sources of movement were observed and left alone: `SectionAnimator` translates sections 50 pixels on entry, and roughly 170 pixels of layout growth occurs during the first second of a cold load as images and fonts settle.
+
+### Files changed
+
 - `apps/web/src/contexts/ContentContext.jsx`
-- `tests/scroll-restoration.spec.ts` (new)
-- `tests/content-authority.spec.ts`
+- `apps/web/src/components/ScrollToTop.jsx` (renamed back from `ScrollRestoration.jsx`)
+- `apps/web/src/main.jsx`
+- `tests/initial-render.spec.ts` (new, replaces the deleted `tests/scroll-restoration.spec.ts`)
+- `HANDOFF.md`, `PROCESS.md`
 
-The accompanying repository documentation is updated in `HANDOFF.md` and `PROCESS.md`.
+### Validation
 
-New `tests/scroll-restoration.spec.ts` passes 42/42 over three repeats with no flake; focused content-authority coverage passes 16/16; both focused specs pass 30/30 with fake build-time Supabase environment variables present; the full Playwright suite passes with 49 passed and 1 pre-existing skip and no Supabase environment variables present, which is the GitHub Actions condition. `npm run lint`, `git diff --check`, and the production build all pass.
+`tests/initial-render.spec.ts` passes 42/42 over three repeats with no flake. The two focused specs pass 30/30 both with and without build-time Supabase environment variables. The full Playwright suite passes with 49 passed and 1 pre-existing skip and no Supabase environment variables present, which is the GitHub Actions condition. `npm run lint`, `git diff --check`, and the production build all pass.
 
-Validation note: the checkout is a Windows working tree whose `node_modules` holds Windows-only native binaries, so the repository's own dependency tree could not be reused for this validation run. Validation ran on Linux against an isolated clean install of the same `package-lock.json` (Node `v22.22.2`, npm `10.9.7`) from the identical sources. The repository's `node_modules`, `dist`, `.env`, and reports were untouched. The bundle names produced there were `assets/index-98b564a3.js` and `assets/index-8ba19dd7.css`; these are not authoritative for upload and must be regenerated from a local build. The existing Vite warning for a JavaScript chunk larger than 500 kB is unchanged.
+Validation note: the checkout is a Windows working tree whose `node_modules` holds Windows-only native binaries, so the repository's own dependency tree could not be reused. Validation ran on Linux against an isolated clean install of the same `package-lock.json` (Node `v22.22.2`, npm `10.9.7`) from the identical sources. The repository's `node_modules`, `dist`, `.env`, and reports were untouched. The bundle names produced there were `assets/index-049fba94.js` and `assets/index-da0b27af.css`; these are not authoritative for upload and must be regenerated from a local build. The existing Vite warning for a JavaScript chunk larger than 500 kB is unchanged.
 
-The follow-up has been committed locally only. It has not been pushed, uploaded, deployed, or live-verified. Hostinger, Supabase configuration or rows, Cloudflare, DNS, provider configuration, secrets, CI workflow files, PHP runtime, and production infrastructure remain unchanged.
+The change has been committed locally only. It has not been pushed, uploaded, deployed, or live-verified. Supabase rows and configuration were not accessed or changed. Hostinger, Cloudflare, DNS, provider configuration, secrets, CI workflow files, PHP runtime, and production infrastructure remain unchanged.
 
-Exact next action: review the local commit, rebuild the production artifact locally to regenerate authoritative bundle hashes, push only after separate approval, perform the owner-managed manual upload, and then verify live that refreshing halfway down and near the bottom of the homepage reopens at the same position, that in-app navigation still lands at the top, and that no stale content flashes.
+Exact next action: rebuild the production artifact locally, upload it, and verify that refreshing mid-page and near the bottom of the homepage is visually stable with no vertical movement, that a first visit in a clean profile shows no stale content, and that in-app navigation still lands at the top.
 
 ## Reading order
 

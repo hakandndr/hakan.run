@@ -447,3 +447,79 @@ As in the previous entry, the Windows working tree's `node_modules` contains Win
 No push, upload, deployment, live verification, Hostinger change, Supabase configuration or row change, RLS change, Cloudflare change, DNS change, provider change, secret change, CI environment change, workflow change, dependency addition, dependency upgrade, package change, or lockfile change. `D:\IT\hakan\hakan-run-next` was not touched.
 
 Exact next action: rebuild the production artifact locally to regenerate authoritative bundle hashes, perform the owner-managed manual upload after separate approval, then verify from a live session that refreshing halfway down and near the bottom of the homepage reopens at the same position and that no stale content flashes.
+
+## 2026-09-02 — Initial-render simplification: one content authority, native scroll restoration
+
+Baseline `main@ee5ba2e33dfd951ac948e8c18f65b67792563fb6`.
+
+### Reported problem
+
+Manual production verification: the stale-content flash is gone and refresh restores approximately the right position, but the page visibly moves vertically before settling. This was treated as an initial-render architecture problem rather than another scroll-position bug.
+
+### Architectural root cause
+
+The site had two different initial contents. The shipped source content in `apps/web/src/content.js` rendered first; the authoritative Supabase content arrived afterwards and could differ. Every fix so far addressed a symptom of that single fact:
+
+- the readiness gate hid the difference, but not its layout consequence;
+- keeping the tree mounted preserved height, but the height was the wrong one;
+- manual scroll restoration re-applied a position against a document that was still about to change;
+- the `requestAnimationFrame` retry loop existed only to chase that change.
+
+Because the document height changed after load, no restoration strategy could be visually stable. The retry loop then re-applied the saved position after the content swapped, which is the vertical movement the owner observed. The correct fix is to stop the initial render from changing, not to time the correction better.
+
+### Implementation
+
+`localStorage.siteContent` is now the single local content authority: the last known-good content, written both by Control Room saves and by every successful Supabase read. A load that already holds it paints the confirmed content immediately, so the document has its final height while the browser restores, and no correction is needed at any point.
+
+- `apps/web/src/contexts/ContentContext.jsx` — reads the stored content once at boot; every successful Supabase read is persisted back to the same key. The readiness gate now closes for exactly one case: a first, uncached visit to a Supabase-backed site, where the shipped source content may be stale and there is nothing known-good to paint. Every other load, including every refresh, is ungated.
+- `apps/web/src/components/ScrollRestoration.jsx` was reduced back to `apps/web/src/components/ScrollToTop.jsx`. Removed entirely: `sessionStorage` position bookkeeping, the `pagehide` / `beforeunload` / `visibilitychange` writers, the `requestAnimationFrame` retry and clamping loop, the cancel-on-input listeners, and the restore deadline. What remains is a scroll reset on in-app route changes only.
+- `apps/web/src/main.jsx` — the `history.scrollRestoration = 'manual'` override was removed, returning refresh and history navigation to native browser restoration.
+
+This is a deletion, not a replacement. No timing workaround was substituted for the removed one.
+
+### Deliberately unchanged
+
+The gate is retained for the uncached first visit. Removing it entirely would require the shipped source content to match current production content, which cannot be established from the repository or local state; the live Supabase project was deliberately not read or modified. Synchronising `content.js` with authoritative production content, and adding a regression test that detects divergence between the two, remain open and require an owner-supplied export of `site_content`.
+
+Two pre-existing, unrelated sources of movement were observed during review and left alone: `SectionAnimator` entrance animations translate sections by 50 pixels on entry, and roughly 170 pixels of layout growth occurs during the first second of a cold load as images and fonts settle. Neither is caused by the content flow, and neither was part of this task.
+
+### Test changes
+
+`tests/scroll-restoration.spec.ts` was deleted with the machinery it covered, and replaced by `tests/initial-render.spec.ts`, which asserts the architectural properties instead of a timing behaviour:
+
+- a cached load renders immediately and is never gated;
+- the document height does not change once Supabase confirms the content, measured after assets settle so it isolates content-driven change;
+- a successful Supabase read is persisted for the next load;
+- `history.scrollRestoration` is left at `auto`, so the browser owns it;
+- the app does not move the scroll position on an initial load;
+- an in-app route change still scrolls to the top;
+- an uncached first visit is still gated against stale source content.
+
+Native restoration itself is not asserted: headless Chromium under Playwright does not restore reproducibly, as recorded in the previous entry. The tests assert the preconditions that make native restoration work.
+
+### Validation environment
+
+As before, the Windows working tree's `node_modules` holds Windows-only native binaries and could not be reused. Validation ran on Linux against an isolated clean install of the same `package-lock.json` (Node `v22.22.2`, npm `10.9.7`) from the identical working-tree sources. The repository's own `node_modules`, `dist`, `.env`, and `playwright-report` were left untouched.
+
+### Validation
+
+- `tests/initial-render.spec.ts`, `--repeat-each=3`
+  -> PASS — 42/42; no flake observed.
+- Focused `tests/content-authority.spec.ts` and `tests/initial-render.spec.ts`, no Supabase environment variables
+  -> PASS — 30/30.
+- The same focused specs with fake build-time Supabase environment variables present
+  -> PASS — 30/30.
+- Full Playwright suite, no Supabase environment variables (the GitHub Actions condition)
+  -> PASS — 49 passed, 1 skipped (the pre-existing desktop-only navigation case).
+- `npm run lint`
+  -> PASS.
+- `git diff --check`
+  -> PASS; no whitespace errors.
+- Production build
+  -> PASS — 1,730 modules transformed; `assets/index-049fba94.js`, `assets/index-da0b27af.css`. These names come from the clean-install validation environment and are not authoritative for upload; regenerate them from a local build. The existing chunk-size warning above 500 kB is unchanged.
+
+### Deliberate non-actions
+
+No live Supabase access, row change, configuration change, or RLS change. No push, upload, deployment, live verification, Hostinger change, Cloudflare change, DNS change, provider change, secret change, CI environment change, workflow change, dependency addition, dependency upgrade, package change, or lockfile change. `D:\IT\hakan\hakan-run-next` was not touched.
+
+Exact next action: rebuild the production artifact locally, upload it, and verify that refreshing mid-page and near the bottom is visually stable. Then decide whether to close the remaining gap by exporting `site_content` and synchronising `content.js` so the uncached first visit needs no gate either.

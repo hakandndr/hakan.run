@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { siteContent } from '@/content';
 import { supabase } from '@/lib/supabase';
 
@@ -33,16 +33,39 @@ const applyTypography = (typography) => {
   body.setAttribute('data-spacing', typography.sectionSpacing || 'default');
 };
 
+// `siteContent` in localStorage is the single local content authority: the
+// last known-good content, written both by Control Room saves and by every
+// successful Supabase read. When it exists, the very first paint already shows
+// the content Supabase is about to confirm, so the document height does not
+// change after load and the browser's own scroll restoration lands correctly.
+const readStoredContent = () => {
+  try {
+    const stored = JSON.parse(localStorage.getItem('siteContent') || 'null');
+    return stored && typeof stored === 'object' && Object.keys(stored).length ? stored : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredContent = (next) => {
+  try {
+    localStorage.setItem('siteContent', JSON.stringify(next));
+  } catch {
+    /* storage unavailable — the next load simply falls back to source content */
+  }
+};
+
 export const ContentProvider = ({ children }) => {
-  const [content, setContent] = useState(() => {
-    try {
-      const stored = localStorage.getItem('siteContent');
-      return stored ? { ...siteContent, ...JSON.parse(stored) } : siteContent;
-    } catch {
-      return siteContent;
-    }
-  });
-  const [contentReady, setContentReady] = useState(() => !supabase);
+  const storedOnBoot = useRef(readStoredContent());
+  const [content, setContent] = useState(() =>
+    storedOnBoot.current ? { ...siteContent, ...storedOnBoot.current } : siteContent,
+  );
+
+  // The readiness gate now exists for exactly one case: a first, uncached visit
+  // to a Supabase-backed site, where the shipped source content may be stale and
+  // there is nothing known-good to paint. Any load that already has known-good
+  // content renders immediately and is never gated.
+  const [contentReady, setContentReady] = useState(() => !supabase || !!storedOnBoot.current);
 
   useEffect(() => { applyColors(content.colors); },      [content.colors]);
   useEffect(() => { applyTypography(content.typography); }, [content.typography]);
@@ -55,7 +78,12 @@ export const ContentProvider = ({ children }) => {
         if (error) { console.error('[Content] Supabase fetch error:', error.message); return; }
         if (!data?.length) { console.warn('[Content] Supabase returned no rows'); return; }
         const remote = data.reduce((acc, row) => { acc[row.section] = row.data; return acc; }, {});
-        setContent(prev => ({ ...prev, ...remote }));
+        // Persist the authoritative result so the next load starts from it.
+        setContent(prev => {
+          const next = { ...prev, ...remote };
+          writeStoredContent({ ...(readStoredContent() ?? {}), ...remote });
+          return next;
+        });
       } catch (e) {
         console.error('[Content] Supabase fetch threw:', e);
       } finally {
@@ -67,7 +95,7 @@ export const ContentProvider = ({ children }) => {
   const updateContent = async (section, value) => {
     setContent(prev => {
       const next = { ...prev, [section]: value };
-      try { localStorage.setItem('siteContent', JSON.stringify(next)); } catch (_) {}
+      writeStoredContent({ ...(readStoredContent() ?? {}), [section]: value });
       return next;
     });
 
@@ -87,11 +115,10 @@ export const ContentProvider = ({ children }) => {
   return (
     <ContentContext.Provider value={{ content, updateContent, contentReady }}>
       {/*
-        While authoritative content is unresolved the tree is still mounted so
-        the document keeps its real layout height and the browser can perform
-        native scroll restoration on refresh. `display: contents` keeps the
-        wrapper out of layout, and the inherited `visibility: hidden` makes
-        sure no stale fallback content is ever painted.
+        Only an uncached first load is ever gated. The tree stays mounted so the
+        document keeps its real layout height; `display: contents` keeps the
+        wrapper out of layout and the inherited `visibility: hidden` makes sure
+        no stale source content is painted before Supabase confirms it.
       */}
       <div
         data-content-ready={contentReady ? 'true' : 'false'}
