@@ -6,13 +6,14 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `cf5cd7ddd67950338ce9f7550039fdc9bf907bf8` before the Phase 1C documentation commit |
+| HEAD | `9f1d5ce444c62126fd217628717372006678e4c4` |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Current phase | Phase 1C — modernization branch publication |
-| Completed work | Phase 1A/1B governance and visual baseline complete; Phase 1C baseline, remote-branch absence, and non-deployment workflow checks complete |
-| Exact next action | Complete the authorized branch publication, then begin Phase 2A — Cloudflare staging architecture/specification under separate scope |
+| Remote tracking | `origin/develop/hakan-run-v2` at `9f1d5ce444c62126fd217628717372006678e4c4` |
+| Current phase | Phase 1C complete — modernization branch published |
+| Completed work | Phase 1A/1B governance and visual baseline plus Phase 1C remote publication and upstream tracking |
+| Exact next action | Phase 2A — Cloudflare staging architecture/specification under separate scope |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | Authorized for `develop/hakan-run-v2`; pending until Phase 1C completes |
+| Push state | Completed for `develop/hakan-run-v2`; local and remote branch SHAs match |
 | Deploy state | Not performed and not authorized |
 | Infrastructure state | Modernization infrastructure not started; Cloudflare resources and D1 not created; Resend and Turnstile not configured; production unchanged |
 

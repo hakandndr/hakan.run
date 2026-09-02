@@ -57,7 +57,7 @@ For documentation-only phases:
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
-The modernization branch is local. No Cloudflare staging or production resource exists as part of this work, and no Cloudflare command is yet canonical.
+The modernization branch tracks `origin/develop/hakan-run-v2`. No Cloudflare staging or production resource exists as part of this work, and no Cloudflare command is yet canonical.
 
 ## Authorization and promotion
 

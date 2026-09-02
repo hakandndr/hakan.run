@@ -9,8 +9,8 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next` |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `cf5cd7ddd67950338ce9f7550039fdc9bf907bf8` before the Phase 1C documentation commit |
-| Modernization remote tracking | Not established; branch remains local until the authorized Phase 1C push completes |
+| Modernization HEAD | `9f1d5ce444c62126fd217628717372006678e4c4` |
+| Modernization remote tracking | `origin/develop/hakan-run-v2`; local and remote SHAs match with ahead/behind `0 / 0` |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |

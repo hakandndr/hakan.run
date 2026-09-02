@@ -36,7 +36,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Pushing the wrong branch; unintended workflow or deployment activation; documentation/remote-state drift.
 - Acceptance gates: Exact baseline, reviewed documentation commit, normal non-force push, matching local/remote SHA, upstream tracking, unchanged `origin/main`, and observed workflow result.
 - Authorization boundaries: Documentation, one local commit, and normal push of `develop/hakan-run-v2` only; no main push, deploy, provider, or runtime change.
-- Status: Current; remote branch publication pending.
+- Status: Complete at `9f1d5ce444c62126fd217628717372006678e4c4`; upstream tracking established.
 
 ## Phase 2A — Cloudflare staging architecture/specification
 
@@ -45,7 +45,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Premature provider coupling; shared mutable resources; secret or DNS exposure.
 - Acceptance gates: Reviewed resource map, environment isolation, source-controlled non-secret configuration, rollback plan.
 - Authorization boundaries: Specification work does not authorize PROVIDER, ACCESS, SECRET, DATABASE, DNS, DEPLOY, or ACTIVATE.
-- Status: Planned; not current until Phase 1C completes.
+- Status: Next; specification only, not started.
 
 ## Phase 3 — React/Vite on Cloudflare staging
 
