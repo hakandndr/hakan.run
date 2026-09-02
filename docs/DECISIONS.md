@@ -145,3 +145,39 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Rationale: A single canonical identity and portable governance provide clear ownership.
 - Consequences: Commits and repository text require attribution and hygiene checks.
 - Status: Approved and active.
+
+## D-017 — The legacy `/run/` PHP surface does not migrate
+
+- Decision: The target Cloudflare architecture does not preserve, proxy, recreate, or depend on the legacy `/run/` PHP visitor-log endpoints. First-party PAGE analytics backed by `ANALYTICS_DB` replaces that path.
+- Context: `/run/log_hakanrun.php` and `/run/get_log.php` write and read a flat file, trust proxy-style headers, and send an address to an external geolocation service. They are legacy-only.
+- Alternatives considered: Port the endpoints to the Worker; proxy them from the edge; keep calling them from a Cloudflare-hosted frontend.
+- Rationale: Rebuilding a weaker analytics path would carry its trust and privacy debt into the new architecture. The replacement already exists in the target as a database-backed authority.
+- Consequences: No compatibility route is created for `/run/`. Analytics continuity across cutover is an operational question, not an architectural one. Removing the live PHP files is a later operational step.
+- Status: Approved; target excludes `/run/`.
+
+## D-018 — Formspree does not migrate
+
+- Decision: Formspree is not part of the target architecture. Public submissions are handled by a Worker endpoint that verifies Turnstile server-side, validates input, persists durably to `APP_DB`, and only then attempts a Resend notification.
+- Context: The legacy contact form posts directly from the browser to a third-party endpoint, so the owner has no durable first-party record of a submission.
+- Alternatives considered: Keep Formspree alongside the new flow; use Formspree as a fallback path.
+- Rationale: A submission is a product record. Durable first-party persistence is the requirement, and a second submission path would create a second authority.
+- Consequences: Persistence precedes notification. Notification failure never loses or invalidates a submission. Resend is delivery only and never the source of truth.
+- Status: Approved; target excludes Formspree.
+
+## D-019 — `/boss/*` is the only private surface; `/control-room` does not migrate
+
+- Decision: The private operational interface in the target is exclusively `/boss/*`, containing Dashboard, Analytics, Content, Submissions, Audit, and System. The Cloudflare target defines no `/control-room` route.
+- Context: The legacy Control Room ships inside the public bundle and has no source-enforced owner identity.
+- Alternatives considered: Port `/control-room` to the target; run both routes in parallel during migration.
+- Rationale: Two private surfaces would mean two authorization models. A single canonical surface with one enforcement path is the point of the redesign.
+- Consequences: `/control-room` remains only in the legacy application until cutover, and there is no target coexistence requirement. `/boss/*` is protected by Cloudflare Access at the edge, independent identity and assertion verification in the Worker, and an owner allowlist. Client-side route guards are never an authorization boundary.
+- Status: Approved; target excludes `/control-room`.
+
+## D-020 — Staging content authority is the isolated staging `APP_DB`
+
+- Decision: Cloudflare staging reads and writes content only through its own isolated `APP_DB`. Staging never reads or writes the production Supabase `site_content` table, and no second Supabase project is created.
+- Context: Pointing staging at the live Supabase project would share a mutable production resource and would let staging mutate live public content.
+- Alternatives considered: A second Supabase project; a staging deployment pointed at production Supabase; deferring content ownership until the later structured-content phase.
+- Rationale: Isolation of mutable resources is a security property, and moving content into `APP_DB` for staging brings the target content authority forward without touching production.
+- Consequences: Bootstrap is a one-time read-only snapshot of the current authoritative production content, transformed and seeded into staging `APP_DB`. Production Supabase stays untouched during staging work. Authoritative production content is migrated separately into the isolated production `APP_DB` at cutover. Staging and production never share mutable content storage. Schema and migration implementation belong to a later authorized phase.
+- Status: Approved as specification; no snapshot taken, no schema created, no resource provisioned.

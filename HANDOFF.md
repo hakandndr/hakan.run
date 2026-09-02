@@ -6,14 +6,14 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `9f1d5ce444c62126fd217628717372006678e4c4` |
+| HEAD | `dffb405` plus the Phase 2A specification commit |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Remote tracking | `origin/develop/hakan-run-v2` at `9f1d5ce444c62126fd217628717372006678e4c4` |
-| Current phase | Phase 1C complete — modernization branch published |
-| Completed work | Phase 1A/1B governance and visual baseline plus Phase 1C remote publication and upstream tracking |
-| Exact next action | Phase 2A — Cloudflare staging architecture/specification under separate scope |
+| Remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead and unpushed |
+| Current phase | Phase 2A complete — Cloudflare staging architecture specified, nothing provisioned |
+| Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
+| Exact next action | Phase 2B provisioning of isolated staging resources, under separate authorization |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | Completed for `develop/hakan-run-v2`; local and remote branch SHAs match |
+| Push state | Local commits pending; pushing requires separate authorization |
 | Deploy state | Not performed and not authorized |
 | Infrastructure state | Modernization infrastructure not started; Cloudflare resources and D1 not created; Resend and Turnstile not configured; production unchanged |
 
@@ -32,6 +32,21 @@ No framework, runtime, data, provider, or visual migration has started. The exis
 5. Read the latest appended entry in `PROCESS.md` for chronological context.
 6. Read `docs/VISUAL_BASELINE.md` before any frontend, framework, or delivery implementation.
 
-## Phase 2A boundary
+## Phase 2A outcome and Phase 2B boundary
 
-Phase 2A should produce a reviewed, source-controlled architecture and specification for isolated Cloudflare staging. Provider access, resource creation, secrets, databases, deployment, activation, DNS, push, and production changes remain separately authorized. Any later frontend delivery must use the Phase 1B baseline as its parity contract.
+Phase 2A produced a reviewed, source-controlled specification and nothing else. It created no provider resource and changed no runtime, dependency, package, or workflow file.
+
+The specification is spread across four documents, each with a distinct job:
+
+- `docs/ARCHITECTURE.md` — target staging topology, request flows, data ownership, and write ordering.
+- `docs/ENVIRONMENTS.md` — environment and resource map, naming, bindings, non-secret variables, secret names, and isolation rules.
+- `docs/SECURITY.md` — trust boundaries, private-surface authorization, and fail-closed requirements.
+- `docs/OPERATIONS.md` — artifact identity, staging deployment, smoke matrix, promotion, and rollback.
+
+Confirmed direction: the first Cloudflare migration is a hosting migration only. React/Vite is preserved, delivery is Worker plus Static Assets, staging and production share no mutable resource, `APP_DB` and `ANALYTICS_DB` are separate authorities, `/boss/*` is protected by Cloudflare Access and independently verified in the Worker, public forms are Turnstile-protected, submissions persist before any notification, and Resend is delivery only.
+
+Three legacy surfaces do not migrate and receive no compatibility routes: the `/run/` PHP visitor log, replaced by first-party PAGE analytics in `ANALYTICS_DB`; the third-party form endpoint, replaced by a Worker submission endpoint writing to `APP_DB`; and `/control-room`, replaced by `/boss/*` with its canonical Dashboard, Analytics, Content, Submissions, Audit, and System areas. Cloudflare staging holds content in its own isolated `APP_DB`, bootstrapped once from a read-only snapshot of authoritative production content, and never reads or writes the production Supabase project. These are decisions D-017 to D-020.
+
+Phase 2B provisioning is ready to authorize. What remains open is configuration chosen at provisioning time — staging hostname, Access identity provider and session policy, retention periods, and Resend sender identity — not architecture. Provisioning creates resources only; the staging content schema and bootstrap must exist before any staging deployment that serves dynamic content, and both belong to a later authorized phase.
+
+Provider access, resource creation, secrets, databases, deployment, activation, DNS, push, and production changes remain separately authorized. Any later frontend delivery must use the Phase 1B baseline as its parity contract.

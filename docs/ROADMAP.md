@@ -40,17 +40,38 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 ## Phase 2A — Cloudflare staging architecture/specification
 
-- Objective: Define the reviewed architecture, resource map, environment isolation, and operational specification for an isolated staging delivery/runtime foundation without provisioning it.
+- Objective: Define the reviewed architecture, resource map, environment isolation, request flows, data ownership, trust model, and operational procedures for an isolated staging delivery/runtime foundation without provisioning it.
 - Dependencies: Phase 1B baseline and completed Phase 1C branch publication.
-- Main risks: Premature provider coupling; shared mutable resources; secret or DNS exposure.
-- Acceptance gates: Reviewed resource map, environment isolation, source-controlled non-secret configuration, rollback plan.
+- Main risks: Premature provider coupling; shared mutable resources; secret or DNS exposure; coupling the hosting migration to a framework migration; inventing provider state.
+- Acceptance gates:
+  1. Target topology documented as Worker plus Static Assets, with the hosting migration explicitly decoupled from any framework migration.
+  2. Staging and production resource isolation defined for Worker services, `APP_DB`, `ANALYTICS_DB`, variables, secrets, Access applications, Turnstile, Resend, and domains, with every provider resource labeled planned and not created.
+  3. Request flows defined for public static pages, API and runtime routes, `/boss/*`, analytics events, and public submissions.
+  4. Data ownership defined with one authority per mutable data class and no cross-database joins.
+  5. Write ordering defined as validate, authorize, persist, acknowledge, notify, record outcome.
+  6. Trust model and fail-closed behavior defined, with client UI state excluded from authorization.
+  7. Deployment, promotion, and rollback procedures defined, including a schema discipline that makes code rollback possible without data loss.
+  8. No secret value, account identifier, resource identifier, or DNS value recorded or invented.
+  9. No runtime, dependency, package, lockfile, or workflow change in the phase commit.
 - Authorization boundaries: Specification work does not authorize PROVIDER, ACCESS, SECRET, DATABASE, DNS, DEPLOY, or ACTIVATE.
-- Status: Next; specification only, not started.
+  10. Legacy surfaces that do not migrate recorded as durable decisions: `/run/`, Formspree, and `/control-room` are excluded from the target with no compatibility routes, and staging content authority is the isolated staging `APP_DB`.
+- Status: Complete as specification; see `docs/ARCHITECTURE.md`, `docs/ENVIRONMENTS.md`, `docs/SECURITY.md`, `docs/OPERATIONS.md`, and decisions D-017 to D-020. The remaining open items are configuration values, not architectural questions, and do not block provisioning.
+
+## Phase 2B — Cloudflare staging provisioning
+
+- Objective: Create the isolated staging resources defined in Phase 2A, without deploying application delivery.
+- Dependencies: Phase 2A specification accepted. The architectural questions are settled by decisions D-017 to D-020; the outstanding items are configuration values that are chosen during provisioning rather than blockers to starting it.
+- Scope: Worker service, `APP_DB` and `ANALYTICS_DB` staging databases, non-secret variables, secret bindings, the staging Access application and policy, the staging Turnstile widget, the staging Resend configuration, and the staging hostname.
+- Values to choose at provisioning time: staging hostname and its domain arrangement; Access identity provider and session policy; analytics and submission retention periods; Resend sender domain, address, and verification path.
+- Main risks: Creating a resource that shares mutable state with production; connecting staging to the production Supabase project; recording a secret in source; enabling a policy wider than owner-only; DNS or indexing exposure of staging.
+- Acceptance gates: Each resource created with the specified name and isolation; identifiers recorded in environment-specific configuration rather than guessed; secrets present only as bindings with values distinct from production; owner-only Access policy verified by a denied non-owner attempt; staging excluded from indexing; no connection path from staging to the production Supabase project; no production resource touched.
+- Authorization boundaries: PROVIDER, ACCESS, SECRET, DATABASE, and DNS each require separate explicit authorization. Provisioning does not authorize DEPLOY or ACTIVATE.
+- Status: Ready to authorize; not started. Provisioning creates resources only and does not include the staging content bootstrap or any deployment.
 
 ## Phase 3 — React/Vite on Cloudflare staging
 
 - Objective: Deliver the unchanged React/Vite application on staging and demonstrate visual/behavioral parity.
-- Dependencies: Phases 1B and 2A.
+- Dependencies: Phases 1B, 2A, and completed Phase 2B provisioning. A deployment serving dynamic content additionally requires the staging `APP_DB` content schema and a completed one-time content bootstrap.
 - Main risks: SPA routing, headers, caching, asset paths, and visual drift.
 - Acceptance gates: Build reproducibility, route matrix, visual parity evidence, staging smoke tests, rollback readiness.
 - Authorization boundaries: BUILD, DEPLOY, ACTIVATE, and any provider change are separate.
@@ -58,7 +79,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 ## Phase 4 — First-party PAGE analytics
 
-- Objective: Introduce bounded first-party PAGE-event analytics with explicit retention and authority.
+- Objective: Introduce bounded first-party PAGE-event analytics with explicit retention and authority, replacing the legacy `/run/` visitor log rather than porting it.
 - Dependencies: Stable staging runtime and approved analytics schema.
 - Main risks: Excessive collection, privacy ambiguity, bot noise, mixed environments.
 - Acceptance gates: PAGE-only schema, privacy review, staging isolation, retention policy, query verification.
@@ -67,7 +88,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 ## Phase 5 — Durable submissions, Turnstile, and Resend
 
-- Objective: Persist contact submissions first, validate abuse controls, and notify secondarily.
+- Objective: Persist contact submissions first, validate abuse controls, and notify secondarily, replacing the third-party form endpoint rather than keeping it alongside.
 - Dependencies: Application data authority, staging runtime, approved privacy and notification design.
 - Main risks: Lost submissions, duplicate notification, spam, secret leakage, provider failure.
 - Acceptance gates: Strict validation, durable record before notification, idempotency/retry behavior, Turnstile verification, auditability.

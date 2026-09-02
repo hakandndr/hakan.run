@@ -3,6 +3,7 @@
 | Document | Scope |
 | --- | --- |
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Runtime boundaries, boot sequence, routes, content flow, and build output |
+| [ENVIRONMENTS.md](./ENVIRONMENTS.md) | Planned staging/production environment and resource map, naming, bindings, and isolation rules |
 | [FILE-MAP.md](./FILE-MAP.md) | Maintainer-oriented repository map |
 | [CONTENT-CMS.md](./CONTENT-CMS.md) | Content authority, CMS coverage, fallback behavior, and hardcoded boundaries |
 | [CONTROL-ROOM.md](./CONTROL-ROOM.md) | Admin route, authentication, MFA, editors, saving, and tracker UI |
