@@ -6,22 +6,29 @@ The verified starting point for the current bounded cleanup was `main@0c47b68c39
 
 ## Current release state
 
-The current verified source baseline is `main@41d936324affd0d11fc72e59fb2a93664bb80d1a`, aligned with `origin/main` before the stale-content hotfix work began.
+The current verified source baseline is `main@a0e4751c42f74fa38fce53bb0f4a2a7a8634145f`, aligned with `origin/main`.
 
-A bounded local hotfix is now prepared to prevent stale fallback content from flashing before authoritative Supabase-managed content resolves on initial page load. The root cause was the `ContentProvider` rendering fallback content immediately while the Supabase query only started after the first React paint. The fix adds a content-readiness gate so public children remain unrendered while configured Supabase content is unresolved. If Supabase is unavailable or the request completes without authoritative content, the existing fallback path remains available.
+The stale-content flash hotfix is in place and preserved. A bounded follow-up now repairs the two regressions that hotfix introduced.
 
-The hotfix implementation changes only:
+1. Native browser scroll restoration on refresh. The readiness gate rendered no children while Supabase content was unresolved, so the document had no layout height for the browser to restore against; `ScrollToTop`, mounted inside the gate, then ran its initial scroll-to-top after the restoration attempt. The gate now keeps children mounted inside a `display: contents` wrapper that carries `visibility: hidden` while unresolved, so layout height is preserved and stale content is still never painted, and `ScrollToTop` resets the position only on in-app route changes.
+2. CI independence of the delayed-Supabase regression test. `apps/web/src/lib/supabase.js` now accepts an optional `window.__SUPABASE_RUNTIME_CONFIG__` published before boot, falling back to `import.meta.env` exactly as before. The test supplies that configuration per test and intercepts every request to it, so the configured Supabase path runs deterministically in GitHub Actions without real credentials, without global CI environment variables, and without affecting any other test.
+
+The follow-up changes only:
 
 - `apps/web/src/contexts/ContentContext.jsx`
+- `apps/web/src/components/ScrollToTop.jsx`
+- `apps/web/src/lib/supabase.js`
 - `tests/content-authority.spec.ts`
 
 The accompanying repository documentation is updated in `HANDOFF.md` and `PROCESS.md`.
 
-Focused content-authority regression coverage passes `14/14`, including the delayed-Supabase case proving stale Hero, Portfolio, and About fallback content is not rendered while authoritative content is unresolved. `npm run lint` passes. The production build also passes using Node `v22.23.2` and npm `10.9.8`; the current generated JavaScript bundle is `assets/index-5af63290.js` and the CSS bundle remains `assets/index-eaf4cedb.css`. The existing Vite warning for a JavaScript chunk larger than 500 kB remains unchanged.
+Focused content-authority coverage passes 18/18 both with and without Supabase environment variables; the full Playwright suite passes with 37 passed and 1 pre-existing skip and no Supabase environment variables present, which is the GitHub Actions condition. `npm run lint`, `git diff --check`, and the production build all pass.
 
-The hotfix has not yet been committed, pushed, uploaded, deployed, or live-verified. Hostinger, Supabase configuration or rows, Cloudflare, DNS, provider configuration, secrets, PHP runtime, and production infrastructure remain unchanged.
+Validation note: the checkout is a Windows working tree whose `node_modules` holds Windows-only native binaries, so the suites were executed against an isolated clean install of the same `package-lock.json` (Node `v22.22.2`, npm `10.9.7`) from the identical sources. The repository's `node_modules`, `dist`, `.env`, and reports were untouched. The bundle names produced there were `assets/index-70390bb7.js` and `assets/index-da0b27af.css`; these are not authoritative for upload and must be regenerated from a local build on the owner's machine. The existing Vite warning for a JavaScript chunk larger than 500 kB is unchanged.
 
-Exact next action: review the final source/test/documentation diff, commit the bounded hotfix if accepted, push it separately, rebuild the verified production artifact, perform the owner-managed manual upload, and then verify from a fresh browser session that stale fallback content no longer flashes before the current content.
+The follow-up has been committed locally only. It has not been pushed, uploaded, deployed, or live-verified. Hostinger, Supabase configuration or rows, Cloudflare, DNS, provider configuration, secrets, CI workflow files, PHP runtime, and production infrastructure remain unchanged.
+
+Exact next action: review the local commit, rebuild the production artifact locally to regenerate authoritative bundle hashes, push only after separate approval, perform the owner-managed manual upload, and then verify from a fresh browser session that no stale content flashes and that refreshing halfway down the homepage restores the scroll position.
 
 ## Reading order
 

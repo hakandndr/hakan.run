@@ -314,3 +314,67 @@ The first attempt to rerun the focused suite after the interrupted session faile
 No commit, push, upload, deployment, live production verification, Hostinger change, Supabase configuration change, Supabase row mutation, Cloudflare change, DNS change, provider change, secret change, dependency install, dependency upgrade, package change, or lockfile change has occurred for this hotfix yet.
 
 Exact next action: review the bounded hotfix diff, create one owner-authored local commit, push only after separate approval, rebuild the production artifact, perform the owner-managed manual upload, and verify from a fresh session that the stale-content flash is gone.
+
+## 2026-09-02 — Readiness-gate regressions: scroll restoration and CI-independent coverage
+
+Baseline `main@a0e4751c42f74fa38fce53bb0f4a2a7a8634145f`.
+
+### Reported problems
+
+The stale-content readiness gate added in `4b2ea83` fixed the visible flash but introduced two regressions:
+
+1. Refreshing halfway down the homepage always reopened at the top; native browser scroll restoration no longer worked.
+2. The new delayed-Supabase regression test was not CI-independent. It passed locally, where `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` exist, and timed out in GitHub Actions, where `supabase === null` means the `/rest/v1/site_content` request never starts. An earlier attempt to add global fake Supabase environment variables to the workflow made unrelated tests fail and was reverted.
+
+### Confirmed root causes
+
+Source inspection confirmed both causes before any edit.
+
+1. `ContentProvider` rendered `{contentReady ? children : null}`. While Supabase was unresolved the document had no content and therefore no layout height, so the browser had nothing to restore a scroll position against. A second, compounding cause was `ScrollToTop`, which is mounted inside the gate: because the gate delayed its mount, its initial `window.scrollTo(0, 0)` effect ran *after* the browser's restoration attempt and forced the document back to the top.
+2. `apps/web/src/lib/supabase.js` derived the client solely from build-time `import.meta.env` values, so no test could exercise the configured code path without real or globally injected environment variables.
+
+### Implementation
+
+Three bounded source changes, no architectural change.
+
+- `apps/web/src/contexts/ContentContext.jsx` — the children stay mounted while content is unresolved. They are wrapped in a `display: contents` element, which generates no box and therefore does not alter layout, carrying `visibility: hidden` while unresolved. Layout height is preserved for native scroll restoration, and no stale fallback content is ever painted. The wrapper exposes `data-content-ready` for assertions and is `aria-hidden` while gated.
+- `apps/web/src/components/ScrollToTop.jsx` — the scroll reset now runs only on in-app route changes, not on the initial mount, so it no longer overrides the browser's own restoration on load or refresh. Route-change behaviour is unchanged.
+- `apps/web/src/lib/supabase.js` — a narrow test seam. If `window.__SUPABASE_RUNTIME_CONFIG__` is present before the app boots, its `url` and `key` are used; otherwise the existing `import.meta.env` values are used. Production loads are unaffected, and no secret is added to CI.
+
+### Test changes
+
+`tests/content-authority.spec.ts`:
+
+- The delayed-Supabase test now publishes `window.__SUPABASE_RUNTIME_CONFIG__` through `addInitScript`, so the configured Supabase code path runs deterministically with or without environment variables. The pointed-at host is fully intercepted; no real service is contacted.
+- The stale-content assertions now distinguish DOM presence from visual visibility. Instead of asserting an empty `#root`, they assert the gated wrapper and each stale fallback string are present but not visible, and that the document already has real layout height while unresolved.
+- Added `the readiness gate preserves document layout and scroll position`: layout height exists while unresolved, a scroll position taken during the unresolved window survives content resolution, and the resolved height stays within 10 percent of the gated height.
+- Added `an in-app route change still resets the scroll position to the top`, guarding against over-correcting the `ScrollToTop` fix.
+
+A direct assertion on native `history` scroll restoration across `page.reload()` was prototyped and rejected: headless Chromium did not restore the position reproducibly under Playwright, on either project, so the assertion would have been flaky. The deterministic layout-and-position coverage above replaces it.
+
+### Validation environment
+
+The repository checkout is a Windows working tree whose `node_modules` contains Windows-only native binaries, so the repository's own dependency tree could not be reused for this validation run. Validation ran on Linux against an isolated clean install of the same `package-lock.json` (Node `v22.22.2`, npm `10.9.7`), from the identical working-tree sources. The repository's own `node_modules`, `dist`, `.env`, and `playwright-report` were left untouched.
+
+### Validation
+
+- Focused `tests/content-authority.spec.ts` with **no** Supabase environment variables (the GitHub Actions condition)
+  -> PASS — 18/18. This is the condition that previously timed out.
+- Focused `tests/content-authority.spec.ts` with fake build-time Supabase environment variables present
+  -> PASS — 18/18. The test is deterministic with or without environment configuration.
+- Repeat run of the three scroll and stale-content tests, `--repeat-each=3`
+  -> PASS — 18/18; no flake observed.
+- Full Playwright suite, no Supabase environment variables
+  -> PASS — 37 passed, 1 skipped (the pre-existing desktop-only navigation case).
+- `npm run lint`
+  -> PASS.
+- `git diff --check`
+  -> PASS; no whitespace errors.
+- Production build
+  -> PASS — 1,730 modules transformed; `assets/index-70390bb7.js`, `assets/index-da0b27af.css`. Bundle hashes come from the clean-install validation environment, not from the owner's local `node_modules`, so they must be regenerated before any upload. The existing chunk-size warning above 500 kB is unchanged.
+
+### Deliberate non-actions
+
+No push, upload, deployment, live verification, Hostinger change, Supabase configuration or row change, RLS change, Cloudflare change, DNS change, provider change, secret change, CI environment change, workflow change, dependency install into the repository, dependency upgrade, package change, or lockfile change. `D:\IT\hakan\hakan-run-next` was not touched.
+
+Exact next action: review the diff, then rebuild the production artifact locally on the owner's machine to regenerate authoritative bundle hashes before any manual upload.

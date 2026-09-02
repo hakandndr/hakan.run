@@ -1,5 +1,24 @@
 import { expect, test } from '@playwright/test';
 
+// Test seam: publish a Supabase runtime configuration before the app boots so
+// the "Supabase is configured" code path runs deterministically in CI, where
+// VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY do not exist. Every request to it
+// is intercepted below, so no real service is contacted and no secret is used.
+declare global {
+  interface Window {
+    __SUPABASE_RUNTIME_CONFIG__?: { url: string; key: string };
+  }
+}
+
+const configureSupabaseForTest = () => {
+  window.__SUPABASE_RUNTIME_CONFIG__ = {
+    url: 'https://supabase.e2e.test',
+    key: 'e2e-anon-key',
+  };
+  window.sessionStorage.setItem('booted', '1');
+  window.localStorage.removeItem('siteContent');
+};
+
 test.beforeEach(async ({ page }) => {
   await page.route(/^https?:\/\/(?!localhost:3000)/, route => {
     if (route.request().url().includes('/rest/v1/site_content')) {
@@ -93,21 +112,28 @@ test('does not render fallback content while Supabase content is unresolved', as
     });
   });
 
-  await page.addInitScript(() => {
-    window.sessionStorage.setItem('booted', '1');
-    window.localStorage.removeItem('siteContent');
-  });
+  await page.addInitScript(configureSupabaseForTest);
 
   await page.goto('/');
   await requestStarted;
 
-  await expect(page.locator('#root')).toBeEmpty();
-  await expect(page.getByRole('heading', { name: /BUILD\. DEPLOY\. RUN\./ })).toHaveCount(0);
-  await expect(page.getByText('Full Stack Development', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('AI & Automation', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('From Systems to', { exact: true })).toHaveCount(0);
+  // The gated tree stays mounted (so layout height survives for native scroll
+  // restoration) but must not be painted.
+  const gate = page.locator('[data-content-ready="false"]');
+  await expect(gate).toHaveCount(1);
+  await expect(gate).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: /BUILD\. DEPLOY\. RUN\./ }).first()).not.toBeVisible();
+  await expect(page.getByText('Full Stack Development', { exact: true }).first()).not.toBeVisible();
+  await expect(page.getByText('AI & Automation', { exact: true }).first()).not.toBeVisible();
+  await expect(page.getByText('From Systems to', { exact: true }).first()).not.toBeVisible();
+
+  // Layout is preserved while unresolved.
+  const gatedHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(gatedHeight).toBeGreaterThan(page.viewportSize()!.height);
 
   releaseResponse();
+
+  await expect(page.locator('[data-content-ready="true"]')).toHaveCount(1);
 
   await expect(page.getByText('REMOTE HERO READY', { exact: true })).toBeVisible();
   await expect(page.getByText('REMOTE PROJECT READY', { exact: true })).toBeVisible();
@@ -335,4 +361,54 @@ test('legacy Footer content uses safe bottom bar defaults', async ({ page }) => 
 
   await expect(page.getByText('© 2026 Hakan.run — Built under DNDR Labs.', { exact: true })).toBeVisible();
   await expect(page.getByText('Orange County, CA USA', { exact: true })).toBeVisible();
+});
+
+test('the readiness gate preserves document layout and scroll position', async ({ page }) => {
+  // Authoritative content arrives on a fixed delay, so the load spends a known
+  // window in the unresolved state that the readiness gate covers.
+  await page.route('**/rest/v1/site_content*', async route => {
+    await new Promise(resolve => setTimeout(resolve, 600));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    });
+  });
+
+  await page.addInitScript(configureSupabaseForTest);
+
+  await page.goto('/');
+
+  // While unresolved the document must still have its real layout height,
+  // otherwise the browser has nothing to restore a scroll position against.
+  await expect(page.locator('[data-content-ready="false"]')).toHaveCount(1);
+  const gatedHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(gatedHeight).toBeGreaterThan(page.viewportSize()!.height * 2);
+
+  // A scroll position taken during the unresolved window must survive
+  // resolution — nothing may force the document back to the top.
+  const target = Math.min(900, gatedHeight - page.viewportSize()!.height);
+  await page.evaluate(y => window.scrollTo(0, y), target);
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(target);
+
+  await expect(page.locator('[data-content-ready="true"]')).toHaveCount(1);
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => Math.round(window.scrollY))).toBe(target);
+
+  const resolvedHeight = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(Math.abs(resolvedHeight - gatedHeight)).toBeLessThan(resolvedHeight * 0.1);
+});
+
+test('an in-app route change still resets the scroll position to the top', async ({ page }) => {
+  await page.addInitScript(configureSupabaseForTest);
+
+  await page.goto('/');
+  await expect(page.locator('[data-content-ready="true"]')).toHaveCount(1);
+
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(0);
+
+  await page.locator('a[href="/contact"]').first().click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(0);
 });

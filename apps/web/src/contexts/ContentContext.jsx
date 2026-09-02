@@ -86,7 +86,20 @@ export const ContentProvider = ({ children }) => {
 
   return (
     <ContentContext.Provider value={{ content, updateContent }}>
-      {contentReady ? children : null}
+      {/*
+        While authoritative content is unresolved the tree is still mounted so
+        the document keeps its real layout height and the browser can perform
+        native scroll restoration on refresh. `display: contents` keeps the
+        wrapper out of layout, and the inherited `visibility: hidden` makes
+        sure no stale fallback content is ever painted.
+      */}
+      <div
+        data-content-ready={contentReady ? 'true' : 'false'}
+        aria-hidden={contentReady ? undefined : 'true'}
+        style={{ display: 'contents', visibility: contentReady ? undefined : 'hidden' }}
+      >
+        {children}
+      </div>
     </ContentContext.Provider>
   );
 };
