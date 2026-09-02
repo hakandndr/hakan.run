@@ -27,7 +27,7 @@ const Portfolio = () => {
 
         {/* Section header */}
         <div className="mb-14">
-          <span className="font-mono text-xs text-[#57B8FF]/60 uppercase tracking-widest">Selected Works</span>
+          <span className="font-mono text-xs text-[#57B8FF]/60 uppercase tracking-widest">{p.badge}</span>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight uppercase font-mono tracking-tight mt-2">
             {p.heading} <span className="text-[#57B8FF]">{p.headingAccent}</span>
           </h2>

@@ -54,11 +54,11 @@
 | `components/Layout.jsx` | Header, route outlet, Footer, toast viewport |
 | `components/Header.jsx` | Hardcoded identity/navigation/CTA; visitor-log call; desktop/mobile menus |
 | `components/TerminalLoader.jsx` | One-time tab-session boot animation |
-| `components/Hero.jsx` | Mixed CMS and hardcoded biography/profile presentation |
+| `components/Hero.jsx` | All Hero editor fields are CMS-backed; portrait/profile presentation remains hardcoded |
 | `components/Stats.jsx` | CMS data or explicit project-page prop; animated counters |
 | `components/Services.jsx` | CMS-backed expertise accordion |
-| `components/Portfolio.jsx` | CMS-backed cards; external-tab or internal-route action |
-| `components/About.jsx` | Hardcoded public About timeline and profile card |
+| `components/Portfolio.jsx` | CMS-backed badge, heading, and cards; subtitle is not rendered; external-tab or internal-route action |
+| `components/About.jsx` | CMS-backed About block 1; hardcoded period labels/tags; block 2 is not rendered |
 | `components/CTA.jsx` | CMS-backed copy and client-side route action |
 | `components/Footer.jsx` | Mixed CMS data and hardcoded bottom attribution/location |
 | `components/SectionAnimator.jsx` | Viewport-entry animation wrapper |
@@ -106,5 +106,6 @@ The real `secure-config.php` and log file must remain untracked.
 | `tests/navigation.spec.ts` | contact form structure, email input attributes, one project route |
 | `tests/notfound.spec.ts` | 404 rendering and home link |
 | `tests/seo.spec.ts` | selected Open Graph, Twitter, and canonical metadata |
+| `tests/content-authority.spec.ts` | local content overlays reaching Hero, About block 1, and Portfolio public rendering |
 
-There are no current tests for mobile-menu interaction, live form submission, Control Room, Supabase/RLS, PHP, hosting, cache, or deployment.
+There are no current tests for mobile-menu interaction, live form submission, Control Room save/auth flows, live Supabase/RLS, PHP, hosting, cache, or deployment.

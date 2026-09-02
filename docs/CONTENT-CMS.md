@@ -48,12 +48,12 @@ There is no optimistic rollback when the Supabase upsert fails. The browser can 
 | Area | Runtime source | Coverage notes |
 | --- | --- | --- |
 | Header | `Header.jsx` | Hardcoded navigation, identity, logo mark, and CTA; `content.header` is not consumed |
-| Hero | Mixed | Heading lines and button labels/targets use `content.hero`; social links use `content.contact`; badge, biography, portrait, profile labels, and many colors are hardcoded |
+| Hero | `content.hero` plus `content.contact` | Every field exposed by the Hero editor is consumed: badge, heading lines, biography, and button labels/targets; social links use `content.contact`; portrait, profile labels, and many colors remain hardcoded |
 | Services | `content.services` | Heading, subtitle, tags, and items are dynamic |
-| Portfolio listing | `content.portfolio` | Heading and cards are dynamic; card behavior depends on `externalUrl` or `slug` |
+| Portfolio listing | `content.portfolio` | Badge, heading, and cards are dynamic; card behavior depends on `externalUrl` or `slug`; the editable subtitle has no public rendering slot |
 | Project details | `Project.jsx` | Three hardcoded detail records; not supplied by CMS |
-| Stats | `content.stats` or explicit prop | Home stats are dynamic; project pages pass hardcoded per-project stats |
-| About | `About.jsx` | Entire public section is hardcoded; `content.about` and the About editor do not affect it |
+| Stats | `content.stats` or explicit prop | Home heading and items are dynamic; the editable subtitle has no public rendering slot; project pages pass hardcoded per-project stats |
+| About | Mixed | The current public layout consumes `content.about.block1` heading, accent, sections, image, and image alt; block 2 has no corresponding public layout, while period labels and tags remain hardcoded |
 | CTA | `content.cta` | Copy and button target are dynamic; handler uses client-side `navigate`, so external URL handling is not implemented |
 | Contact | `content.contact` | Page metadata, copy, info blocks, social links, and Formspree endpoint are dynamic |
 | Footer | Mixed | Data-driven brand/navigation/social values; bottom copyright text, DNDR Labs attribution, and location are hardcoded |
@@ -61,12 +61,14 @@ There is no optimistic rollback when the Supabase upsert fails. The browser can 
 | Typography | Mixed | Heading family, body size, and section spacing are applied through body attributes; component-specific classes still constrain results |
 | Visibility | `content.visibility` | Controls Stats, Services, Portfolio, About, and CTA; Hero remains visible |
 
-## Header, About, and theme mismatch
+## Remaining authority mismatches
 
-`content.js` contains `header` and `about` objects, and Control Room exposes an About editor. Those facts do not make the public components dynamic:
+An editor field only has public authority when a rendering component consumes it. The remaining source-backed gaps are:
 
 - `Header.jsx` does not call `useContent` and defines its own navigation and branding.
-- `About.jsx` does not call `useContent` and contains its timeline, images, labels, and tags in JSX.
+- `About.jsx` consumes block 1, but block 2 has no safe correspondence in the current one-image, two-entry layout. Period labels and profile tags remain in JSX.
+- Portfolio and Stats expose subtitles that their public components do not render.
+- Footer exposes a copyright field, but its public bottom line remains hardcoded.
 - `applyColors` controls accent RGB, page background, card background, and hero overlay variables, but many current components use hardcoded hex colors and arbitrary Tailwind values.
 
 These are source-backed implementation gaps, not live-state assumptions.

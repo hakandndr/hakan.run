@@ -29,8 +29,6 @@ const Hero = () => {
     else navigate(href);
   };
 
-  const BIO = "I'm Hakan Dundar. I spent 15 years in Turkey working across IT infrastructure, education technology, and large-scale technical operations. After moving to the United States with a Green Card, I shifted my focus into software development, QA automation, and cloud-ready web applications. Based in Irvine, California, I combine systems thinking, clean code, and automation-first engineering to build reliable products that actually run in production.";
-
   return (
     <section
       className="relative min-h-screen flex items-center overflow-hidden pt-20 border-b border-white/[0.06]"
@@ -50,7 +48,7 @@ const Hero = () => {
               {/* Badge – terminal style */}
               <div className="inline-flex items-center gap-0 px-3 py-1.5 mb-8 border border-[#2a3a50] rounded-md bg-[#0d1117] max-w-full">
                 <span className="font-mono text-xs text-[#57B8FF]/60 shrink-0 select-none mr-2">&gt;_ $</span>
-                <span className="font-mono text-xs text-[#57B8FF] tracking-wide truncate">Software Developer</span>
+                <span className="font-mono text-xs text-[#57B8FF] tracking-wide truncate">{h.badge}</span>
                 <span className="font-mono text-xs text-[#57B8FF] ml-1 shrink-0 animate-[terminalCursorSlow_1.4s_ease-in-out_infinite]">█</span>
               </div>
               <style>{`@keyframes terminalCursorSlow{0%,100%{opacity:1}50%{opacity:0.28}}`}</style>
@@ -64,7 +62,7 @@ const Hero = () => {
               {/* Bio */}
               <div className="mb-10 max-w-lg">
                 <p className="text-[17px] text-[#A1A1AA] leading-[1.75]">
-                  {BIO}
+                  {h.paragraph}
                 </p>
               </div>
 

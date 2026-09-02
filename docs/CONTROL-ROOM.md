@@ -36,10 +36,12 @@ The checked-in database policy does not require `aal2`, and `run/get_log.php` do
 
 An editor tab only proves that Admin can write a section. It does not prove that the public UI consumes every field. The current notable mismatches are:
 
-- About editor data is not consumed by `About.jsx`.
+- About block 1 drives the current public heading, story entries, and image; block 2 has no corresponding public layout, and period labels and tags remain hardcoded.
 - Header data exists in fallback content but has no Control Room tab and is not consumed by `Header.jsx`.
 - theme fields affect selected CSS variables and body attributes, not all literal component styles.
-- Hero editor data affects headings and buttons, but the public hero biography, badge, image, profile labels, and many colors are hardcoded.
+- Every existing Hero editor field is consumed publicly; its portrait, profile labels, and many colors are not Hero editor fields and remain hardcoded.
+- Portfolio and Stats subtitles are editable but have no public rendering slot.
+- Footer copyright is editable but its public bottom line remains hardcoded.
 
 ## Save semantics
 

@@ -133,3 +133,37 @@ Record:
 - unresolved risks and the next bounded action.
 
 Update the documentation when routes, content authority, security boundaries, PHP protocols, build commands, test coverage, or deployment behavior change.
+
+## Phase 1 content-authority repair record
+
+### Objective and baseline
+
+This bounded repair traced the Control Room save path and the public consumers for Hero, Services, About, Portfolio, Stats, CTA, Contact, and Footer. Work began on `main` at `e3467d221470f5776bf435a5c770a17d0c45f7fb`, with the repository-local identity set to `Hakan Dundar <hakan@dndr.net>`. The pre-existing untracked `.claude/settings.local.json` remained outside the task.
+
+### Root cause
+
+`ContentContext.updateContent` updates React state and browser `localStorage` before attempting the Supabase upsert. This explains same-browser persistence after refresh even when a remote write has not been demonstrated. Hero still bypassed editable `badge` and `paragraph` values, while About bypassed its content section entirely. The source path attempts a compatible `site_content` upsert, but this repair did not perform an authorized live database write/read and therefore does not claim that production Supabase writes succeed.
+
+### Changes
+
+- Routed the Hero badge and biography through the existing `content.hero` object.
+- Moved the already rendered Hero badge verbatim into fallback content so the default public output does not change.
+- Routed the current About layout through `content.about.block1`, including its heading, two story entries, image, and alt text.
+- Moved the already rendered About wording verbatim into fallback content so the default public output does not change.
+- Routed the Portfolio badge through `content.portfolio.badge`.
+- Added a focused Playwright specification for representative local Hero, About block 1, and Portfolio overrides in desktop and mobile projects.
+- Updated the content-authority documentation and file map.
+
+About block 2 was intentionally not mapped because the current public component has no corresponding second-layout region. About period labels and tags, Portfolio and Stats subtitles, Footer copyright, Header content, and non-editor visual presentation remain unchanged. No copy was rewritten, and no layout, styling, animation, routing, authentication, RLS, PHP, tracker, Formspree, dependency, provider, secret, migration, or deployment behavior was changed.
+
+### Validation
+
+- `npm run lint`: passed.
+- `npm run build --prefix apps/web`: returned success without Vite build output on Windows; treated as inconclusive because the package script's shell operators can skip Vite after a successful generator command.
+- `.\node_modules\.bin\vite.cmd build --outDir ../../dist/apps/web` from `apps/web`: passed with 1,730 modules transformed; the existing large-chunk warning remained.
+- `apps/web/node_modules/.bin/playwright.cmd test tests/content-authority.spec.ts --reporter=line --workers=1`: 4 passed.
+- `apps/web/node_modules/.bin/playwright.cmd test --reporter=line --workers=1`: 23 passed, 1 skipped.
+- Playwright attempts that owned the Windows preview process completed their tests but hung during preview teardown. Reusing a separately managed local preview produced the clean focused and full-suite exit codes above.
+- `git diff --check`: passed before and after documentation preparation.
+
+Generated build and test output remained ignored and outside the commit. The commit for this record is `fix: restore public content authority`. Push and deployment were not authorized or performed. The next bounded action is to decide whether to add public layout slots for the remaining editable-but-unrendered fields, followed separately by an authorized live Supabase save/read verification.

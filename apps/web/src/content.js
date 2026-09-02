@@ -39,7 +39,7 @@ export const siteContent = {
 
   // ─── HERO ─────────────────────────────────────────────────────────────────
   hero: {
-    badge: 'Software Developer • QA Automation • Irvine, CA',
+    badge: 'Software Developer',
     headingLine1: 'BUILD. DEPLOY.',
     headingLine2: 'RUN.',
     paragraph: "I'm Hakan Dundar. I spent 15 years in Turkey working across IT infrastructure, education technology, and large-scale technical operations. After moving to the United States with a Green Card, I shifted my focus into software development, QA automation, and cloud-ready web applications. Based in Irvine, California, I combine systems thinking, clean code, and automation-first engineering to build reliable products that actually run in production.",
@@ -81,18 +81,18 @@ export const siteContent = {
   // ─── ABOUT ────────────────────────────────────────────────────────────────
   about: {
     block1: {
-      heading: 'Engineering with',
-      headingAccent: 'precision',
+      heading: 'From Systems to',
+      headingAccent: 'Software',
       image: '/media/HakanDundar.webp',
       imageAlt: 'Hakan Dundar',
       sections: [
         {
-          title: '15 Years of Systemic Thinking',
-          body: 'Before transitioning fully into Software Engineering and QA Automation, I spent 15 years as an educator in Türkiye. This background gave me a unique superpower: the ability to break down complex architectural problems into clear, manageable, and highly scalable code.',
+          title: '15 Years in IT & Education Technology — Turkey',
+          body: 'Spent 15 years working across IT infrastructure and education technology in Turkey. As Regional IT Project Coordinator for the FATIH Project — a nationwide Ministry of Education initiative — managed school infrastructure across dozens of sites, overseeing 400+ workstation deployments, interactive smart board installations, structured cabling, network systems, and multi-site technical coordination every year.',
         },
         {
-          title: 'The SDET Mindset',
-          body: "I don't just write code; I ensure it's bulletproof. I specialize in building automated testing frameworks from scratch, bridging the gap between development and absolute quality control to deliver flawless software architectures.",
+          title: 'Software Developer — Irvine, California',
+          body: 'Relocated to the United States with a Green Card — no sponsorship required. Now focused on software development, QA automation engineering with Playwright, and cloud-ready web applications. The infrastructure background informs every software decision: system thinking, reliability mindset, and an automation-first approach to quality and delivery.',
         },
       ],
     },
