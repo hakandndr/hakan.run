@@ -378,3 +378,72 @@ The repository checkout is a Windows working tree whose `node_modules` contains 
 No push, upload, deployment, live verification, Hostinger change, Supabase configuration or row change, RLS change, Cloudflare change, DNS change, provider change, secret change, CI environment change, workflow change, dependency install into the repository, dependency upgrade, package change, or lockfile change. `D:\IT\hakan\hakan-run-next` was not touched.
 
 Exact next action: review the diff, then rebuild the production artifact locally on the owner's machine to regenerate authoritative bundle hashes before any manual upload.
+
+## 2026-09-02 — Explicit refresh scroll restoration
+
+Baseline `main@77ac775bd946b8328b81500ff2b3123f90d9c053`.
+
+### Reported problem
+
+Manual production verification confirmed the stale-content flash is fixed, but refreshing the homepage while halfway down or near the bottom still reopened the page at the top.
+
+### Confirmed root cause
+
+Preserving document layout during the content gate is necessary but not sufficient. This is a client-rendered SPA: the browser performs its native scroll restoration around the load event, before React has mounted and before the document has any usable height. By the time the layout exists there is no restoration left to perform. Relying on native restoration therefore cannot work here regardless of how the gate renders.
+
+### Implementation
+
+Native restoration is disabled and replaced by an explicit, application-owned mechanism. No dependency was added and no unrelated code was touched.
+
+- `apps/web/src/main.jsx` — sets `window.history.scrollRestoration = 'manual'` at boot, before the React root is created, so native restoration cannot race the explicit restore. Feature-detected before assignment.
+- `apps/web/src/components/ScrollToTop.jsx` was renamed to `apps/web/src/components/ScrollRestoration.jsx` and now owns both behaviours.
+  - Save: on `pagehide`, `beforeunload`, and `visibilitychange` to hidden, the current `window.scrollY` is written to `sessionStorage` under `scrollPositions`, keyed by pathname.
+  - Restore: on the initial load only, and only when a saved position exists for the same pathname. A `requestAnimationFrame` loop applies the position, clamped to what the document can currently reach, and keeps re-applying while late layout growth extends the page. It settles once the content gate is ready and the full target position holds, and gives up after a 3 second deadline.
+  - The restore is cancelled immediately by a deliberate `wheel`, `touchstart`, `keydown`, or `pointerdown` from the visitor, so it never fights a user who scrolls during load.
+  - In-app route changes reset to the top as before, and also mark restoration as finished so a later in-app return to a saved pathname is never restored.
+- `apps/web/src/contexts/ContentContext.jsx` — the provider value now also exposes `contentReady`, which is what lets the restore settle only after the gate has opened. The gate itself is unchanged.
+
+Because the restore runs while the readiness gate still hides the content, the position is already correct at the moment the content becomes visible, which avoids a visible jump.
+
+### Test changes
+
+A new `tests/scroll-restoration.spec.ts` covers the mechanism deterministically, using the existing Supabase runtime-configuration seam so it behaves identically with or without build-time environment variables:
+
+- a saved scroll position is restored on the next initial load;
+- a position near the bottom of the page is restored on refresh;
+- the position is restored even while authoritative content is still resolving, which is the reported production case;
+- a load with no saved position opens at the top;
+- an in-app route change still resets the scroll position to the top;
+- an in-app return to a saved pathname does not restore its position;
+- `history.scrollRestoration` is `manual`, so native restoration cannot race the explicit restore.
+
+The duplicate in-app route-change assertion was removed from `tests/content-authority.spec.ts`; that file keeps its stale-content and readiness-gate coverage, including the assertion that stale fallback content stays invisible while content is unresolved.
+
+The near-bottom case initially failed with a 7 pixel discrepancy. That exposed a real defect rather than a test problem: the restore applied the saved position only when the document could already reach it, so a page that ended up slightly shorter would stay at the top. The loop now clamps to the reachable maximum and keeps re-applying, and the test reads back the position actually reached instead of the value computed before scrolling.
+
+### Validation environment
+
+As in the previous entry, the Windows working tree's `node_modules` contains Windows-only native binaries and could not be reused. Validation ran on Linux against an isolated clean install of the same `package-lock.json` (Node `v22.22.2`, npm `10.9.7`) from the identical working-tree sources. The repository's own `node_modules`, `dist`, `.env`, and `playwright-report` were left untouched.
+
+### Validation
+
+- `tests/scroll-restoration.spec.ts`, `--repeat-each=3`
+  -> PASS — 42/42; no flake observed.
+- Focused `tests/content-authority.spec.ts`, no Supabase environment variables
+  -> PASS — 16/16.
+- Both focused specs with fake build-time Supabase environment variables present
+  -> PASS — 30/30.
+- Full Playwright suite, no Supabase environment variables (the GitHub Actions condition)
+  -> PASS — 49 passed, 1 skipped (the pre-existing desktop-only navigation case).
+- `npm run lint`
+  -> PASS.
+- `git diff --check`
+  -> PASS; no whitespace errors.
+- Production build
+  -> PASS — 1,730 modules transformed; `assets/index-98b564a3.js`, `assets/index-8ba19dd7.css`. These names come from the clean-install validation environment and are not authoritative for upload; regenerate them from a local build. The existing chunk-size warning above 500 kB is unchanged.
+
+### Deliberate non-actions
+
+No push, upload, deployment, live verification, Hostinger change, Supabase configuration or row change, RLS change, Cloudflare change, DNS change, provider change, secret change, CI environment change, workflow change, dependency addition, dependency upgrade, package change, or lockfile change. `D:\IT\hakan\hakan-run-next` was not touched.
+
+Exact next action: rebuild the production artifact locally to regenerate authoritative bundle hashes, perform the owner-managed manual upload after separate approval, then verify from a live session that refreshing halfway down and near the bottom of the homepage reopens at the same position and that no stale content flashes.

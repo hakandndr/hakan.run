@@ -85,7 +85,7 @@ export const ContentProvider = ({ children }) => {
   };
 
   return (
-    <ContentContext.Provider value={{ content, updateContent }}>
+    <ContentContext.Provider value={{ content, updateContent, contentReady }}>
       {/*
         While authoritative content is unresolved the tree is still mounted so
         the document keeps its real layout height and the browser can perform

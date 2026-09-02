@@ -398,17 +398,3 @@ test('the readiness gate preserves document layout and scroll position', async (
   const resolvedHeight = await page.evaluate(() => document.documentElement.scrollHeight);
   expect(Math.abs(resolvedHeight - gatedHeight)).toBeLessThan(resolvedHeight * 0.1);
 });
-
-test('an in-app route change still resets the scroll position to the top', async ({ page }) => {
-  await page.addInitScript(configureSupabaseForTest);
-
-  await page.goto('/');
-  await expect(page.locator('[data-content-ready="true"]')).toHaveCount(1);
-
-  await page.evaluate(() => window.scrollTo(0, 900));
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBeGreaterThan(0);
-
-  await page.locator('a[href="/contact"]').first().click();
-  await expect(page).toHaveURL(/\/contact$/);
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(0);
-});
