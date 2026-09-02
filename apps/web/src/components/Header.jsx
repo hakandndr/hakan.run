@@ -74,13 +74,13 @@ const Header = () => {
       className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
       fill="none"
     >
-      <text x="50" y="60" fontFamily="monospace" fontSize="46" fontWeight="bold"
+      <text x="50" y="60" fontFamily="monospace" fontSize="46" fontWeight="bold" textLength="82" lengthAdjust="spacingAndGlyphs"
         fill="none" stroke="#0077ff" strokeWidth="4" textAnchor="middle" opacity="0.5">
-        &lt;h&gt;
+        &lt;h/&gt;
       </text>
-      <text x="50" y="60" fontFamily="monospace" fontSize="46" fontWeight="bold"
+      <text x="50" y="60" fontFamily="monospace" fontSize="46" fontWeight="bold" textLength="82" lengthAdjust="spacingAndGlyphs"
         fill="#00d2ff" textAnchor="middle">
-        &lt;h&gt;
+        &lt;h/&gt;
       </text>
       <text x="50" y="85" fontFamily="sans-serif" fontSize="14" fontWeight="bold"
         fill="#ffffff" textAnchor="middle">

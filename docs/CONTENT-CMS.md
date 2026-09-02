@@ -48,12 +48,12 @@ There is no optimistic rollback when the Supabase upsert fails. The browser can 
 | Area | Runtime source | Coverage notes |
 | --- | --- | --- |
 | Header | `Header.jsx` | Hardcoded navigation, identity, logo mark, and CTA; `content.header` is not consumed |
-| Hero | `content.hero` plus `content.contact` | Every field exposed by the Hero editor is consumed: badge, heading lines, biography, and button labels/targets; social links use `content.contact`; portrait, profile labels, and many colors remain hardcoded |
+| Hero | `content.hero` plus `content.contact` | Badge, heading lines, biography, buttons, and the portrait profile object are editable and consumed; social links use `content.contact`; many colors remain hardcoded |
 | Services | `content.services` | Heading, subtitle, tags, and items are dynamic |
-| Portfolio listing | `content.portfolio` | Badge, heading, and cards are dynamic; card behavior depends on `externalUrl` or `slug`; the editable subtitle has no public rendering slot |
+| Portfolio listing | `content.portfolio` | Badge, heading, cards, and each card's `technology` label are dynamic; card behavior depends on `externalUrl` or `slug`; the editable subtitle has no public rendering slot |
 | Project details | `Project.jsx` | Three hardcoded detail records; not supplied by CMS |
 | Stats | `content.stats` or explicit prop | Home heading and items are dynamic; the editable subtitle has no public rendering slot; project pages pass hardcoded per-project stats |
-| About | Mixed | The current public layout consumes `content.about.block1` heading, accent, sections, image, and image alt; block 2 has no corresponding public layout, while period labels and tags remain hardcoded |
+| About | `content.about` | The public layout consumes both block objects, including headings, sections, images, and alt text; profile chips are an editable array; block 1 period labels remain hardcoded |
 | CTA | `content.cta` | Copy and button target are dynamic; handler uses client-side `navigate`, so external URL handling is not implemented |
 | Contact | `content.contact` | Page metadata, copy, info blocks, social links, and Formspree endpoint are dynamic |
 | Footer | Mixed | Data-driven brand/navigation/social values; bottom copyright text, DNDR Labs attribution, and location are hardcoded |
@@ -66,12 +66,20 @@ There is no optimistic rollback when the Supabase upsert fails. The browser can 
 An editor field only has public authority when a rendering component consumes it. The remaining source-backed gaps are:
 
 - `Header.jsx` does not call `useContent` and defines its own navigation and branding.
-- `About.jsx` consumes block 1, but block 2 has no safe correspondence in the current one-image, two-entry layout. Period labels and profile tags remain in JSX.
+- About block 1 period labels remain in JSX rather than the content model.
 - Portfolio and Stats expose subtitles that their public components do not render.
 - Footer exposes a copyright field, but its public bottom line remains hardcoded.
 - `applyColors` controls accent RGB, page background, card background, and hero overlay variables, but many current components use hardcoded hex colors and arbitrary Tailwind values.
 
 These are source-backed implementation gaps, not live-state assumptions.
+
+## Extended profile and card fields
+
+`content.hero.profile` owns the portrait image, alt text, name, role, location, and both floating badge value/label pairs. Public rendering merges a missing legacy `profile` object with fallback defaults, so older complete-section rows remain renderable. Saving the Hero section through Control Room writes the extended section shape.
+
+`content.about.chips` is an array edited through a comma-separated Control Room field. A missing legacy array uses the fallback chip list. `content.about.block2` now renders as the second public About content block rather than remaining editor-only.
+
+Each `content.portfolio.cards[]` entry may contain `technology`. Missing or empty legacy values render the neutral `Project` label; new Control Room cards start with the same safe value. The decorative dot color still follows card position and is not stored content.
 
 ## Portfolio route behavior
 

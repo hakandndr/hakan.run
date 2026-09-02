@@ -4,11 +4,13 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
+import { heroProfileDefaults } from '@/content';
 
 const Hero = () => {
   const navigate = useNavigate();
   const { content } = useContent();
   const h = content.hero;
+  const profile = { ...heroProfileDefaults, ...(h.profile || {}) };
   const socialLinks = content.contact?.socialLinks || [];
 
   const handlePrimaryClick = () => {
@@ -116,14 +118,14 @@ const Hero = () => {
               <div className="relative w-full max-w-[300px] lg:max-w-[320px] xl:max-w-[340px]">
                 {/* Badge A — top-left */}
                 <div className="absolute top-6 -left-5 z-20 bg-[#181818] border border-white/[0.12] rounded-xl px-3 py-2.5 shadow-xl">
-                  <p className="font-mono text-[22px] font-bold text-white leading-tight">15+</p>
-                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap mt-0.5">Years in Tech</p>
+                  <p className="font-mono text-[22px] font-bold text-white leading-tight">{profile.topValue}</p>
+                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap mt-0.5">{profile.topLabel}</p>
                 </div>
 
                 {/* Badge B — bottom-right */}
                 <div className="absolute bottom-6 -right-3 z-20 bg-[#181818] border border-white/[0.12] rounded-xl px-3 py-2.5 shadow-xl text-right">
-                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap">US Software</p>
-                  <p className="font-mono text-sm font-bold text-white whitespace-nowrap mt-0.5">QA Automation</p>
+                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap">{profile.bottomLabel}</p>
+                  <p className="font-mono text-sm font-bold text-white whitespace-nowrap mt-0.5">{profile.bottomValue}</p>
                 </div>
 
                 {/* Ambient glow */}
@@ -140,15 +142,15 @@ const Hero = () => {
                   style={{ backgroundColor: '#111112' }}
                 >
                   <img
-                    src="/media/HakanDundar.webp"
-                    alt="Hakan Dundar"
+                    src={profile.image}
+                    alt={profile.imageAlt}
                     className="w-full object-cover object-top block"
                     style={{ aspectRatio: '4/5' }}
                   />
                   {/* Name overlay */}
                   <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-gradient-to-t from-black/75 via-black/30 to-transparent">
-                    <p className="font-mono text-xs font-bold text-white/80 uppercase tracking-widest">Hakan Dundar</p>
-                    <p className="font-mono text-[10px] text-white/40 mt-0.5">Software Developer · Irvine, CA</p>
+                    <p className="font-mono text-xs font-bold text-white/80 uppercase tracking-widest">{profile.name}</p>
+                    <p className="font-mono text-[10px] text-white/40 mt-0.5">{profile.role} · {profile.location}</p>
                   </div>
                 </div>
               </div>

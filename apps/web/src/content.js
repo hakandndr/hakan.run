@@ -1,5 +1,24 @@
 // Fallback content used before optional local and Supabase section overrides.
 
+export const heroProfileDefaults = {
+  image: '/media/HakanDundar.webp',
+  imageAlt: 'Hakan Dundar',
+  name: 'Hakan Dundar',
+  role: 'Software Developer',
+  location: 'Orange County, CA',
+  topValue: '15+',
+  topLabel: 'Years in Tech',
+  bottomLabel: 'US Software',
+  bottomValue: 'QA Automation',
+};
+
+export const aboutChipDefaults = [
+  'Remote & Hybrid Ready',
+  'Software Development',
+  'QA Automation',
+  'Orange County, CA',
+];
+
 export const siteContent = {
 
   // ─── COLORS ───────────────────────────────────────────────────────────────
@@ -50,6 +69,7 @@ export const siteContent = {
     primaryButtonHref: '#portfolio',
     secondaryButton: "Let's Connect",
     secondaryButtonHref: '/contact',
+    profile: { ...heroProfileDefaults },
   },
 
   // ─── SERVICES / EXPERTISE ─────────────────────────────────────────────────
@@ -80,6 +100,7 @@ export const siteContent = {
 
   // ─── ABOUT ────────────────────────────────────────────────────────────────
   about: {
+    chips: [...aboutChipDefaults],
     block1: {
       heading: 'From Systems to',
       headingAccent: 'Software',
@@ -98,13 +119,13 @@ export const siteContent = {
     },
     block2: {
       heading: 'Based in',
-      headingAccent: 'Irvine, CA',
+      headingAccent: 'Orange County, CA',
       image: '/media/hkndesk.webp',
       imageAlt: 'Creative coding environment',
       sections: [
         {
           title: 'Remote & Hybrid Ready',
-          body: 'As a U.S. Permanent Resident (Green Card holder) requiring no sponsorship, I am fully authorized and ready to work across the States. Currently based in Irvine, California, I actively contribute to modern tech stacks in hybrid and remote environments—crafting efficient applications and running rigorous CI/CD pipelines.',
+          body: 'As a U.S. Permanent Resident (Green Card holder) requiring no sponsorship, I am fully authorized and ready to work across the States. Currently based in Orange County, California, I actively contribute to modern tech stacks in hybrid and remote environments—crafting efficient applications and running rigorous CI/CD pipelines.',
         },
         {
           title: 'Beyond the IDE',
@@ -128,6 +149,7 @@ export const siteContent = {
         description: 'Building scalable web applications with clean architecture, responsive design, and real-world product functionality.',
         imgSrc: '/portfolio/full-stack-saas-card.svg',
         externalUrl: '',
+        technology: 'Project',
       },
       {
         id: 2,
@@ -136,6 +158,7 @@ export const siteContent = {
         description: 'Designing automation workflows and Playwright-based testing solutions to improve quality, speed, and reliability.',
         imgSrc: '/portfolio/qa-automation-card.svg',
         externalUrl: '',
+        technology: 'Project',
       },
       {
         id: 3,
@@ -144,6 +167,7 @@ export const siteContent = {
         description: 'Hands-on experience in systems support, endpoint deployment, network organization, and IT operations.',
         imgSrc: '/portfolio/it-infrastructure-card.svg',
         externalUrl: '',
+        technology: 'Project',
       },
     ],
   },
@@ -214,7 +238,7 @@ export const siteContent = {
 
   // ─── FOOTER ───────────────────────────────────────────────────────────────
   footer: {
-    logoText: '<h>',
+    logoText: '<h/>',
     siteName: 'HAKAN DUNDAR',
     tagline: 'Building, deploying, and running clean code solutions from California.',
     copyright: 'Hakan Dundar. All Rights Reserved.',

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
 import { supabase } from '@/lib/supabase';
-import { siteContent } from '@/content';
+import { aboutChipDefaults, heroProfileDefaults, siteContent } from '@/content';
 
 const TAB_GROUPS = [
   { label: 'Content',   tabs: ['Hero', 'Services', 'About', 'Portfolio', 'Stats', 'CTA', 'Contact', 'Footer'] },
@@ -132,6 +132,11 @@ const detectSourceLabel = ({ ip, ua_full, referrer, referrer_raw }) => {
 const HeroTab = ({ content, updateContent }) => {
   const [form, setForm] = useState(content.hero);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const profile = { ...heroProfileDefaults, ...(form.profile || {}) };
+  const setProfile = (k, v) => setForm(f => ({
+    ...f,
+    profile: { ...heroProfileDefaults, ...(f.profile || {}), [k]: v },
+  }));
   return (
     <div>
       <SectionTitle>Hero</SectionTitle>
@@ -143,6 +148,18 @@ const HeroTab = ({ content, updateContent }) => {
         form={form} set={set} defaultHref="#portfolio" />
       <ButtonFields label="Secondary Button" labelKey="secondaryButton" hrefKey="secondaryButtonHref"
         form={form} set={set} defaultHref="/contact" />
+      <div className="border-t border-gray-800 mt-4 mb-4 pt-4">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Profile Card</p>
+        <Field label="Image URL" value={profile.image} onChange={e => setProfile('image', e.target.value)} />
+        <Field label="Image Alt" value={profile.imageAlt} onChange={e => setProfile('imageAlt', e.target.value)} />
+        <Field label="Name" value={profile.name} onChange={e => setProfile('name', e.target.value)} />
+        <Field label="Role" value={profile.role} onChange={e => setProfile('role', e.target.value)} />
+        <Field label="Location" value={profile.location} onChange={e => setProfile('location', e.target.value)} />
+        <Field label="Top Badge Value" value={profile.topValue} onChange={e => setProfile('topValue', e.target.value)} />
+        <Field label="Top Badge Label" value={profile.topLabel} onChange={e => setProfile('topLabel', e.target.value)} />
+        <Field label="Bottom Badge Label" value={profile.bottomLabel} onChange={e => setProfile('bottomLabel', e.target.value)} />
+        <Field label="Bottom Badge Value" value={profile.bottomValue} onChange={e => setProfile('bottomValue', e.target.value)} />
+      </div>
       <SaveBtn onClick={() => updateContent('hero', form)} />
     </div>
   );
@@ -201,6 +218,7 @@ const ServicesTab = ({ content, updateContent }) => {
 
 const AboutTab = ({ content, updateContent }) => {
   const [form, setForm] = useState(content.about);
+  const chips = form.chips || aboutChipDefaults;
   const setBlock = (block, k, v) => setForm(f => ({ ...f, [block]: { ...f[block], [k]: v } }));
   const setSection = (block, i, k, v) => setForm(f => ({
     ...f,
@@ -229,6 +247,11 @@ const AboutTab = ({ content, updateContent }) => {
   return (
     <div>
       <SectionTitle>About</SectionTitle>
+      <Field label="Profile Chips (comma-separated)" value={chips.join(', ')}
+        onChange={e => setForm(f => ({
+          ...f,
+          chips: e.target.value.split(',').map(chip => chip.trim()).filter(Boolean),
+        }))} />
       {renderBlock('block1', 'Block 1 — Left Image')}
       <div className="border-t border-gray-800 my-6" />
       {renderBlock('block2', 'Block 2 — Right Image')}
@@ -253,7 +276,7 @@ const PortfolioTab = ({ content, updateContent }) => {
     return { ...f, cards };
   });
   const addCard = () => setForm(f => ({
-    ...f, cards: [...f.cards, { id: Date.now(), slug: '', title: 'New Project', description: '', imgSrc: '', externalUrl: '' }],
+    ...f, cards: [...f.cards, { id: Date.now(), slug: '', title: 'New Project', description: '', imgSrc: '', externalUrl: '', technology: 'Project' }],
   }));
   const removeCard = (i) => setForm(f => ({ ...f, cards: f.cards.filter((_, idx) => idx !== i) }));
 
@@ -277,6 +300,7 @@ const PortfolioTab = ({ content, updateContent }) => {
             <ItemControls i={i} total={form.cards.length} onMove={moveCard} onRemove={removeCard} />
           </div>
           <Field label="Title" value={card.title} onChange={e => setCard(i, 'title', e.target.value)} />
+          <Field label="Technology / Category" value={card.technology ?? ''} onChange={e => setCard(i, 'technology', e.target.value)} />
           <Field label="Slug (→ /project/[slug])" value={card.slug} onChange={e => setCard(i, 'slug', e.target.value)} />
           <Field label="External URL (overrides slug)" value={card.externalUrl ?? ''}
             onChange={e => setCard(i, 'externalUrl', e.target.value)}

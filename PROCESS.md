@@ -167,3 +167,69 @@ About block 2 was intentionally not mapped because the current public component 
 - `git diff --check`: passed before and after documentation preparation.
 
 Generated build and test output remained ignored and outside the commit. The commit for this record is `fix: restore public content authority`. Push and deployment were not authorized or performed. The next bounded action is to decide whether to add public layout slots for the remaining editable-but-unrendered fields, followed separately by an authorized live Supabase save/read verification.
+
+## Legacy content-authority release record
+
+### Local hygiene and remote release
+
+The local-only `.claude/settings.local.json` path was added as the sole new entry in `.git/info/exclude`. The file itself and tracked `.gitignore` were not modified. The resulting working tree was clean.
+
+`origin/main` was fetched and remained at `e3467d221470f5776bf435a5c770a17d0c45f7fb`. Commit `0c47b68c3965179ad2119a431e709b6670c6f689` was re-inspected for path scope, owner-only author and committer identity, forbidden files, and attribution trailers. It was then pushed normally to `origin/main`; local and remote refs converged with no force push or history rewrite.
+
+GitHub Actions ran `Playwright Tests` for the release SHA as run `33574869789`. The workflow completed successfully.
+
+### Production artifact
+
+The release build used Node `v22.23.2`, npm `10.9.8`, the existing `node tools/generate-llms.js` step, and `.\node_modules\.bin\vite.cmd build --outDir ../../dist/apps/web` from `apps/web`. Vite transformed 1,730 modules and completed successfully. The existing warning for a JavaScript chunk larger than 500 kB remained.
+
+The artifact was written to `dist/apps/web/` at `2026-09-01T17:20:39.4096698-07:00`. Its entry files were:
+
+- `index.html`: SHA-256 `8fae733c68fcf4f301971b6a5355d9f56b0e63e6b2be57069af05361363cbb29`;
+- `assets/index-16cea860.js`: SHA-256 `7c6689476a6aff58fc0988b06d433c061a32a3177e82147c994f7f8fae58a840`;
+- `assets/index-e5893301.css`.
+
+All referenced assets and required public metadata files were present. No source map, environment file, secret, or local log was included.
+
+### Deployment and live state
+
+The existing Hostinger site-specific File Manager was opened through the authenticated account, but its file-service tab presented an HTTPS privacy interstitial. The security barrier was not bypassed. No artifact was uploaded, no production file was overwritten or deleted, and deployment did not occur. Cache/CDN purge was therefore not required or performed.
+
+A read-only check of the unchanged production site confirmed that `/`, `/contact`, and `/control-room` rendered without an obvious console/runtime error. Production continued to serve `assets/index-16a43140.js`, not the new `assets/index-16cea860.js`, which independently confirms that this release was not deployed.
+
+The owner-only live content mutation test remains pending. The exact next action is to resolve the Hostinger File Manager TLS/security issue without bypassing browser protection, upload the verified contents of `dist/apps/web/` to the existing site web root, perform any documented required cache purge, repeat the live smoke test, and then test and restore the temporary Hero badge value `CONTENT-TEST-2026` from Control Room using a separate browser session.
+
+### FTP-only continuation assessment
+
+The File Manager certificate warning was not used, bypassed, or revisited. The repository was inspected for an existing FTP deployment procedure and configuration. It documents that the contents of `dist/apps/web/` belong in the site web root and that PHP files are deployed separately under `public_html/run/`, but it does not define the frontend FTP host, port, protocol, secure profile name, exact remote root, client invocation, remote stale-asset cleanup behavior, or executable rollback command. Local `emptyOutDir` behavior cleans only the generated local artifact and does not establish remote cleanup semantics. Cache documentation requires post-deployment header verification but does not mandate a specific purge operation.
+
+The required established secure FTP deployment capability was evaluated without printing credential values and returned `NOT AVAILABLE`. No FTP connection was attempted, no alternate deployment mechanism was introduced, and no production, provider, DNS, Supabase, database, secret, PHP, or cache state changed.
+
+The existing artifact remained intact: `index.html` retained SHA-256 `8fae733c68fcf4f301971b6a5355d9f56b0e63e6b2be57069af05361363cbb29`, and `assets/index-16cea860.js` retained SHA-256 `7c6689476a6aff58fc0988b06d433c061a32a3177e82147c994f7f8fae58a840`. Because deployment did not occur, the prior live observation remains authoritative: production serves `assets/index-16a43140.js`. The owner-only `CONTENT-TEST-2026` mutation is not ready and remains pending.
+
+The exact next action is for the owner to supply or restore the previously established secure FTP profile and provide the non-secret deployment selector and procedure, including the confirmed frontend remote web root and stale-asset handling rule. Credentials must remain in the secure local mechanism. After that capability is available, deploy only the verified `dist/apps/web/` contents, verify the new live bundle and routes, perform a cache purge only if the established procedure requires it, and then hand the temporary content mutation test to the owner.
+
+## Remaining portfolio content-controls cleanup
+
+### Scope and baseline
+
+This bounded source task began from `main@0c47b68c3965179ad2119a431e709b6670c6f689`, with local and `origin/main` aligned and repository-local identity set to `Hakan Dundar <hakan@dndr.net>`. The tracked working tree already contained the prepared release/FTP records in `HANDOFF.md` and `PROCESS.md`; those factual documentation changes were preserved and incorporated into the same documentation continuity. No dependency, lockfile, authentication, database policy, PHP, analytics, Formspree, provider, infrastructure, generated-bundle, push, or deployment change was authorized.
+
+### Findings and implementation
+
+- The Hero portrait still contained nine source literals: image URL, alt text, name, role, location, and four floating badge values/labels. They now belong to `content.hero.profile`, are editable in the existing Hero Control Room tab, and use merge-safe defaults when a legacy Hero section lacks the nested object. The location default is `Orange County, CA`.
+- The four About portrait chips were a JSX constant. They now belong to `content.about.chips`, use a comma-separated Control Room editor, and fall back safely when an older About section lacks the array. The location chip default is `Orange County, CA`.
+- Control Room already edited `about.block2`, but the public component did not consume it. The existing block 2 heading, sections, image, and alt text now render as a second block using the established About grid and visual classes. The source fallback location was updated to Orange County; no live Supabase row was changed.
+- The Portfolio card technology/category label was selected from a six-entry array by card position. Each card now owns an editable `technology` value. Missing legacy values and newly created cards use the neutral `Project` fallback, while the existing card layout and positional dot colors remain unchanged.
+- The public header SVG mark changed from `<h>` to canonical `<h/>`. `textLength` preserves the prior mark footprint inside the unchanged SVG and CSS dimensions. The content-managed Footer fallback mark was aligned to the same canonical form.
+
+Existing section save behavior and top-level shallow overlay semantics were not changed. Hero text, Services, card creation/removal/reordering, Stats, CTA, Contact, Footer, and visibility controls retain their existing paths.
+
+### Focused validation
+
+- `git diff --check`: passed during source preparation.
+- `npm run lint`: passed.
+- `npm run build`: returned success but, as already documented, its Windows shell chain did not emit a Vite build.
+- `npx vite build --outDir ../../dist/apps/web` from `apps/web`: passed with 1,730 modules transformed; the existing large-chunk warning remained.
+- `npx playwright test tests/content-authority.spec.ts`: 4 passed across desktop Chromium and Mobile Chrome after the current artifact was built. The first attempt reused an older local preview and was discarded; one subsequent mobile assertion correctly revealed that the existing Hero portrait is intentionally hidden below the `lg` breakpoint, so the test was adjusted to verify DOM content authority without changing responsive design.
+
+Generated build output, Playwright results, local configuration, and secrets remain ignored and outside the commit. The task creates one owner-authored local commit only after final staged validation. Push and deployment are explicitly out of scope.

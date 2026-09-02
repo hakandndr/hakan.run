@@ -17,8 +17,20 @@ test('persisted Hero and About content reaches the public homepage', async ({ pa
         primaryButtonHref: '#portfolio',
         secondaryButton: 'CMS SECONDARY',
         secondaryButtonHref: '/contact',
+        profile: {
+          image: '/media/HakanDundar.webp',
+          imageAlt: 'CMS HERO PROFILE IMAGE',
+          name: 'CMS PROFILE NAME',
+          role: 'CMS PROFILE ROLE',
+          location: 'CMS PROFILE LOCATION',
+          topValue: 'CMS TOP VALUE',
+          topLabel: 'CMS TOP LABEL',
+          bottomLabel: 'CMS BOTTOM LABEL',
+          bottomValue: 'CMS BOTTOM VALUE',
+        },
       },
       about: {
+        chips: ['CMS ABOUT CHIP ONE', 'CMS ABOUT CHIP TWO'],
         block1: {
           heading: 'CMS ABOUT HEADING',
           headingAccent: 'CMS ABOUT ACCENT',
@@ -30,11 +42,13 @@ test('persisted Hero and About content reaches the public homepage', async ({ pa
           ],
         },
         block2: {
-          heading: 'LEGACY BLOCK TWO',
-          headingAccent: 'NOT RENDERED',
+          heading: 'CMS BLOCK TWO',
+          headingAccent: 'CMS BLOCK TWO ACCENT',
           image: '/media/hkndesk.webp',
-          imageAlt: 'Legacy block two image',
-          sections: [],
+          imageAlt: 'CMS BLOCK TWO IMAGE',
+          sections: [
+            { title: 'CMS BLOCK TWO TITLE', body: 'CMS BLOCK TWO BODY' },
+          ],
         },
       },
     }));
@@ -47,12 +61,24 @@ test('persisted Hero and About content reaches the public homepage', async ({ pa
   await expect(page.getByRole('heading', { name: /CMS HERO LINE ONE CMS HERO LINE TWO/ })).toBeVisible();
   await expect(page.getByRole('button', { name: /CMS PRIMARY/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'CMS SECONDARY' })).toBeVisible();
+  await expect(page.getByText('CMS TOP VALUE', { exact: true })).toHaveText('CMS TOP VALUE');
+  await expect(page.getByText('CMS TOP LABEL', { exact: true })).toHaveText('CMS TOP LABEL');
+  await expect(page.getByText('CMS BOTTOM LABEL', { exact: true })).toHaveText('CMS BOTTOM LABEL');
+  await expect(page.getByText('CMS BOTTOM VALUE', { exact: true })).toHaveText('CMS BOTTOM VALUE');
+  await expect(page.getByText('CMS PROFILE NAME', { exact: true })).toHaveText('CMS PROFILE NAME');
+  await expect(page.getByText('CMS PROFILE ROLE · CMS PROFILE LOCATION', { exact: true }))
+    .toHaveText('CMS PROFILE ROLE · CMS PROFILE LOCATION');
+  await expect(page.getByAltText('CMS HERO PROFILE IMAGE')).toHaveAttribute('src', '/media/HakanDundar.webp');
 
   await expect(page.getByRole('heading', { name: /CMS ABOUT HEADING CMS ABOUT ACCENT/ })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'CMS ABOUT TITLE ONE' })).toBeVisible();
   await expect(page.getByText('CMS ABOUT BODY TWO', { exact: true })).toBeVisible();
   await expect(page.getByAltText('CMS ABOUT IMAGE')).toBeVisible();
-  await expect(page.getByText('LEGACY BLOCK TWO', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('CMS ABOUT CHIP ONE', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /CMS BLOCK TWO CMS BLOCK TWO ACCENT/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'CMS BLOCK TWO TITLE' })).toBeVisible();
+  await expect(page.getByText('CMS BLOCK TWO BODY', { exact: true })).toBeVisible();
+  await expect(page.getByAltText('CMS BLOCK TWO IMAGE')).toBeVisible();
 });
 
 test('persisted Portfolio badge reaches the public homepage', async ({ page }) => {
@@ -72,6 +98,7 @@ test('persisted Portfolio badge reaches the public homepage', async ({ page }) =
             description: 'CMS PORTFOLIO DESCRIPTION',
             imgSrc: '/portfolio/full-stack-saas-card.svg',
             externalUrl: '',
+            technology: 'CMS TECHNOLOGY',
           },
         ],
       },
@@ -83,5 +110,6 @@ test('persisted Portfolio badge reaches the public homepage', async ({ page }) =
   await expect(page.getByText('CMS PORTFOLIO BADGE', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: /CMS PORTFOLIO HEADING CMS PORTFOLIO ACCENT/ })).toBeVisible();
   await expect(page.getByText('CMS PORTFOLIO CARD', { exact: true })).toBeVisible();
+  await expect(page.getByText('CMS TECHNOLOGY', { exact: true })).toBeVisible();
   await expect(page.getByText('CMS PORTFOLIO SUBTITLE', { exact: true })).toHaveCount(0);
 });

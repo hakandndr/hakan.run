@@ -2,7 +2,17 @@
 
 ## Baseline
 
-This documentation package describes the repository at `main@50e7bac9198e39f251a45aebe287979e929ecdc7`. It is a source-code baseline, not proof of the current live Supabase database, hosting filesystem, CDN configuration, provider dashboards, or production deployment.
+The verified starting point for the current bounded cleanup was `main@0c47b68c3965179ad2119a431e709b6670c6f689`; GitHub `origin/main` was at the same SHA and the `Playwright Tests` workflow had passed. Use `git rev-parse HEAD` for the current local cleanup commit. This source state is not proof of the current live Supabase database, hosting filesystem, CDN configuration, provider dashboards, or production deployment.
+
+## Current release state
+
+The local source now exposes the Hero portrait profile values, About profile chips, and Portfolio card technology/category labels through the existing content sections and Control Room. About block 2 is consumed publicly. Missing fields in legacy full-section content rows use source defaults; live Supabase rows were not read or changed. The public header mark and fallback Footer logo text use the canonical `<h/>` form. This cleanup was validated locally but was not pushed or deployed.
+
+The content-authority wiring repair is pushed and has passed CI, but it is not yet deployed. The verified production build produced `index-16cea860.js`; a read-only live check still served the prior `index-16a43140.js`. Hostinger's site-specific File Manager opened an HTTPS privacy interstitial, so the upload was stopped without bypassing the security barrier. No cache purge was performed.
+
+The Hostinger File Manager TLS/security path remains blocked and must not be used or bypassed. After a safe deployment through an established alternative, repeat the live smoke checks and perform the owner-only `CONTENT-TEST-2026` Control Room mutation/restoration test. Until that test succeeds from a separate browser session, production Supabase write-through remains unproven.
+
+A subsequent FTP-only continuation did not use or bypass the File Manager warning. The repository documents the artifact boundary and a generic manual web-root upload, but it does not define an executable frontend FTP procedure, remote host/port/protocol, secure local profile selector, exact frontend remote root, or stale-asset synchronization rule. No matching established secure FTP deployment capability could therefore be verified, and the FTP deployment was stopped as `NOT AVAILABLE`. Production still serves `index-16a43140.js`; the verified `index-16cea860.js` artifact remains local and ready for deployment once the owner supplies or restores the established non-secret procedure and secure profile.
 
 ## Reading order
 
@@ -74,8 +84,8 @@ npm run build
 
 1. CMS coverage is partial. The presence of an editor field does not prove that the public component consumes it.
 2. Header navigation, header branding, and header CTA are hardcoded in `Header.jsx`; `content.header` is not consumed there.
-3. Public About content is hardcoded in `About.jsx`; the Control Room About editor writes an unused content section.
-4. The hero heading and buttons are dynamic, but its role badge, biography, image, profile badges, labels, and many colors are hardcoded.
+3. Public About consumes both block objects and the editable profile-chip array; block 1 period labels remain hardcoded.
+4. Hero portrait image/text/badges are part of `content.hero.profile` and are exposed in Control Room; many visual colors remain hardcoded outside the editor model.
 5. `ContentContext` performs shallow top-level merges. A remote section replaces the corresponding fallback section object rather than deep-merging missing nested keys.
 6. The checked-in RLS migration allows every authenticated role to write. Owner-only authorization is not represented in the repository.
 7. Control Room has no owner email or UID check. MFA raises session assurance when a TOTP factor exists, but the source does not establish owner-only authorization.
@@ -88,10 +98,10 @@ npm run build
 | Change | Primary files |
 | --- | --- |
 | Header label, order, CTA, or mark | `Header.jsx`; update tests if behavior changes |
-| Hero heading or button | Control Room/Supabase or fallback `content.js` |
-| Hero biography, badge, image, profile labels | `Hero.jsx` |
-| Services, portfolio cards, stats, CTA, contact, footer | Content model and consuming component |
-| Public About content | `About.jsx` until the component is connected to the content model |
+| Hero badge, biography, heading, or buttons | Control Room/Supabase or fallback `content.js` |
+| Hero image or profile labels | Control Room/Supabase or fallback `content.hero.profile`; `Hero.jsx` consumes the values |
+| Services, portfolio cards and technology labels, stats, CTA, contact, footer | Content model and consuming component |
+| Public About blocks and profile chips | Control Room/Supabase or fallback `content.js`; `About.jsx` owns the current layout |
 | Project detail copy or unknown-slug behavior | `Project.jsx` |
 | Visibility | `Home.jsx`, `content.visibility`, Control Room |
 | Theme and typography | `ContentContext.jsx`, `index.css`, components with literal styles |
