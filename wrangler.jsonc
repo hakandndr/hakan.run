@@ -20,6 +20,7 @@
         "ANALYTICS_ENABLED": "true",
         "NOTIFICATIONS_ENABLED": "false",
         "NOTIFICATION_SENDER": "noreply@hakan.run",
+        "NOTIFICATION_RECIPIENT": "hakan@dndr.net",
         "ACCESS_TEAM_DOMAIN": "",
         "ACCESS_AUD_BOSS": "",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
@@ -39,7 +40,14 @@
           "migrations_dir": "migrations/analytics"
         }
       ],
-      "triggers": { "crons": ["30 8 * * *"] }
+      "triggers": { "crons": ["30 8 * * *"] },
+      // The staging hostname is declared here so it is created by the first
+      // deployment rather than by hand. workers.dev stays off: staging is not a
+      // public surface and must not be reachable on a second origin.
+      "workers_dev": false,
+      "routes": [
+        { "pattern": "staging.hakan.run", "custom_domain": true }
+      ]
     }
   }
 }

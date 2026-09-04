@@ -639,3 +639,72 @@ problem at current volume.
 No migration was applied to any remote database. No Worker, Access application,
 Turnstile widget or DNS record was created. Nothing was deployed or pushed. No
 production resource exists for Hakan.run and none was touched.
+
+## Phase 2B — provider state audit and provisioning readiness
+
+### What was audited
+
+Live provider state was read rather than assumed. The account holds eight
+Workers, none named `hakan-run-web` or `hakan-run-web-staging`; all eight belong
+to other projects. It holds thirteen D1 databases, of which
+`hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`) and
+`hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`) are ours,
+both reporting zero tables, which matches the deliberate decision not to apply a
+migration yet. The connected tooling exposes no zone, DNS, Access or Turnstile
+read, so the absence of those resources is asserted from the repository record
+and the dashboard, not from a provider response.
+
+### The finding that changed the plan
+
+The remaining Phase 2B items are not independent. A Cloudflare Worker cannot be
+created empty: `hakan-run-web-staging` begins to exist at its first deployment,
+and its D1 bindings, cron trigger and custom domain are created by that same
+deployment from `wrangler.jsonc`. An Access self-hosted application needs a
+hostname that already resolves through Cloudflare, and its audience tag can only
+be read after the application exists. So `ACCESS_AUD_BOSS` is downstream of the
+first deployment, and the request to finish Phase 2B before deploying cannot be
+satisfied in full — only the Turnstile widget and the account-level Access team
+domain are obtainable ahead of a deployment. This is recorded as the fixed
+provisioning order in `docs/OPERATIONS.md` rather than worked around.
+
+The window between the first deployment and the deployment that carries the real
+Access values is a fail-closed interval, not an exposure. `ACCESS_TEAM_DOMAIN`
+and `ACCESS_AUD_BOSS` are empty strings, and Worker-side verification denies
+every `/boss/*` and `/api/boss/*` request while either is unset.
+
+### Configuration corrections
+
+`worker/lib/resend.js` reads `NOTIFICATION_RECIPIENT`, but no such variable was
+declared in `wrangler.jsonc`. Notifications are disabled in staging, so this had
+not yet failed anything; it would have failed the first time they were enabled.
+Declared as `hakan@dndr.net`, which also pins staging delivery to the owner and
+makes third-party delivery from staging impossible by configuration.
+
+`staging.hakan.run` is now declared as a custom domain in the staging
+environment, so the proxied DNS record is created by deployment rather than by a
+hand-made record that would drift from the file describing it. `workers_dev` is
+disabled for staging: a second, unlisted origin for a surface that must stay out
+of search indexes is a liability with no benefit.
+
+`docs/ENVIRONMENTS.md` had drifted from the shipped runtime. It named a
+`wrangler.toml` that does not exist, a `BOSS_OWNER_IDENTIFIER` variable the code
+does not read — the code reads `BOSS_OWNER_EMAIL` — a `PUBLIC_SITE_URL` nothing
+consumes, and a staging `NOTIFICATIONS_ENABLED` of `true` where configuration
+says `false`. Its status header still declared every provider resource
+uncreated, which two created databases had already falsified. The variable table
+is now the reviewable contract for `env.staging.vars`: every name in it is read
+by `worker/`, and a variable the runtime ignores does not belong in it.
+
+### Validation
+
+- `node --test worker/tests/*.test.js` — 40 passed, 0 failed.
+- `wrangler.jsonc` parses as JSON with comments stripped.
+- `git diff --check` — clean; no CR bytes introduced.
+- Attribution and residue scan — clean.
+
+### Deliberate non-actions
+
+No migration was applied to either staging database. No Worker was created or
+deployed. No Access application, Turnstile widget or DNS record was created. No
+secret value was written to a tracked file or disclosed. Nothing was pushed. No
+production resource was touched.

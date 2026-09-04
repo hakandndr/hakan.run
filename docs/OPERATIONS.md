@@ -57,7 +57,7 @@ For documentation-only phases:
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
-The modernization branch tracks `origin/develop/hakan-run-v2`. No Cloudflare staging or production resource exists as part of this work, and no Cloudflare command is yet canonical.
+The modernization branch tracks `origin/develop/hakan-run-v2`. Of the Cloudflare staging resources, only the two D1 databases exist; no Worker, binding, cron trigger, hostname, Access application, Turnstile widget or secret has been created, and no production resource has been touched. No deployment has been performed, so no Cloudflare delivery command is yet canonical.
 
 ## Authorization and promotion
 
@@ -94,9 +94,26 @@ A staging deployment that requires dynamic content cannot run before the staging
 
 A staging deployment must never be configured with production content credentials, and no fallback path may reach the production Supabase project when the staging database is unavailable. That case fails closed.
 
+### Staging provisioning order
+
+Provisioning is ordered by dependency, not by convenience, because a Worker cannot be created empty and an Access audience tag cannot be read before its application exists. `docs/ENVIRONMENTS.md` holds the per-resource state table.
+
+1. **Turnstile widget.** Create `hakan-run-staging`, Managed, scoped to `staging.hakan.run` only. Record the site key into `TURNSTILE_SITE_KEY` in `wrangler.jsonc`; the secret key is set as a secret binding and never enters a tracked file.
+2. **Access team domain.** Read the account-level Zero Trust team domain and record it as `ACCESS_TEAM_DOMAIN`. It exists independently of any application.
+3. **Secrets.** `wrangler secret put TURNSTILE_SECRET_KEY --env staging`, and `RESEND_API_KEY` once the sender domain is verified. A missing secret fails its route closed; it never degrades to accepting unverified input.
+4. **Migrations.** Apply the `APP_DB` and `ANALYTICS_DB` migrations to staging as a distinct recorded action. D1 exists already, so this does not depend on the Worker.
+5. **First deployment.** Creates `hakan-run-web-staging`, both D1 bindings, the daily cron trigger and the `staging.hakan.run` custom domain, all from `wrangler.jsonc`. `ACCESS_AUD_BOSS` is still empty at this point, so the private surface denies every request.
+6. **Access application.** Create `hakan-run-boss-staging` over the now-resolving hostname, covering `/boss` and `/api/boss` including subpaths, One-time PIN, allow `hakan@dndr.net` only, 24-hour session. Read back the application audience tag.
+7. **Second deployment.** Carries the real `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`, which is the point at which the private surface becomes reachable by the owner.
+8. **Smoke matrix.** Only after step 7, because the private-surface assertions cannot be evaluated before Access exists.
+
+Steps 5 and 7 each cross the DEPLOY boundary and are separately authorized. Step 4 crosses MIGRATE. Steps 1, 2 and 6 cross PROVIDER and ACCESS. No step in this list touches a production resource.
+
+The window between steps 5 and 7 is a deliberate fail-closed interval, not an exposure: the Worker rejects every `/boss/*` and `/api/boss/*` request while `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD_BOSS` is empty, so the private surface is unreachable rather than unprotected.
+
 ### Deployment to staging
 
-Ordered, with each step separately authorized where it crosses an authorization boundary:
+Ordered, with each step separately authorized where it crosses an authorization boundary. This is the steady-state procedure; the first two deployments additionally follow the provisioning order above:
 
 1. Verify branch, commit, clean working tree, and that the intended artifact matches the commit.
 2. Confirm required bindings and secrets exist for the staging environment and that none is a production value.

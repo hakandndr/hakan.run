@@ -6,16 +6,16 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `dffb405` plus the Phase 2A specification commit |
+| HEAD | `d920f1d` — Phase 2C Analytics V3 foundation and Boss V3 API |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead and unpushed |
 | Current phase | Phase 2C implemented locally — schemas, analytics layer, Boss V3 API and runtime foundation; nothing applied remotely |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Owner creates the staging Worker, Access application, Turnstile widget and `staging.hakan.run` hostname; then apply migrations to staging and run the staging smoke matrix |
+| Exact next action | Owner creates the staging Turnstile widget and reads the Zero Trust team domain, then authorizes the first staging deployment, which creates the Worker, both D1 bindings, the cron trigger and `staging.hakan.run`; the Access application and its audience tag follow that deployment |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
 | Push state | Local commits pending; pushing requires separate authorization |
 | Deploy state | Not performed and not authorized |
-| Infrastructure state | Modernization infrastructure not started; Cloudflare resources and D1 not created; Resend and Turnstile not configured; production unchanged |
+| Infrastructure state | Partially provisioned. Both staging D1 databases created and empty; Worker, bindings, cron trigger, hostname, Access application, Turnstile widget and secrets all absent, verified against live provider state 2026-09-04; production unchanged |
 
 ## Current implementation
 
@@ -62,12 +62,22 @@ recorded in `docs/ARCHITECTURE.md`. See decisions D-021 and D-022.
 
 Phase 2B is partially provisioned. The two staging D1 databases exist and are
 verified empty: `hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`)
-and `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`). The
-Worker service, Access application, Turnstile widget and staging hostname remain
-outstanding and need owner action in the Cloudflare dashboard, because the
-connected tooling can create D1 databases but not Workers, bindings, Access
-applications, Turnstile widgets or DNS records. The staging content schema and
-bootstrap belong to Phase 2C.
+and `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`).
+
+The remaining resources are ordered by a real dependency chain rather than by
+preference. A Worker cannot be created empty, so `hakan-run-web-staging` begins to
+exist at its first deployment, which also creates the two D1 bindings, the daily
+cron trigger and the `staging.hakan.run` custom domain from `wrangler.jsonc`. The
+Access application needs that hostname, and `ACCESS_AUD_BOSS` can only be read
+back after the application exists. Ahead of any deployment the owner can create
+only the Turnstile widget and read the account-level Access team domain. Until
+`ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS` hold real values the private surface
+denies every request, which is the intended provisioning state.
+
+The connected provider tooling can create and read D1 databases and read Workers.
+It cannot create a Worker, a binding, an Access application, a Turnstile widget or
+a DNS record, so those steps are owner actions in the dashboard or authorized
+`wrangler` invocations. The staging content schema and bootstrap belong to Phase 2C.
 
 An editable social/OG card is now on the roadmap as Phase 9B: the served card is
 generated from published `APP_DB` content, Boss edits a bounded set of text

@@ -2,11 +2,41 @@
 
 ## Status
 
-Every provider-side resource in this document is **PLANNED — NOT CREATED**. Nothing here has been provisioned, bound, activated, or configured. No account identifier, resource identifier, database identifier, Access application identifier, key, token, DNS record, or provider state is recorded in this repository, and none may be invented.
+Phase 2B is **partially provisioned**. Only the two staging D1 databases exist. Every other provider-side resource in this document is still **PLANNED — NOT CREATED**: no Worker service, no Access application, no Turnstile widget, no staging DNS record, no secret binding. The per-resource state table below is authoritative and is updated only from an observed provider response, never from an assumption.
 
-Names in this document are proposed naming conventions, not confirmations that a resource exists. Secret values are never stored here; only secret *names* are listed so that binding requirements are reviewable.
+Names not yet marked created are proposed naming conventions, not confirmations that a resource exists. Non-secret identifiers such as D1 database identifiers are recorded deliberately once observed. Secret values are never stored here; only secret *names* are listed so that binding requirements are reviewable.
 
-This map covers Phase 2A specification only. Creation belongs to Phase 2B and requires separate PROVIDER, ACCESS, SECRET, DATABASE, and DNS authorization.
+Creation requires separate PROVIDER, ACCESS, SECRET, DATABASE, and DNS authorization, and does not authorize DEPLOY or MIGRATE.
+
+## Provisioning state — observed 2026-09-04
+
+| Resource | State | Created by |
+| --- | --- | --- |
+| `hakan-run-app-staging` (D1) | **CREATED / VERIFIED**, empty | Provider tooling |
+| `hakan-run-analytics-staging` (D1) | **CREATED / VERIFIED**, empty | Provider tooling |
+| `hakan-run-web-staging` (Worker) | NOT CREATED | First `wrangler deploy --env staging` |
+| `APP_DB` / `ANALYTICS_DB` bindings | NOT BOUND | Same deployment, from this repository's configuration |
+| Daily cron trigger `30 8 * * *` | NOT REGISTERED | Same deployment |
+| `staging.hakan.run` hostname and DNS record | NOT CREATED | Same deployment, from the `routes` custom-domain entry |
+| `hakan-run-boss-staging` (Access application) | NOT CREATED | Owner, Zero Trust dashboard |
+| `hakan-run-staging` (Turnstile widget) | NOT CREATED | Owner, Turnstile dashboard |
+| `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` | NOT SET | Owner, `wrangler secret put --env staging` |
+
+### Creation order is constrained, not preferential
+
+A Cloudflare Worker is not a resource that can be created empty and populated later: `hakan-run-web-staging` begins to exist at its first deployment. Its D1 bindings, its cron trigger and its `staging.hakan.run` custom domain are all declared in `wrangler.jsonc` and are therefore created by that same deployment, not by hand.
+
+An Access self-hosted application needs its hostname to resolve through Cloudflare before it can be attached, and its audience tag (`ACCESS_AUD_BOSS`) only exists once the application has been created. So the audience value cannot be captured before the hostname exists, and the hostname cannot exist before the first deployment.
+
+The resulting order is fixed:
+
+1. Turnstile widget — independent of everything else; yields the site key and the secret key.
+2. Access team domain — an account-level Zero Trust value; readable before any application exists.
+3. First staging deployment — creates the Worker, both bindings, the cron trigger and `staging.hakan.run`.
+4. Access application on that hostname — yields `ACCESS_AUD_BOSS`.
+5. Second deployment carrying the now-known `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`.
+
+Between steps 3 and 5 the Boss surface is unreachable rather than open: `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS` are deliberately empty strings in `wrangler.jsonc`, and Worker-side verification rejects every `/boss/*` and `/api/boss/*` request while either is unset. Failing closed during provisioning is the intended behaviour, not a gap to work around.
 
 ## Environment model
 
@@ -26,9 +56,9 @@ A single Worker service definition with per-environment deployment targets. The 
 | Item | Staging | Production |
 | --- | --- | --- |
 | Worker service name | `hakan-run-web-staging` | `hakan-run-web-production` |
-| Configuration source | `wrangler.toml` in source control, environment sections | same file, separate environment section |
+| Configuration source | `wrangler.jsonc` in source control, `env.staging` section | same file, a separate environment section added at cutover |
 | Assets directory | build output of `apps/web` | same |
-| Status | Planned — not created | Planned — not created |
+| Status | Not created; created by first deployment | Planned — not created |
 
 A single Worker rather than a separate API service keeps the edge layer thin and avoids an internal network hop for the small number of routes required. This is revisited only if the API surface outgrows the site delivery concern.
 
@@ -62,26 +92,38 @@ Content lives in `APP_DB`, one isolated database per environment. Staging never 
 
 `wrangler.jsonc` defines the service and its `staging` environment. The staging
 D1 bindings point at the created databases by identifier, the assets binding
-serves the built React/Vite output with single-page-application fallback, and a
-daily cron trigger drives aggregation. No production environment block exists;
-one is added at cutover rather than copied from staging.
+serves the built React/Vite output with single-page-application fallback, a
+daily cron trigger drives aggregation, `staging.hakan.run` is declared as a
+custom domain, and `workers_dev` is disabled so staging is not simultaneously
+reachable on a `workers.dev` origin. No production environment block exists; one
+is added at cutover rather than copied from staging.
+
+Everything a deployment needs is therefore declarative. Bindings, the trigger and
+the hostname are never created by hand in the dashboard, because a hand-made
+resource is invisible to review and drifts from the file that is supposed to
+describe it.
 
 ## Environment variables — non-secret
 
 Declared in source-controlled Worker configuration. None of these values is a secret.
 
+This table is the reviewable contract for `env.staging.vars` in `wrangler.jsonc`. Every name here is read by `worker/`; a variable the runtime does not read does not belong in it.
+
 | Variable | Staging value | Production value | Purpose |
 | --- | --- | --- | --- |
 | `ENVIRONMENT` | `staging` | `production` | Environment self-identification for logging and guards |
-| `PUBLIC_SITE_URL` | staging origin, assigned in Phase 2B | production origin, assigned at cutover | Absolute URL construction and same-origin checks |
-| `TURNSTILE_SITE_KEY` | staging site key | production site key | Public widget key rendered in the page |
-| `ACCESS_TEAM_DOMAIN` | Access team domain | Access team domain | JWKS discovery for Access token verification |
-| `ACCESS_AUD_BOSS` | staging Access application audience | production Access application audience | Audience claim the Worker must require |
-| `BOSS_OWNER_IDENTIFIER` | owner identity value | owner identity value | Owner allowlist checked after token verification |
+| `TURNSTILE_SITE_KEY` | staging site key, empty until the widget exists | production site key | Public widget key rendered in the page |
+| `ACCESS_TEAM_DOMAIN` | empty until the Access application exists | Access team domain | JWKS discovery for Access token verification |
+| `ACCESS_AUD_BOSS` | empty until the Access application exists | production Access application audience | Audience claim the Worker must require |
+| `BOSS_OWNER_EMAIL` | `hakan@dndr.net` | owner identity value | Owner allowlist checked after token verification |
 | `ANALYTICS_ENABLED` | `true` | set at cutover | Explicit switch for first-party PAGE collection |
-| `NOTIFICATIONS_ENABLED` | `true` | set at cutover | Explicit switch for notification dispatch |
+| `NOTIFICATIONS_ENABLED` | `false` until the Resend sender is verified | set at cutover | Explicit switch for notification dispatch |
+| `NOTIFICATION_SENDER` | `noreply@hakan.run` | set at cutover | From address for notification dispatch |
+| `NOTIFICATION_RECIPIENT` | `hakan@dndr.net` | owner recipient | Sole notification destination; staging must never send to a third party |
 
-`ACCESS_AUD_BOSS` is an audience tag, not a credential; it is environment-specific and must differ between staging and production because the Access applications differ.
+`ACCESS_AUD_BOSS` is an audience tag, not a credential; it is environment-specific and must differ between staging and production because the Access applications differ. An empty `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD_BOSS` is a valid provisioning state and denies the private surface; it is never a value to fill in with a guess.
+
+No `PUBLIC_SITE_URL` variable is defined. The runtime derives origin from the request and does not read one, so declaring it would be configuration that nothing enforces.
 
 ## Secrets — names only
 
@@ -105,11 +147,13 @@ Access protects `/boss/*` at the edge. The Worker independently verifies the res
 | Item | Staging | Production |
 | --- | --- | --- |
 | Application name | `hakan-run-boss-staging` | `hakan-run-boss-production` |
-| Protected path | staging origin, `/boss/*` and `/api/boss/*` | production origin, same paths |
-| Policy | Owner identity only | Owner identity only |
-| Identity provider | Not decided — see open questions | Not decided |
-| Session duration | To be set at provisioning | To be set at provisioning |
-| Status | Planned — not created | Planned — not created |
+| Protected path | `staging.hakan.run`, `/boss` and `/api/boss` including subpaths | production origin, same paths |
+| Policy | Allow, emails, `hakan@dndr.net` only | Owner identity only |
+| Identity provider | One-time PIN | Chosen at cutover |
+| Session duration | 24 hours | Chosen at cutover |
+| Status | Specified — not created | Planned — not created |
+
+One-time PIN is deliberate for staging: it introduces no third-party identity provider into the trust boundary and no credential that could be shared with production. The values above are the specification for the application to be created; `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS` are read back from the provider afterwards and are never predicted from them.
 
 The two applications are separate so that a staging policy change cannot widen production access.
 
@@ -118,10 +162,13 @@ The two applications are separate so that a staging policy change cannot widen p
 | Item | Staging | Production |
 | --- | --- | --- |
 | Widget name | `hakan-run-staging` | `hakan-run-production` |
-| Hostname scope | Staging hostname only | Production hostname only |
+| Hostname scope | `staging.hakan.run` only | Production hostname only |
+| Widget mode | Managed | Chosen at cutover |
 | Site key | Public, injected as `TURNSTILE_SITE_KEY` | Public, injected as `TURNSTILE_SITE_KEY` |
 | Secret key | `TURNSTILE_SECRET_KEY` binding | `TURNSTILE_SECRET_KEY` binding |
-| Status | Planned — not created | Planned — not created |
+| Status | Specified — not created | Planned — not created |
+
+An absent `TURNSTILE_SECRET_KEY` makes submission verification fail closed with `turnstile_not_configured`; it never falls through to accepting an unverified submission.
 
 Separate widgets prevent a staging hostname from being accepted by production verification.
 
@@ -132,22 +179,25 @@ Resend is notification delivery only. It is never the record of a submission.
 | Item | Staging | Production |
 | --- | --- | --- |
 | API key | separate key per environment | separate key per environment |
-| Sender domain | Not decided — see open questions | Not decided |
-| Recipient policy | Staging must deliver only to an owner-controlled test recipient; it must never send to third parties | Owner recipient |
+| Sender address | `noreply@hakan.run`, pending domain verification | Chosen at cutover |
+| Recipient policy | `hakan@dndr.net` only, pinned by `NOTIFICATION_RECIPIENT`; staging must never send to third parties | Owner recipient |
 | Failure behavior | Recorded against the stored submission; never fails the submission | same |
-| Status | Planned — not configured | Planned — not configured |
+| Status | Not configured; `NOTIFICATIONS_ENABLED` is `false` until the sender domain is verified | Planned — not configured |
 
 ## Domains and routes
 
 | Item | Staging | Production |
 | --- | --- | --- |
-| Hostname | Dedicated staging hostname, not yet chosen or created | `hakan.run`, currently served by legacy hosting |
-| DNS changes in this phase | None | None |
+| Hostname | `staging.hakan.run` | `hakan.run`, currently served by legacy hosting |
+| DNS changes so far | None made | None |
+| workers.dev origin | Disabled, so staging has exactly one origin | Disabled at cutover |
 | Indexing | Staging must be excluded from search indexing | Existing behavior preserved |
 | Public availability | Staging is not a public product surface | Public |
-| Status | Planned — not created | Unchanged; cutover is Phase 10 |
+| Status | Declared in configuration; record not yet created | Unchanged; cutover is Phase 10 |
 
-No DNS record is created, modified, or proposed for activation in Phase 2A. Whether the production zone is already managed by Cloudflare is unverified and is listed as an open question.
+`staging.hakan.run` is declared as a custom domain in `wrangler.jsonc`, so the proxied DNS record is created by the first staging deployment rather than by a hand-made record that could drift from configuration. No DNS record has been created or modified. Whether the `hakan.run` zone is already managed by Cloudflare has not been verified from this repository and must be confirmed in the dashboard before the first deployment; the connected tooling exposes no zone or DNS read.
+
+A staging subdomain does not alter any production record. The apex `hakan.run` remains on legacy hosting and is untouched.
 
 ## Route table
 

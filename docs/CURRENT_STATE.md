@@ -9,7 +9,7 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next` |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `dffb405` plus the Phase 2A specification commit |
+| Modernization HEAD | `d920f1d` — Phase 2C Analytics V3 foundation and Boss V3 API |
 | Modernization remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead of the remote and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
@@ -38,11 +38,22 @@ Specification is not provisioning. Cloudflare resources, D1 databases, Turnstile
 
 The target excludes three legacy surfaces outright: the `/run/` PHP visitor log, the third-party form endpoint, and `/control-room`. Each is replaced rather than ported, and none gets a compatibility route. Cloudflare staging reads and writes content through its own isolated `APP_DB` and never touches the production Supabase project. These are recorded as decisions D-017 to D-020.
 
-Phase 2B is **partially provisioned**. The two staging D1 databases now exist and
-are verified empty: `hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`)
-and `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`). The
-Worker service, Access application, Turnstile widget and staging hostname do not
-exist yet and require owner action in the Cloudflare dashboard.
+Phase 2B is **partially provisioned**, re-audited against live provider state on
+2026-09-04. The two staging D1 databases exist and are verified empty:
+`hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`) and
+`hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`), both
+reporting zero tables because no migration has been applied. No Worker named
+`hakan-run-web-staging` exists in the account; the account's eight Workers all
+belong to other projects. The Access application, Turnstile widget and
+`staging.hakan.run` hostname do not exist.
+
+The remainder of Phase 2B is not a list of independent tasks. `hakan-run-web-staging`
+comes into existence at its first deployment, and its bindings, cron trigger and
+hostname are created by that same deployment from `wrangler.jsonc`. The Access
+audience tag cannot be read before the Access application exists, and that
+application needs the hostname. Only the Turnstile widget and the account-level
+Access team domain are obtainable ahead of a deployment. The ordering and its
+consequences are recorded in `docs/ENVIRONMENTS.md`.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy
