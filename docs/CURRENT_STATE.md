@@ -9,8 +9,8 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next`, self-contained since the Phase 1B `node_modules` junctions into the legacy checkout were removed and dependencies installed with `npm ci` from this repository's own lockfile |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `d668206`, pushed; this documentation-only commit is its child |
-| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `d668206`; this documentation-only commit is local and unpushed |
+| Modernization HEAD | `3b70ebf`, pushed; the Boss V3 frontend shell commit is its child |
+| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `3b70ebf`; the Boss shell commit is local and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |
@@ -95,8 +95,33 @@ evidence that the Worker now runs before the asset layer. `/boss`,
 `GET /api/analytics/page` and `GET /api/contact` return 405 JSON.
 
 The private surface is therefore reachable by the owner and closed to everyone
-else. What remains on it is product work: the Boss frontend shell, a public
-content read path, and the one-time content bootstrap.
+else.
+
+### Boss V3 frontend shell
+
+`/boss` now has a real frontend. Six routes exist and match the six canonical
+modules the Worker already serves: `/boss` (Dashboard), `/boss/analytics`,
+`/boss/content`, `/boss/submissions`, `/boss/audit`, `/boss/system`. An unknown
+path under `/boss` returns to the Dashboard rather than falling through to the
+public 404.
+
+The shell sits outside the public `Layout`, so it carries no public header,
+footer or navigation, and it declares `noindex, nofollow` in every environment
+rather than relying on the staging build. It reads only the Boss APIs that
+already exist and adds no analytics or content logic of its own. Every panel has
+four states — loading, error, ready, ready-but-empty — and no fallback: a panel
+that cannot read its API shows the failure, including the two failures this
+project actually had, an HTML answer from the asset layer and a Worker refusal
+after the edge allowed the request.
+
+Cloudflare Access remains the outer boundary and there is no second login. The
+legacy `/control-room` route still exists in this branch and is untouched; the
+target defines no such route (decision D-019), and removing it belongs to a
+separate change.
+
+What remains: a public content read path and the one-time content bootstrap.
+Historical analytics from the legacy Control Room are a later, separate
+migration and are deliberately not represented here.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy

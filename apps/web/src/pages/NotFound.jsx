@@ -2,8 +2,13 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
+import { useRobotsDirective } from '@/head/useRobotsDirective';
 
 const NotFound = () => {
+  // Same single-owner rule as every other route: rewrite the one robots
+  // directive the document already has instead of appending another.
+  useRobotsDirective('noindex');
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -13,7 +18,6 @@ const NotFound = () => {
     >
       <Helmet>
         <title>404 — Page Not Found | Hakan Dundar</title>
-        <meta name="robots" content="noindex" />
       </Helmet>
 
       <section className="relative overflow-hidden min-h-screen flex items-center py-32" style={{ backgroundColor: '#090909' }}>

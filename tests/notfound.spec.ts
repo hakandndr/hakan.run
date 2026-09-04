@@ -15,3 +15,10 @@ test('404 back-home link returns to the site root', async ({ page }) => {
   await page.getByRole('link', { name: /back home/i }).click();
   await expect(page).toHaveURL(/\/$/);
 });
+
+test('the 404 page carries exactly one robots directive, and it is noindex', async ({ page }) => {
+  await page.goto('/still-not-a-page');
+  const robots = page.locator('meta[name="robots"]');
+  await expect(robots).toHaveCount(1);
+  await expect(robots).toHaveAttribute('content', 'noindex');
+});

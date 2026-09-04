@@ -251,6 +251,18 @@ Rollback must be possible without data loss. This constrains how schema changes 
 
 ```bash
 npm run test:worker   # analytics correctness, query plans, authorization, submissions
+npm run test:web      # build indexing policy and artifact, Boss sections and API client
+```
+
+The Boss shell also has an end-to-end suite at `tests/boss/boss-shell.spec.ts`.
+It runs against the locally previewed build with every Boss endpoint stubbed,
+because routing, navigation state and failure handling are frontend behaviour
+and are tested as such. Cloudflare Access is not simulated there; it remains the
+security boundary in the deployed environment and is exercised by the staging
+smoke matrix instead.
+
+```powershell
+npx --no-install playwright test tests/boss --project=chromium --reporter=line
 ```
 
 The worker tests apply the real migration files to an in-memory SQLite database

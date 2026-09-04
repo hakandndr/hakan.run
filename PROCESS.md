@@ -1299,3 +1299,208 @@ recorded rather than altered. Nothing was deployed or pushed in this step.
 
 Decide the Managed Content question for `staging.hakan.run`, then the Boss V3
 frontend shell.
+
+## Phase 2C — Boss V3 frontend shell
+
+### What was built
+
+`/boss` has a real frontend. Six routes, matching the six canonical modules the
+Worker already serves and nothing else: `/boss` is the Dashboard landing route,
+then `/boss/analytics`, `/boss/content`, `/boss/submissions`, `/boss/audit` and
+`/boss/system`. An unknown path under `/boss` returns to the Dashboard rather
+than falling through to the public 404, which is what it did before.
+
+The section list lives in one module, `apps/web/src/boss/sections.js`, and the
+route table, the navigation and the active-state detection are all generated
+from it, so they cannot drift apart. Its test asserts the ids against the same
+literal `worker/tests/boss-authorization.test.js` asserts, which is what keeps
+the two halves of the contract aligned.
+
+### What it deliberately does not do
+
+No backend. Every panel reads an endpoint that already exists —
+`/api/boss/dashboard`, `/api/boss/analytics/summary`, `/api/boss/content`,
+`/api/boss/submissions`, `/api/boss/audit`, `/api/boss/system`. There is no
+second analytics implementation in the browser: coverage resolution, merging and
+truncation stay in the Worker, because a second implementation would be a second
+answer to the same question.
+
+No second login. Cloudflare Access is the outer boundary and the Worker verifies
+the assertion independently; the shell authenticates nothing and stores no
+session.
+
+No `/control-room`, and nothing carried over from the legacy Admin surface. The
+legacy route still exists in this branch and is untouched: the target defines no
+such route (D-019), but removing it is a separate change rather than a detail of
+building the new one.
+
+No public content read path, no content bootstrap, and no legacy analytics
+history. The historical analytics behind the legacy Control Room are a later,
+owner-supplied migration; keeping them out of this phase keeps the staging
+Analytics V3 data unmixed with data whose provenance and semantics have not yet
+been established.
+
+### Failure is visible
+
+Four states per panel — loading, error, ready, ready-but-empty — and no fallback
+path. A panel that cannot read its API shows the failure rather than public
+content or a plausible zero, and the two failures this project actually hit are
+named explicitly by the API client: an HTML answer, which means the request was
+served by the asset layer and never reached the Worker, and a Worker refusal
+after the edge had already allowed the request, which is reported with its
+reason. A redirect is reported as an expired Access session. `apps/web/src/boss/api.js`
+turns each of those into a described error rather than into an empty result.
+
+The reasoning is the same one that produced the `run_worker_first` fix: an empty
+table and a refused request look identical to a reader, and only one of them is
+true.
+
+### Visual identity
+
+The shell shares the site's palette, monospace voice and `<h/>` mark, and shares
+nothing else. It sits outside the public `Layout`, so no public header, footer or
+marketing navigation renders inside it, and the boot animation is skipped for
+Boss paths because an operator opening a tool does not want a title sequence. It
+declares `noindex, nofollow` itself, in every environment, rather than depending
+on the staging build's policy.
+
+### Changed
+
+- `apps/web/src/boss/` — new: `sections.js`, `api.js`, `useBossResource.js`,
+  `BossLayout.jsx`, `components/StateBlock.jsx`, `components/Panel.jsx`, and six
+  pages under `pages/`.
+- `apps/web/src/App.jsx` — the `/boss` route tree, outside the public layout,
+  and the boot animation skipped for Boss paths.
+- `tests/boss/boss-shell.spec.ts` — new end-to-end suite against stubbed APIs.
+- `apps/web/src/boss/sections.test.js` and `api.test.js` — new, 22 tests.
+- `package.json` — `test:web` now covers `apps/web/src/boss` as well.
+
+### Validation
+
+- `node --test "apps/web/tools/*.test.js" "apps/web/src/boss/*.test.js"` — 48
+  passed, 0 failed.
+- `node --test worker/tests/*.test.js` — 45 passed, 0 failed.
+- `eslint . --quiet` in `apps/web` — clean.
+- The Vite build and the Playwright suites could not run in the auditing
+  environment: the installed esbuild binary is the Windows one, which is correct
+  for the machine it was installed on and unusable on Linux. Both run from the
+  development machine, and the staging build must still pass its indexing
+  verification before any deployment.
+
+### Exact next action
+
+Run the build, the Playwright Boss suite and the staging artifact verification
+on the development machine, then push and deploy under separate authorization
+and walk the six sections behind a real Access session.
+
+### Correction — one document, one robots directive
+
+The end-to-end suite found a real defect in the shell as first written, and the
+defect was not confined to Boss.
+
+`apps/web/index.html` ships exactly one `<meta name="robots">`, and the build
+owns its value: a production artifact leaves it at `index, follow`, and the
+staging build rewrites it to `noindex, nofollow` and then verifies it. The Boss
+layout declared its own `<meta name="robots" content="noindex, nofollow" />`
+inside a `Helmet`. React Helmet cannot express "replace that tag" — it manages
+only the elements it created — so it appended a second one. The Boss document
+therefore served two robots directives at once, `index, follow` from the
+artifact and `noindex, nofollow` from the route, and a crawler reading two
+conflicting directives is entitled to obey either. `/boss` was not reliably
+non-indexable; it only looked that way to a test that read the first match.
+
+The same latent defect existed on a public route: `NotFound.jsx` declared a
+robots meta the same way.
+
+The fix is ownership rather than accumulation. `apps/web/src/head/useRobotsDirective.js`
+rewrites the value of the one tag that already exists and restores the previous
+value when the route unmounts. No route declares a robots tag any more, so there
+is never a second one to conflict with. Two properties fall out of that choice
+and both are wanted: the build's value stays the baseline for every route that
+does not override it, which is why a hardcoded public `index, follow` was not
+used — on a staging artifact it would have undone the staging policy at runtime
+on exactly the pages the policy exists for.
+
+`index.html` was deliberately left untouched, and the staging build's indexing
+policy and its verification are unchanged: the guard still finds exactly one
+marker to rewrite and still fails loudly if it finds none or more than one.
+
+The failing assertion was not weakened. It was tightened: the Boss test now
+asserts one robots tag and its content, rather than the content of whichever tag
+happened to be first.
+
+#### Also changed
+
+- `apps/web/src/head/useRobotsDirective.js` — new. `applyRobotsDirective(head,
+  content)` is separated from the hook so the restore semantics are testable
+  without a DOM.
+- `apps/web/src/head/robots.test.js` — new, 6 tests: `index.html` declares
+  exactly one robots meta; no component declares a second one, enforced by a
+  scan of every source file with comments stripped; the owner's selector matches
+  the shipped markup; applying rewrites rather than adds; restoring returns the
+  build's value whatever it was; an artifact without the tag is left alone.
+- `apps/web/src/boss/BossLayout.jsx`, `apps/web/src/pages/NotFound.jsx` — the
+  Helmet robots metas replaced by the hook.
+- `tests/boss/boss-shell.spec.ts` — the Boss assertion now requires exactly one
+  tag as well as its content.
+- `tests/seo.spec.ts`, `tests/notfound.spec.ts` — the public counterparts: the
+  home page carries one robots tag and it is `index, follow`; the 404 page
+  carries one and it is `noindex`.
+- `package.json` — `test:web` now covers `apps/web/src/head` as well.
+
+#### Validation, superseding the counts above
+
+- `node --test "apps/web/tools/*.test.js" "apps/web/src/boss/*.test.js" "apps/web/src/head/*.test.js"`
+  — 54 passed, 0 failed.
+- `node --test worker/tests/*.test.js` — 45 passed, 0 failed.
+- `eslint . --quiet` in `apps/web` — clean.
+- The Playwright suites and the staging build still could not run in the
+  auditing environment, for the reason recorded above: the installed esbuild
+  binary is the Windows one. The Boss suite had already been run from the
+  development machine, which is how the defect was found — 20 passed, 2 failed,
+  both on the duplicated directive.
+
+#### Exact next action
+
+Unchanged: re-run the Playwright suites and the staging artifact verification on
+the development machine, then push and deploy under separate authorization.
+
+### Correction — a locator that meant two things
+
+Windows validation left one failure: `page.getByText('Retention policy')` in the
+Boss end-to-end suite resolved to two elements.
+
+`getByText` with a string is a case-insensitive substring match. The System
+section's own subtitle, which comes from `sections.js`, reads `Bindings,
+retention policy and environment`, and the System panel's stat card labels the
+field `Retention policy`. Both elements are correct and both are wanted: one
+describes the section, the other is the field. The ambiguity was in the
+assertion, not in the page, so no application code was changed.
+
+The assertion was narrowed and strengthened rather than relaxed. `exact: true`
+makes it mean the field and not the description of the field; `toHaveCount(1)`
+states that intent explicitly rather than leaving it to whichever element
+happened to be first; and the value beside the label is now asserted too, which
+is what actually proves the System panel read `/api/boss/system` rather than
+merely rendering its own chrome. The previous assertion would have passed
+against a panel that showed the label and no data.
+
+No test hook was added to the component for this. `data-boss-nav` and
+`data-boss-state` exist because routing state and load state are not otherwise
+addressable; a `<dt>` with its `<dd>` already is.
+
+#### Also changed
+
+- `tests/boss/boss-shell.spec.ts` — the System navigation assertion.
+
+#### Validation
+
+- `node --test "apps/web/tools/*.test.js" "apps/web/src/boss/*.test.js" "apps/web/src/head/*.test.js"`
+  — 54 passed, 0 failed.
+- `node --test worker/tests/*.test.js` — 45 passed, 0 failed.
+- `eslint . --quiet` in `apps/web` — clean.
+- Reported from the development machine before this correction: `npm run check`
+  passed, the Mobile Chrome Boss suite passed 11/11, the staging build passed and
+  the staging artifact verification passed. The Chromium run had this one
+  failure and no other. The Chromium and Mobile Chrome suites are rerun there
+  after this change; Playwright still cannot run in the auditing environment.

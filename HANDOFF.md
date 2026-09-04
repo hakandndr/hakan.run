@@ -6,14 +6,14 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next`, self-contained: its own `node_modules` installed from its own lockfile, no junction into the legacy checkout |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `d668206`, pushed. This documentation-only commit is its child |
+| HEAD | `3b70ebf`, pushed. The Boss V3 frontend shell commit is its child |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Remote tracking | `origin/develop/hakan-run-v2` is at `d668206`. This documentation-only commit is local and unpushed |
-| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified, and the deployed artifact carries the staging indexing policy. One zone-level question is open, recorded in `docs/OPERATIONS.md`. The rest of the remaining Phase 2C work is product work, not infrastructure: the Boss V3 frontend shell, a public content read path, and the one-time content bootstrap |
+| Remote tracking | `origin/develop/hakan-run-v2` is at `3b70ebf`. The Boss shell commit is local and unpushed |
+| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified. The Boss V3 frontend shell is implemented and awaits a deployment. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining after the shell: a public content read path and the one-time content bootstrap |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Decide what to do about the zone-level Cloudflare Managed Content block, which prepends its own `User-agent: *` group with `Allow: /` above the staging policy in the served `robots.txt`; see the open issue in `docs/OPERATIONS.md`. After that, the Boss V3 frontend shell |
+| Exact next action | Deploy the Boss shell to staging and walk the six sections behind a real Access session. The zone-level Managed Content question in `docs/OPERATIONS.md` remains open and is independent of it |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | `d668206` and everything before it are pushed. This documentation-only commit is local; pushing requires separate authorization |
+| Push state | `3b70ebf` and everything before it are pushed. The Boss shell commit is local; pushing requires separate authorization |
 | Deploy state | Staging deployed four times; the running version is `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`, built in the staging mode, carrying `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
 | Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8` on team domain `dndrnet.cloudflareaccess.com`. Production unchanged and unprovisioned |
 
