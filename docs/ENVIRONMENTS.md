@@ -43,7 +43,18 @@ Two databases per environment, four in total. Application records and analytics 
 
 Binding names are identical in both environments so that application code never branches on environment to choose a database. The underlying databases differ. Database identifiers are assigned by the provider at creation time and must be written into environment-specific configuration at that point, never guessed in advance.
 
-Status: all four are planned and not created.
+Provider state, per resource:
+
+| Resource | State | Identifier |
+| --- | --- | --- |
+| `hakan-run-app-staging` | **CREATED / VERIFIED** 2026-09-04 | `71a28b10-861f-4554-9e14-5464c7116394` |
+| `hakan-run-analytics-staging` | **CREATED / VERIFIED** 2026-09-04 | `4998c398-4f42-4472-a008-24e737359a03` |
+| `hakan-run-app-production` | PLANNED / NOT YET CREATED | assigned at cutover |
+| `hakan-run-analytics-production` | PLANNED / NOT YET CREATED | assigned at cutover |
+
+Both staging databases were created empty, hold no schema and no rows, and were
+verified as distinct resources. D1 database identifiers are non-secret
+configuration and are recorded here deliberately; secret values never are.
 
 Content lives in `APP_DB`, one isolated database per environment. Staging never reads or writes the production Supabase `site_content` table, and no second Supabase project is created. Staging content is bootstrapped once from a read-only snapshot of authoritative production content; production content is migrated separately at cutover. See decision D-020 and the staging content authority section of [ARCHITECTURE.md](./ARCHITECTURE.md).
 
@@ -156,3 +167,4 @@ The target route table has no entry for `/run/*`, no entry for `/control-room`, 
 5. Analytics and application data remain separate authorities within an environment.
 6. Any resource whose identifier is not yet known is recorded as planned and left unset rather than guessed.
 7. No environment reads or writes the production Supabase project. Content isolation is part of the environment boundary, not an exception to it.
+8. Scheduled jobs in any environment aggregate analytics but never delete raw analytics detail. Deletion is an explicit, audited operator action.

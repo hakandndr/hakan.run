@@ -181,3 +181,30 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Rationale: Isolation of mutable resources is a security property, and moving content into `APP_DB` for staging brings the target content authority forward without touching production.
 - Consequences: Bootstrap is a one-time read-only snapshot of the current authoritative production content, transformed and seeded into staging `APP_DB`. Production Supabase stays untouched during staging work. Authoritative production content is migrated separately into the isolated production `APP_DB` at cutover. Staging and production never share mutable content storage. Schema and migration implementation belong to a later authorized phase.
 - Status: Approved as specification; no snapshot taken, no schema created, no resource provisioned.
+
+## D-021 — Raw analytics detail is never purged automatically
+
+- Decision: Scheduled analytics aggregation never deletes raw `visitor_events`. Raw detail remains until an explicit, audited owner deletion. The 90-day maximum is a policy commitment surfaced in Boss System, not an automatic deleter.
+- Context: The reference implementation originally coupled aggregation with a retention purge, so a scheduled job could destroy operator history without a human decision, and the panel had no way to show whether the retention promise was actually being met.
+- Alternatives considered: Cron purge at an `expires_at` boundary; purge with a longer window; no retention commitment at all.
+- Rationale: Deleting evidence is an operator decision. Separating the promise (policy maximum, visible) from the mechanism (manual, audited) makes the commitment observable instead of assumed.
+- Consequences: Boss System must expose the oldest retained raw event age and an overdue state. Deletion requires preview, explicit confirmation and an audit record. Storage growth becomes an operator-managed concern.
+- Status: Approved; adopted for Hakan.run from the start.
+
+## D-022 — Aggregate reads require an explicit coverage ledger
+
+- Decision: Daily analytics aggregates may be read only for local days an explicit coverage ledger marks as fully covered. Coverage is never inferred from `MIN`/`MAX` dates, row counts, or the presence of a date key. Uncovered days, the current day, partial edge days and holes fall back to indexed raw events, and Top-N truncation happens only after raw and aggregate sources are merged.
+- Context: Aggregate tables accumulate rows written under changing semantics and with incomplete days. An aggregate that looks complete but is not silently understates reported activity, and truncating before merging produces a wrong ranking.
+- Alternatives considered: Trusting date ranges; versioning rows without a ledger; reading aggregates only for closed months.
+- Rationale: Only an explicit record of what was aggregated, and under which semantics, can justify trusting a summary number.
+- Consequences: The analytics schema includes a coverage ledger from the first migration. Read paths merge two sources and must be tested for holes, edges and the current day.
+- Status: Approved; adopted for Hakan.run from the start.
+
+## D-023 — The social card is generated from published content
+
+- Decision: The served social/OG card is generated from published `APP_DB` content. Boss exposes a bounded set of editable text fields — name, role or title, tagline, location, footer slogan. Layout, typography, colour, logo placement and the `<h/>` identity stay system-controlled. No freeform WYSIWYG editor is built.
+- Context: The current card is a hand-maintained PNG, so any text change requires an image edit and the file drifts from the site's own content.
+- Alternatives considered: Keep editing the PNG; a full visual card editor; generating the card from source constants only.
+- Rationale: Text is content and belongs in the content authority; visual identity is design and belongs in source. Splitting them keeps the card current without putting the brand at the mercy of a text field.
+- Consequences: The existing `og-image.png` design is the parity baseline the generator must reproduce. Card generation reads published content only, never drafts.
+- Status: Approved target; not implemented.

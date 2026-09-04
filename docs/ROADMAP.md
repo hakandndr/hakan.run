@@ -66,7 +66,26 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Creating a resource that shares mutable state with production; connecting staging to the production Supabase project; recording a secret in source; enabling a policy wider than owner-only; DNS or indexing exposure of staging.
 - Acceptance gates: Each resource created with the specified name and isolation; identifiers recorded in environment-specific configuration rather than guessed; secrets present only as bindings with values distinct from production; owner-only Access policy verified by a denied non-owner attempt; staging excluded from indexing; no connection path from staging to the production Supabase project; no production resource touched.
 - Authorization boundaries: PROVIDER, ACCESS, SECRET, DATABASE, and DNS each require separate explicit authorization. Provisioning does not authorize DEPLOY or ACTIVATE.
-- Status: Ready to authorize; not started. Provisioning creates resources only and does not include the staging content bootstrap or any deployment.
+- Status: **Partially provisioned.** The two staging D1 databases exist and are verified: `hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`) and `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`), both empty. The Worker service, Access application, Turnstile widget and staging hostname remain to be created by the owner in the Cloudflare dashboard; the connected tooling can create D1 databases but cannot create Workers, bindings, Access applications, Turnstile widgets or DNS records.
+
+## Phase 2C — Staging schema and Boss V3 foundation
+
+- Objective: Define and apply the staging `APP_DB` and `ANALYTICS_DB` schemas, including the analytics coverage ledger, and stand up the Boss V3 shell behind Access.
+- Dependencies: Phase 2B resources complete, including the Worker, Access application and staging hostname.
+- Main risks: Schema that cannot express trusted coverage; a Boss shell whose authorization depends on client routing; premature content migration.
+- Acceptance gates: Migrations applied to staging only; coverage ledger present from the first analytics migration; Boss shell denies unauthenticated and non-owner requests at the Worker; no production resource touched.
+- Authorization boundaries: DATABASE, MIGRATE, ACCESS and DEPLOY remain separate.
+- Status: Planned; blocked on the remaining Phase 2B resources.
+
+## Phase 9B — Editable social / OG card
+
+- Objective: Generate the served social/OG card from published `APP_DB` content instead of a hand-maintained PNG.
+- Dependencies: Content authority in `APP_DB` and the Boss Content module.
+- Scope: Boss exposes name, role or title, tagline, location and footer slogan. Layout, typography, colour, logo placement and the `<h/>` identity stay system-controlled. No freeform WYSIWYG editor.
+- Main risks: Visual drift from the authoritative `og-image.png` baseline; drafts leaking into a public card; unbounded text breaking the layout.
+- Acceptance gates: Generated card matches the existing visual baseline; only published content is read; field lengths bounded with defined overflow behaviour; card updates without any manual image edit.
+- Authorization boundaries: Content model and deployment changes are separate.
+- Status: Planned; see decision D-023.
 
 ## Phase 3 — React/Vite on Cloudflare staging
 
@@ -79,10 +98,10 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 ## Phase 4 — First-party PAGE analytics
 
-- Objective: Introduce bounded first-party PAGE-event analytics with explicit retention and authority, replacing the legacy `/run/` visitor log rather than porting it.
+- Objective: Introduce bounded first-party PAGE-event analytics on the Analytics V3 design — raw detail never purged automatically, aggregates read only through an explicit coverage ledger, raw fallback for uncovered/current/partial days — replacing the legacy `/run/` visitor log rather than porting it.
 - Dependencies: Stable staging runtime and approved analytics schema.
-- Main risks: Excessive collection, privacy ambiguity, bot noise, mixed environments.
-- Acceptance gates: PAGE-only schema, privacy review, staging isolation, retention policy, query verification.
+- Main risks: Excessive collection, privacy ambiguity, automated-traffic noise, mixed environments.
+- Acceptance gates: PAGE-only schema including the coverage ledger; no scheduled delete of raw detail; System exposure of oldest raw event age and overdue state; merge-then-truncate Top-N; INSPECT issuing no extra query; privacy review; staging isolation; query-plan verification against the real generated SQL.
 - Authorization boundaries: DATABASE, MIGRATE, DEPLOY, SECRET, and production activation are separate.
 - Status: Planned.
 

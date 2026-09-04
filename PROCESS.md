@@ -479,3 +479,89 @@ The first draft of this entry listed four items as unresolved that had in fact b
 They are now recorded durably as D-017 to D-020 in `docs/DECISIONS.md` and reflected in the architecture, environment map, security, operations, roadmap, current-state, and handoff documents. The open list now contains only configuration values. Documents were also reviewed for stale references treating `/run/`, the third-party form endpoint, or `/control-room` as future surfaces, or treating shared production content as an option; descriptions of these in verified-current-state sections were left intact, because they remain accurate statements about the legacy application.
 
 Exact next action: request Phase 2B provisioning authorization, choosing the four configuration values at that point.
+
+## Phase 2B (partial) — staging D1 provisioning and Analytics V3 reconciliation
+
+Baseline `develop/hakan-run-v2@a812455243da95806cf0f7b9c8a10376ce5d0601`.
+
+### Provider state established
+
+A prior attempt to create staging D1 databases failed with `code 7406 — System
+limit reached: databases per account (10)` while the account held 11 databases.
+The account has since moved to a paid plan. Creation was retried and succeeded,
+which is the evidence that the quota constraint is resolved; the connected
+tooling exposes no plan or quota endpoint, so a successful create is the only
+available capacity probe.
+
+Created, both empty and verified distinct:
+
+- `hakan-run-app-staging` — `71a28b10-861f-4554-9e14-5464c7116394`
+- `hakan-run-analytics-staging` — `4998c398-4f42-4472-a008-24e737359a03`
+
+Both were created without a `primary_location_hint` and were placed in `ENAM`.
+No schema, no rows, no seed. No production resource was created or modified. The
+account's other eleven databases were not touched.
+
+### Tooling limits recorded
+
+The connected Cloudflare tooling can create and inspect D1 databases, KV
+namespaces and R2 buckets, and can read Workers. It cannot create or update a
+Worker, attach bindings, manage Cloudflare Access applications or policies,
+manage Turnstile widgets, or manage DNS records or routes. Those remain owner
+actions in the dashboard.
+
+### Analytics V3 reconciliation
+
+The Phase 2A target documentation was written before the DriverFairness
+Analytics V3 implementation concluded. It contained no automatic-purge language
+to remove, but it also did not carry the invariants that implementation proved
+necessary. Those invariants are now recorded as the starting design:
+
+- raw detail is never purged automatically; scheduled work aggregates only;
+- the 90-day maximum is a policy commitment surfaced in Boss System as oldest
+  raw event age plus an overdue state, not a cron delete;
+- aggregate reads are authorised only by an explicit coverage ledger;
+- coverage is never inferred from `MIN`/`MAX`, row counts or key presence;
+- uncovered, current, partial and hole days fall back to indexed raw events;
+- Top-N truncation happens only after raw and aggregate sources are merged;
+- the event stream, INSPECT, export and historical detail filters stay raw;
+- INSPECT reuses the already loaded row and issues no additional D1 request;
+- deletion requires preview, explicit confirmation and an audit record;
+- OFFSET pagination and exact `COUNT(DISTINCT ip_address)` are recorded as known
+  future cost risks with named migration paths.
+
+Recorded as decisions D-021 and D-022. An editable social/OG card generated from
+published content was added as D-023 and roadmap Phase 9B.
+
+### Documents changed
+
+`docs/ARCHITECTURE.md`, `docs/ENVIRONMENTS.md`, `docs/SECURITY.md`,
+`docs/OPERATIONS.md`, `docs/DECISIONS.md`, `docs/ROADMAP.md`,
+`docs/CURRENT_STATE.md`, `HANDOFF.md`, and this record.
+
+### Validation
+
+The execution environment was unavailable for most of this session, so the
+documentation edits were written through the file bridge. The environment
+returned before the commit, and validation then ran normally:
+
+- `git diff --check` — clean.
+- Changed files limited to `docs/`, `HANDOFF.md` and `PROCESS.md`; nothing under
+  `apps/`, `tests/`, `.github/` or any package or lockfile.
+- No whitespace-only churn and no CR bytes introduced.
+- Local Markdown links validated.
+- Attribution and residue scan of added lines — clean.
+
+Application lint, type-check and build were not run because this change is
+documentation only and touches no application source.
+
+`a812455` was confirmed present on the remote by
+`git ls-remote origin refs/heads/develop/hakan-run-v2`, which returned
+`a812455243da95806cf0f7b9c8a10376ce5d0601`. The Phase 2A documentation commit is
+therefore published.
+
+### Deliberate non-actions
+
+No production resource was created or modified. No schema, migration or seed was
+applied to either new database. No Worker, Access, Turnstile or DNS change. No
+deployment, no push, no production data mutation.

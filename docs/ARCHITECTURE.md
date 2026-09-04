@@ -141,7 +141,65 @@ Scope constraints for the first analytics implementation:
 
 This path replaces the legacy `/run/` PHP visitor log entirely. The target contains no equivalent endpoint and no proxy to one.
 
-Retention periods and the exact column set are Phase 4 design and are not fixed here.
+The exact column set is Phase 4 design. Retention is not: the rules below are
+part of the target architecture from the start.
+
+### Analytics V3 — retention, coverage, and read strategy
+
+This design is adopted whole from the proven DriverFairness Analytics V3
+reference. It is recorded here so the Hakan.run implementation starts from the
+final shape rather than rediscovering it.
+
+**Raw detail is never deleted automatically.** Scheduled aggregation reads raw
+`visitor_events` and writes daily aggregates; it does not purge. Raw detail
+remains queryable until an explicit owner deletion. There is no `expires_at`
+sweep, no cron delete, and no silent trimming of operator history.
+
+**The 90-day maximum is a policy commitment, not a deleter.** The public privacy
+statement may promise a 90-day maximum retention. Boss System is therefore
+required to surface the oldest retained raw event age and an explicit overdue
+state when that age exceeds the policy maximum, so the commitment is met by a
+visible, audited operator action rather than by an automatic job.
+
+**Aggregate reads require an explicit coverage ledger.** A separate ledger
+records which local days have been fully and trustworthily aggregated. Summary,
+trend, country and top-page reads may use aggregates only for days the ledger
+explicitly marks as covered.
+
+**Coverage is never inferred.** `MIN`/`MAX` over aggregate rows, row counts, or
+the presence of a date key are not evidence of coverage. Only the ledger is.
+
+**Everything else falls back to raw.** Uncovered days, the current day, partial
+edge days, and holes inside an otherwise covered range are answered from indexed
+raw `visitor_events`.
+
+**Top-N truncation happens after the merge.** Top pages and country rankings
+merge the aggregate-sourced rows and the raw-sourced rows first, then truncate to
+N. Truncating either source before the merge produces a wrong ranking.
+
+**Raw stays raw.** The detailed event stream, INSPECT, export and historical
+detail filters read raw `visitor_events` and are not served from aggregates.
+
+**INSPECT issues no query.** The detail view reuses the row already loaded in the
+event stream. It must not perform an additional D1 lookup.
+
+**Manual deletion is a guarded operation.** Analytics deletion requires a preview
+of the affected range and row count, an explicit operator confirmation, and an
+audit record in `APP_DB`.
+
+### Known analytics cost risks
+
+Recorded now so they are chosen deliberately rather than discovered later:
+
+- **OFFSET pagination.** The event stream starts on OFFSET pagination to keep
+  page-number navigation. Cost grows with page depth; the migration path is
+  keyset pagination on `(occurred_at DESC, id DESC)`, taken when measured cost
+  justifies the UX trade-off.
+- **Exact `COUNT(DISTINCT ip_address)`.** Unique-address counts stay exact and
+  therefore scan. Cost grows with retained volume. No probabilistic or
+  approximate distinct counting is introduced without an explicit decision.
+- **Full filtered counts.** A total is computed when a filter set changes, not on
+  every page change; the client retains a known total across page navigation.
 
 ### Request flow — public submissions and contact
 
@@ -166,7 +224,9 @@ Every mutable data class has exactly one authority.
 | Contact and form submissions | `APP_DB` | Durable record of the product action |
 | Notification delivery outcome | `APP_DB`, attached to the submission | Resend history is not a record |
 | Audit records for privileged actions | `APP_DB` | Written by the Worker, not by clients |
-| PAGE analytics events and aggregates | `ANALYTICS_DB` | Separate authority from application records |
+| PAGE analytics raw events | `ANALYTICS_DB` | Detail authority; never purged automatically, deleted only by explicit owner action |
+| PAGE analytics daily aggregates | `ANALYTICS_DB` | Summary authority, readable only for ledger-covered local days |
+| Analytics coverage ledger | `ANALYTICS_DB` | The only evidence of trusted aggregate coverage |
 | Public content | `APP_DB` in each environment | Staging never reads or writes the legacy Supabase table; structured publishing semantics remain Phase 7 |
 | Visual identity | Source control | Never runtime-editable |
 
@@ -201,6 +261,18 @@ The bootstrap path is one-directional and one-time:
 5. At production cutover, authoritative production content is migrated separately into the isolated production `APP_DB`.
 
 Staging and production never share mutable content storage. This is a specification decision. No snapshot has been taken, no export performed, no schema created, and no resource provisioned. The schema and migration implementation belong to a later authorized phase, and a functional staging deployment that requires dynamic content cannot happen before that schema and bootstrap exist.
+
+### Social / OG card
+
+The served social/OG card is generated from published `APP_DB` content rather
+than from a hand-edited image. The existing `og-image.png` visual design is the
+authoritative baseline and is reproduced by the generator.
+
+Boss exposes a bounded set of editable text fields — name, role or title,
+tagline, location, footer slogan — and nothing else. Layout, typography, colour,
+logo placement and the `<h/>` identity are system-controlled and are not
+operator-editable. There is no freeform WYSIWYG editor. Publishing new text in
+Boss changes the served card without anyone opening an image editor.
 
 ### Design editing boundary
 

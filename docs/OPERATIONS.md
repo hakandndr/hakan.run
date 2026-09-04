@@ -153,6 +153,22 @@ Rollback must be possible without data loss. This constrains how schema changes 
 - Staging never connects to the production Supabase project, and the target deploys no `/run/` endpoint, no `/control-room` route, and no third-party form integration.
 - No DNS change is part of staging deployment.
 
+### Analytics retention operations
+
+There is no scheduled purge of raw analytics detail in any environment. The
+scheduled job aggregates and updates the coverage ledger; it never deletes.
+
+Boss System exposes, as operational state:
+
+- the oldest retained raw analytics event age;
+- whether that age exceeds the 90-day policy maximum (overdue state); and
+- the coverage ledger status, including any uncovered or partial local days.
+
+Meeting the retention commitment is therefore a periodic operator task: review
+the System page, run the delete preview for the intended cutoff, confirm
+explicitly, and let the operation write its audit record. The runbook for that
+operation is defined with the Boss System module and is not automated.
+
 ### Authorization reminder
 
 PROVIDER, ACCESS, SECRET, DATABASE, MIGRATE, DEPLOY, ACTIVATE, and DNS remain independently authorized. Specification of these procedures does not authorize performing any of them.

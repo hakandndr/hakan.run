@@ -9,9 +9,9 @@
 | HEAD | `dffb405` plus the Phase 2A specification commit |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead and unpushed |
-| Current phase | Phase 2A complete — Cloudflare staging architecture specified, nothing provisioned |
+| Current phase | Phase 2B partially provisioned — staging D1 databases created; Worker, Access, Turnstile and hostname outstanding |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Phase 2B provisioning of isolated staging resources, under separate authorization |
+| Exact next action | Owner creates the staging Worker, Access application, Turnstile widget and `staging.hakan.run` hostname in the Cloudflare dashboard; then Phase 2C schema and Boss V3 shell |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
 | Push state | Local commits pending; pushing requires separate authorization |
 | Deploy state | Not performed and not authorized |
@@ -47,6 +47,30 @@ Confirmed direction: the first Cloudflare migration is a hosting migration only.
 
 Three legacy surfaces do not migrate and receive no compatibility routes: the `/run/` PHP visitor log, replaced by first-party PAGE analytics in `ANALYTICS_DB`; the third-party form endpoint, replaced by a Worker submission endpoint writing to `APP_DB`; and `/control-room`, replaced by `/boss/*` with its canonical Dashboard, Analytics, Content, Submissions, Audit, and System areas. Cloudflare staging holds content in its own isolated `APP_DB`, bootstrapped once from a read-only snapshot of authoritative production content, and never reads or writes the production Supabase project. These are decisions D-017 to D-020.
 
-Phase 2B provisioning is ready to authorize. What remains open is configuration chosen at provisioning time — staging hostname, Access identity provider and session policy, retention periods, and Resend sender identity — not architecture. Provisioning creates resources only; the staging content schema and bootstrap must exist before any staging deployment that serves dynamic content, and both belong to a later authorized phase.
+The analytics target adopts the proven Analytics V3 reference from the start
+rather than rediscovering it. Raw `visitor_events` detail is never purged
+automatically; scheduled work aggregates only. The 90-day maximum is a policy
+commitment that Boss System must surface as oldest-raw-event age plus an overdue
+state, met by an audited manual deletion with preview and explicit confirmation.
+Daily aggregates are readable only for local days an explicit coverage ledger
+marks as covered; coverage is never inferred from `MIN`/`MAX`; uncovered, current
+and partial days fall back to indexed raw events; Top-N truncation happens only
+after raw and aggregate sources are merged. The event stream, INSPECT and export
+stay raw, and INSPECT reuses the loaded row without an extra D1 request. Known
+cost risks — OFFSET pagination and exact `COUNT(DISTINCT ip_address)` — are
+recorded in `docs/ARCHITECTURE.md`. See decisions D-021 and D-022.
+
+Phase 2B is partially provisioned. The two staging D1 databases exist and are
+verified empty: `hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`)
+and `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`). The
+Worker service, Access application, Turnstile widget and staging hostname remain
+outstanding and need owner action in the Cloudflare dashboard, because the
+connected tooling can create D1 databases but not Workers, bindings, Access
+applications, Turnstile widgets or DNS records. The staging content schema and
+bootstrap belong to Phase 2C.
+
+An editable social/OG card is now on the roadmap as Phase 9B: the served card is
+generated from published `APP_DB` content, Boss edits a bounded set of text
+fields, and the visual identity stays system-controlled. See decision D-023.
 
 Provider access, resource creation, secrets, databases, deployment, activation, DNS, push, and production changes remain separately authorized. Any later frontend delivery must use the Phase 1B baseline as its parity contract.

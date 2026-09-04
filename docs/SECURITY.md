@@ -117,6 +117,27 @@ Isolation is a security property, not only an operational convenience. A staging
 
 Staging must additionally not deliver notifications to third parties; staging recipients are owner-controlled only.
 
+### Analytics retention and deletion boundary
+
+Raw analytics detail is private operator data and is never removed by an
+automatic process. Scheduled aggregation may read raw events and write daily
+aggregates; it has no delete authority. This keeps operator history intact and
+prevents a scheduled job from destroying evidence without a human decision.
+
+The public 90-day maximum retention commitment is met by an operator action, not
+by a cron job. Boss System surfaces the oldest retained raw event age and an
+explicit overdue state so the commitment is observable rather than assumed.
+
+Deletion of analytics detail is a guarded, audited operation: preview of the
+affected range and row count, explicit operator confirmation, then an audit
+record in `APP_DB`. A deletion path that skips preview or confirmation is a
+defect, not a shortcut.
+
+Aggregate reads are only as trustworthy as the coverage ledger that authorises
+them. Inferring coverage from `MIN`/`MAX` dates or row presence is prohibited,
+because an incomplete aggregate that looks complete silently understates
+reported activity.
+
 ### Audit
 
 Privileged reads, mutations, denials, and configuration failures on the private surface produce audit records in `APP_DB`. Audit records are written by the Worker, never by a client, and are not deletable through the ordinary private API surface.

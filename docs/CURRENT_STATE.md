@@ -38,4 +38,18 @@ Specification is not provisioning. Cloudflare resources, D1 databases, Turnstile
 
 The target excludes three legacy surfaces outright: the `/run/` PHP visitor log, the third-party form endpoint, and `/control-room`. Each is replaced rather than ported, and none gets a compatibility route. Cloudflare staging reads and writes content through its own isolated `APP_DB` and never touches the production Supabase project. These are recorded as decisions D-017 to D-020.
 
-Phase 2B provisioning is ready to authorize. The items still open are configuration values chosen during provisioning — staging hostname, Access identity provider and session policy, retention periods, and the Resend sender identity — not architectural questions.
+Phase 2B is **partially provisioned**. The two staging D1 databases now exist and
+are verified empty: `hakan-run-app-staging` (`71a28b10-861f-4554-9e14-5464c7116394`)
+and `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`). The
+Worker service, Access application, Turnstile widget and staging hostname do not
+exist yet and require owner action in the Cloudflare dashboard.
+
+The analytics target follows the proven Analytics V3 reference from the start:
+raw detail is never purged automatically, the 90-day maximum is a policy
+commitment surfaced in Boss System rather than a cron delete, aggregate reads are
+authorised only by an explicit coverage ledger, and uncovered, current or partial
+days fall back to indexed raw events. See decisions D-021 and D-022.
+
+Configuration still chosen at provisioning time: Access identity provider and
+session policy, and the Resend sender verification path. Retention is no longer
+an open question — it is settled by D-021.
