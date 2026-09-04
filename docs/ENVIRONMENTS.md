@@ -133,6 +133,18 @@ the hostname are never created by hand in the dashboard, because a hand-made
 resource is invisible to review and drifts from the file that is supposed to
 describe it.
 
+One environment difference is decided by the build rather than by a binding.
+Staging must not be indexable, and `robots.txt`, `sitemap.xml` and `index.html`
+are static assets the Worker never sees, so the artifact itself carries the
+policy: a `staging` mode build disallows every crawler, ships an empty
+sitemap and emits `noindex, nofollow`. This means a staging artifact and a production
+artifact are not interchangeable, which is the one deliberate exception to
+building once and promoting unchanged. It is recorded here so the exception is
+visible rather than discovered at a promotion. The build verifies the artifact
+it produced and refuses to finish if the policy is absent, and
+`npm run verify:artifact:staging --prefix apps/web` re-checks an existing `dist`
+before a deployment.
+
 ## Environment variables — non-secret
 
 Declared in source-controlled Worker configuration. None of these values is a secret.

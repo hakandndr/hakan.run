@@ -25,6 +25,40 @@ node tools/generate-llms.js
 npx --no-install vite build --outDir ../../dist/apps/web
 ```
 
+Both artifacts are now produced by one orchestrator rather than by a shell
+chain, because a build expressed as a shell string was able to skip Vite
+silently and leave a stale `dist` in place:
+
+```powershell
+Remove-Item -Recurse -Force dist\apps\web    # prove the build recreates it
+npm run build --prefix apps/web              # production
+npm run build:staging --prefix apps/web      # staging, non-indexable
+```
+
+Each build prints its mode, the absolute output directory it wrote, the Vite
+installation it used and whether it lies inside this repository, what the
+indexing policy did, and a final verification line. Vite is driven through its
+JavaScript API rather than by locating `bin/vite.js`: that path is not an
+exported subpath of the package, so resolving it fails on a correctly installed
+dependency. This repository's lockfile installs Vite at
+`apps/web/node_modules/vite` rather than hoisting it to the repository root, and
+the build does not depend on knowing which. It reads the finished
+artifact back and exits non-zero if the files do not carry the policy, so a
+build that produced nothing cannot look like a build that succeeded. An existing
+`dist` can be checked without rebuilding:
+
+```powershell
+npm run verify:artifact --prefix apps/web            # expects the production policy
+npm run verify:artifact:staging --prefix apps/web    # expects the staging policy
+```
+
+Production is the default mode, so a forgotten flag reproduces the production
+output rather than de-indexing the live site; the reverse default would turn a
+forgotten flag into an SEO incident. A staging deployment built without the
+staging mode is an indexable staging site and must be rebuilt and redeployed
+rather than left in place — and `verify:artifact:staging` is what catches that
+before the deployment rather than after.
+
 The verified browser-test approach manages preview separately when automatic Windows teardown hangs:
 
 ```powershell
@@ -40,7 +74,9 @@ npx --no-install playwright test tests/visual/visual-baseline.spec.ts --project=
 
 It compares 21 tracked Windows Chromium snapshots at the required desktop/mobile viewports plus 1024 px and 768 px transition evidence. Snapshot updates are reviewable product changes and must not be accepted automatically.
 
-Phase 1B used already installed dependency trees through ignored local directory junctions because installation was outside scope. Those junctions are machine-local tooling state, are not repository prerequisites, and are not committed.
+Phase 1B used already installed dependency trees through ignored local directory junctions because installation was outside scope. Those junctions have been removed. `node_modules` and `apps/web/node_modules` are now real directories installed from this repository's own lockfile with `npm ci` at the repository root, and no dependency resolves from the legacy checkout.
+
+That arrangement was invisible while it lasted, which is why the build now checks it: Node resolution walks up to the first `node_modules`, follows a junction without comment, and a build of this repository was in fact a build against the legacy repository's dependencies. Deleting or reinstalling the legacy tree would have changed this build with nothing here changing. `tools/build.js` resolves Vite, takes the real path of what it found, and fails unless that path is inside this repository. The rule is a repository boundary rather than a deny-list: naming the legacy path would catch only the arrangement already known about.
 
 ## Documentation validation
 
@@ -185,7 +221,7 @@ Rollback must be possible without data loss. This constrains how schema changes 
 - A staging deployment never targets a production binding, database, secret, or Access application.
 - Migrations are applied per environment and are never assumed to have been applied elsewhere.
 - Staging notifications are delivered only to owner-controlled recipients.
-- Staging is excluded from search indexing.
+- Staging is excluded from search indexing. This is enforced by the build, not by convention: a `staging` mode build writes a `robots.txt` that disallows every crawler and names no sitemap, replaces `sitemap.xml` with a valid empty `urlset` so staging advertises no production URL while `/sitemap.xml` still answers as a sitemap rather than falling through to the single-page-application shell, and rewrites the document robots directive to `noindex, nofollow`. The guard is applied at build time because `robots.txt`, `sitemap.xml` and `index.html` are static assets: the Worker is not in their request path, and `run_worker_first` deliberately covers only the protected and API routes. `apps/web/tools/indexing.test.js` asserts that the staging and production policies differ in exactly these ways, `apps/web/tools/indexing.artifact.test.js` asserts the same against real files on disk and requires that a production-shaped artifact fails the staging policy, and the build itself verifies the artifact it produced. Policy tests alone are not sufficient here: an earlier version of this guard passed its unit tests while the deployed artifact carried none of the policy, because the build never ran the guard and nothing read the artifact back.
 - Staging never connects to the production Supabase project, and the target deploys no `/run/` endpoint, no `/control-room` route, and no third-party form integration.
 - No DNS change is part of staging deployment.
 

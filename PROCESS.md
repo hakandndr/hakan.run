@@ -1004,3 +1004,225 @@ record.
 ### Exact next action
 
 Staging indexing hygiene, then the Boss V3 frontend shell.
+
+## Phase 2C — staging indexing hygiene
+
+### Problem
+
+`staging.hakan.run` served the production `robots.txt`: `Allow: /`, a
+`Disallow: /control-room` line inherited from the legacy site, and
+`Sitemap: https://hakan.run/sitemap.xml`. The built `sitemap.xml` listed five
+production URLs, and `index.html` carried `<meta name="robots"
+content="index, follow" />`. A crawler could therefore index a second copy of
+the site on a hostname that is not a public surface, and follow it back to
+production. This contradicted the Phase 2B acceptance gate and the environment
+safety rule in `docs/OPERATIONS.md`, which asserted an exclusion that nothing
+enforced.
+
+### Why the guard is in the build and not at the edge
+
+`robots.txt`, `sitemap.xml` and `index.html` are static assets. Cloudflare
+serves assets before the Worker, and `run_worker_first` deliberately lists only
+`/api/*`, `/boss` and `/boss/*`, so the Worker is not in their request path.
+Serving a staging `robots.txt` from the Worker would mean widening that array,
+which is part of the authorization boundary and is out of scope here. Deciding
+the policy when the artifact is produced keeps the boundary untouched and makes
+the difference reviewable in source.
+
+### The first attempt did not reach the artifact
+
+The policy was first implemented as a Vite plugin registered from
+`vite.config.js`. Its unit tests passed and the staging artifact was still the
+production one: `dist/apps/web/robots.txt` kept `Allow: /` and the production
+sitemap directive, `sitemap.xml` kept its five production URLs, and `index.html`
+kept `index, follow`.
+
+The proximate finding was that neither build wrote anything at all. No file
+under `dist/apps/web` had a modification time later than 21:36 UTC, while the
+builds were run after 22:05, and `dist/apps/web/robots.txt` was byte-identical
+to `apps/web/public/robots.txt`. The artifact that was inspected was a stale one
+from an earlier build; Vite never ran, and printed no output because it was
+never invoked.
+
+The build script was
+`node tools/generate-llms.js || true && vite build --outDir …`. Those operators
+are interpreted by whatever shell npm chooses, which on Windows is `cmd.exe`,
+where `true` is not a command. Any non-zero exit from the generator ends the
+chain at `true` and `vite build` never runs. The exact trigger is not needed to
+justify the fix: a build expressed as a shell string that can silently skip its
+own compiler is the wrong shape for a step that carries a safety property.
+
+Two things were wrong, not one. The chaining could skip the build, and nothing
+downstream ever read the artifact back, so a build that did nothing and a build
+that did the right thing were indistinguishable. Pure policy tests cannot close
+that gap: they prove the policy, not the artifact.
+
+### The second attempt resolved Vite the wrong way
+
+The orchestrator first located Vite with
+`require.resolve('vite/bin/vite.js')` and spawned it with `process.execPath`.
+On Windows that failed with `could not resolve vite from apps/web`, while
+`npx --no-install vite build` had always worked on the same checkout.
+
+The package was never missing. Vite 4 publishes an `exports` map containing
+`.`, `./client`, `./types/*`, `./package.json` and `./dist/client/*`.
+`./bin/vite.js` is referenced only by the `bin` field, which is how npm creates
+the CLI shim; it is not an exported subpath. Node enforces `exports`, so
+resolving that path throws `ERR_PACKAGE_PATH_NOT_EXPORTED` for a correctly
+installed dependency. `npx` never hits this because it goes through the `bin`
+field rather than package resolution. The message the build printed was worse
+than the bug: it caught the error and blamed a missing installation.
+
+Deriving the CLI path from `require.resolve('vite/package.json')` would work,
+since `./package.json` is exported. Using the `.` entry point works better:
+`await import('vite')` and `vite.build()` is Vite's documented API and needs no
+knowledge of where the file lives. That matters here, because the layout is not
+what an earlier version of this entry claimed: the root lockfile places Vite at
+`apps/web/node_modules/vite` rather than hoisting it to the repository root, and
+the build does not depend on knowing which.
+
+The general lesson is the one already recorded above: a resolution strategy that
+reaches around a package's public entry points will break on a package that is
+installed and healthy. Both failures in this change set were the build reaching
+for something other than the supported path.
+
+### The build was resolving another repository's dependencies
+
+Reporting the resolved installation immediately paid for itself. The first
+successful Windows build printed:
+
+    vite : 4.5.14 from D:\IT\hakan\hakan-run\apps\web\node_modules\vite
+
+The active repository is `hakan-run-next`. The build was using the **legacy**
+checkout's dependency tree.
+
+Both `node_modules` entries in this repository were Windows directory junctions
+created at clone time, pointing into `hakan-run`. Node resolution walks up to
+the first `node_modules` it finds and follows a junction without comment, so
+every dependency — not merely Vite — resolved into the legacy checkout. This
+repository had no dependency tree of its own at all. `docs/OPERATIONS.md` had
+recorded the arrangement as temporary Phase 1B tooling state, correctly noting
+that it was not committed, but nothing recorded that the modernization build
+therefore depended on another repository being present and untouched.
+
+The fix was environmental: remove the two junctions and run `npm ci` at the
+repository root. The root lockfile is a workspace lockfile that already pinned
+the same Vite 4.5.14, so the installed tree is identical in content and now
+local. Vite now resolves from
+`hakan-run-next/apps/web/node_modules/vite`.
+
+The guard is what keeps it that way. After resolving Vite, `tools/build.js`
+takes the real path of the package directory and fails unless it is inside the
+repository root. `realpath` is the whole mechanism: a junction is transparent to
+ordinary path handling and only reveals itself once the link is resolved. The
+rule is a repository boundary, not a deny-list — naming the legacy path would
+catch the one arrangement already known about and nothing else.
+`tools/dependency-isolation.test.js` covers the boundary arithmetic, including a
+sibling directory that merely shares a prefix, and reproduces the real failure by
+building a directory link out of a temporary repository and asserting that the
+path looks internal until it is resolved. That reproduction skips itself where
+creating a directory link requires privileges, so the suite does not become
+environment-dependent.
+
+### Default direction
+
+Production is the default. `vite build` runs in mode `production` unless a mode
+is passed, so a forgotten flag reproduces the existing production output. The
+opposite default — noindex unless told otherwise — would turn a forgotten flag
+into an SEO incident on the live site, which is a worse failure than an
+indexable staging build that is caught and rebuilt.
+
+### Changed
+
+- `apps/web/tools/indexing.js` — new. Pure policy helpers: `isStagingBuild`,
+  `STAGING_ROBOTS_TXT`, `STAGING_SITEMAP_XML`, `applyRobotsMeta`,
+  `robotsTxtOverride`, `sitemapOverride`. No file system access, so the environment difference is
+  testable without running a build. `applyRobotsMeta` throws when the expected
+  robots directive is absent or ambiguous rather than returning the document
+  unchanged: shipping an indexable staging build silently would surface months
+  later in a crawler, while a failed build surfaces immediately.
+  `applyIndexingPolicy` writes the policy into a built directory and
+  `verifyIndexingPolicy` reads a directory back and returns every way it fails,
+  so the artifact can be checked without rebuilding it.
+- `apps/web/tools/build.js` — new. The build is one Node process with no shell:
+  the metadata generator is imported, Vite is driven through its JavaScript API,
+  the policy is applied after Vite has finished copying the public directory,
+  and the finished artifact is read back and verified. Every step fails loudly,
+  and the build prints the absolute output directory it used so the directory
+  being inspected is never in question.
+- `apps/web/tools/verify-artifact.js` — new. Verifies an existing `dist` against
+  a mode without building, for use immediately before a deployment.
+- `apps/web/tools/dependency-isolation.js` — new. `isInsideRepository` is pure
+  path arithmetic with an explicit case-sensitivity parameter; `isolationProblem`
+  resolves real paths and returns a description of the escape, or null. An
+  unresolvable path is reported rather than assumed acceptable.
+- `apps/web/tools/dependency-isolation.test.js` — new, 8 tests.
+- `apps/web/vite.config.js` — reverted to its pre-guard form. With the policy
+  applied and verified by the orchestrator, a plugin hook is a second mechanism
+  that can silently not run.
+- `apps/web/package.json` — `build` and `build:staging` now call
+  `tools/build.js`; `verify:artifact` and `verify:artifact:staging` added. The
+  `|| true` that swallowed a generator failure is gone: a metadata generator
+  that fails now fails the build.
+- `package.json` — `test:web` runs `apps/web/tools/*.test.js`; `check` now runs
+  lint, the worker tests and the web tests.
+- `apps/web/tools/indexing.test.js` — new, 11 policy tests. They assert the two
+  outputs against each other rather than in isolation: a test that only checked
+  staging would still pass if the guard were accidentally applied to production
+  too.
+- `apps/web/tools/indexing.artifact.test.js` — new, 7 artifact tests. They copy
+  a production-shaped artifact into a temporary directory and operate on real
+  files. The decisive case asserts that a production-shaped directory FAILS the
+  staging policy, which is precisely the state that reached staging unnoticed.
+  These tests immediately earned their place: they caught that
+  `STAGING_ROBOTS_TXT` named `hakan.run` in a comment, which the policy tests
+  missed because they checked for `hakan.run/` with a trailing slash. The
+  staging `robots.txt` now names the production host nowhere.
+
+The staging sitemap is an empty `urlset` rather than a deleted file. With
+`not_found_handling: single-page-application`, an absent `/sitemap.xml` is
+answered by `index.html` under HTTP 200, so the endpoint would return an HTML
+document where a sitemap belongs — wrong for anything reading it, and a worse
+signal than an explicit empty one. A well-formed empty `urlset` advertises
+nothing and states that this host has no public URLs.
+
+### Deliberate non-actions
+
+Access configuration, `run_worker_first`, Boss routes and UI, the Worker APIs,
+both D1 databases and every Cloudflare provider setting are unchanged. No
+`/api/content` endpoint, no content bootstrap, no production change. The staging
+canonical link and Open Graph URLs still point at production; with
+`noindex, nofollow` they carry no indexing consequence, and changing them is a
+content decision rather than an indexing-safety one. Nothing was deployed or
+pushed.
+
+### Validation
+
+- `node --test apps/web/tools/indexing.test.js` — 11 passed, 0 failed.
+- `node --test apps/web/tools/indexing.artifact.test.js` — 7 passed, 0 failed.
+- `node --test apps/web/tools/dependency-isolation.test.js` — 8 passed, 0 failed.
+- `tools/build.js` executed end to end in an environment without a readable
+  dependency tree: it reports the mode, both absolute directories, generates the
+  metadata, then fails with the real resolution error and both search paths
+  rather than a guess about `npm install`.
+- `tools/verify-artifact.js` exercised against a real temporary artifact in both
+  directions: a production-shaped directory passes `--mode production` with exit
+  0 and fails `--mode staging` with exit 1 and nine named problems; after
+  applying the staging policy the same directory passes `--mode staging` and
+  fails `--mode production`.
+- `node --test worker/tests/*.test.js` — 45 passed, 0 failed, unchanged.
+- `node --check` on `tools/indexing.js`, `tools/indexing.test.js` and
+  `vite.config.js`; both `package.json` files reparsed as valid JSON.
+- Lint and the Vite build could not run in the auditing environment, where
+  `node_modules` is a link farm this shell cannot traverse. They run from the
+  development machine, and the build is what produces the artifact this change
+  is about, so it is a required step before the deployment rather than an
+  optional one.
+
+### Exact next action
+
+Delete `dist/apps/web`, run both builds on the development machine, and confirm
+each recreates the directory and prints its verification line. The build now
+fails rather than producing an unguarded staging artifact, so a passing build is
+the evidence. Then push and deploy the staging artifact under separate
+authorization.
