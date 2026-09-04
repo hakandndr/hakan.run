@@ -100,16 +100,16 @@ Provisioning is ordered by dependency, not by convenience, because a Worker cann
 
 1. **Turnstile widget.** *Done.* `hakan-run-staging` exists, scoped to `staging.hakan.run`; site key `0x4AAAAAAEm_dH-JFfwoJxQ0` is recorded in `wrangler.jsonc`. The secret key is set as a secret binding and never enters a tracked file.
 2. **Access team domain.** *Done.* `blue-waterfall-9473.cloudflareaccess.com`, recorded as `ACCESS_TEAM_DOMAIN` without a scheme, which is the form `worker/lib/access.js` expects.
-3. **Secrets.** `wrangler secret put TURNSTILE_SECRET_KEY --env staging`, and `RESEND_API_KEY` once the sender domain is verified. A missing secret fails its route closed; it never degrades to accepting unverified input.
-4. **Migrations.** Apply the `APP_DB` and `ANALYTICS_DB` migrations to staging as a distinct recorded action. D1 exists already, so this does not depend on the Worker.
-5. **First deployment.** Creates `hakan-run-web-staging`, both D1 bindings, the daily cron trigger and the `staging.hakan.run` custom domain, all from `wrangler.jsonc`. `ACCESS_AUD_BOSS` is still empty at this point, so the private surface denies every request.
-6. **Access application.** Create `hakan-run-boss-staging` over the now-resolving hostname, covering `/boss` and `/api/boss` including subpaths, One-time PIN, allow `hakan@dndr.net` only, 24-hour session. Read back the application audience tag.
-7. **Second deployment.** Carries the real `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`, which is the point at which the private surface becomes reachable by the owner.
-8. **Smoke matrix.** Only after step 7, because the private-surface assertions cannot be evaluated before Access exists.
+3. **Secrets.** *Done.* `TURNSTILE_SECRET_KEY` is set on the staging Worker. `RESEND_API_KEY` stays unset until the sender domain is verified; a missing secret fails its route closed and never degrades to accepting unverified input.
+4. **Migrations.** *Done.* `0001_init.sql` applied to both staging databases on 2026-09-04 and verified against `sqlite_master` and the `d1_migrations` ledger.
+5. **First deployment.** *Done*, version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3`. Created `hakan-run-web-staging` (`944dbffc89f2490cbc0288a819502ad6`), both D1 bindings, the daily cron trigger and the `staging.hakan.run` custom domain, all from `wrangler.jsonc`. `ACCESS_AUD_BOSS` was empty in this version, so the private surface denies every request.
+6. **Access application.** *Done.* `hakan-run-boss-staging` (`4f3f249c-5a5e-4a14-a673-12f7282d96a8`) over `/boss`, `/boss/*` and `/api/boss/*`, One-time PIN, policy `owner-only` allowing `hakan@dndr.net`, 24-hour session. Audience tag read back and recorded.
+7. **Second deployment.** *Outstanding.* Carries the real `ACCESS_AUD_BOSS`, which is the point at which the private surface becomes reachable by the owner.
+8. **Smoke matrix.** Only after step 7, because the private-surface assertions cannot be evaluated before the deployed Worker knows its audience.
 
-Steps 5 and 7 each cross the DEPLOY boundary and are separately authorized. Step 4 crosses MIGRATE. Steps 1, 2 and 6 cross PROVIDER and ACCESS. No step in this list touches a production resource.
+Steps 5 and 7 each cross the DEPLOY boundary and are separately authorized. Step 4 crossed MIGRATE. Steps 1, 2 and 6 crossed PROVIDER and ACCESS. No step in this list touches a production resource.
 
-The window between steps 5 and 7 is a deliberate fail-closed interval, not an exposure: the Worker rejects every `/boss/*` and `/api/boss/*` request while `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD_BOSS` is empty, so the private surface is unreachable rather than unprotected.
+The window between steps 5 and 7 is a deliberate fail-closed interval, not an exposure: the Worker rejects every `/boss/*` and `/api/boss/*` request while `ACCESS_AUD_BOSS` is empty, so the private surface is unreachable rather than unprotected. It is still open, because a variable reaches the runtime only at deployment.
 
 ### Deployment to staging
 

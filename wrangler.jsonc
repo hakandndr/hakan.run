@@ -22,11 +22,12 @@
         "NOTIFICATION_SENDER": "noreply@hakan.run",
         "NOTIFICATION_RECIPIENT": "hakan@dndr.net",
         "ACCESS_TEAM_DOMAIN": "blue-waterfall-9473.cloudflareaccess.com",
-        // Deliberately empty until the staging Access application exists and its
-        // audience tag can be read back. verifyAccess() denies every private
-        // request while this is unset, so the Boss surface is unreachable rather
-        // than unprotected. Never fill this in with a predicted value.
-        "ACCESS_AUD_BOSS": "",
+        // Audience tag of the staging Access application hakan-run-boss-staging.
+        // Read back from the provider after the application was created, never
+        // predicted. Non-secret: it identifies which application a token was
+        // issued for, and the Worker still verifies the signature against the
+        // team key set before trusting the claim.
+        "ACCESS_AUD_BOSS": "c9f9d4070414d021c4aad110bc37f11d45795951902147b555abc89742e02e1e",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
         "TURNSTILE_SITE_KEY": "0x4AAAAAAEm_dH-JFfwoJxQ0"
       },

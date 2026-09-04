@@ -2,7 +2,9 @@
 
 ## Status
 
-Phase 2B is **partially provisioned**. Only the two staging D1 databases exist. Every other provider-side resource in this document is still **PLANNED — NOT CREATED**: no Worker service, no Access application, no Turnstile widget, no staging DNS record, no secret binding. The per-resource state table below is authoritative and is updated only from an observed provider response, never from an assumption.
+Phase 2B staging is **provisioned**. Every staging resource in this document now exists and has been verified against the provider: both D1 databases with their schemas applied, the Worker with its bindings and cron trigger, the `staging.hakan.run` hostname, the Access application, the Turnstile widget, and the Turnstile secret binding. The per-resource state table below is authoritative and is updated only from an observed provider response, never from an assumption.
+
+One configuration step remains: the deployed Worker still runs the first-deploy version, which carries an empty `ACCESS_AUD_BOSS`. The audience tag is recorded in this repository but does not reach the runtime until the next deployment. Production remains untouched and unprovisioned.
 
 Names not yet marked created are proposed naming conventions, not confirmations that a resource exists. Non-secret identifiers such as D1 database identifiers are recorded deliberately once observed. Secret values are never stored here; only secret *names* are listed so that binding requirements are reviewable.
 
@@ -10,18 +12,30 @@ Creation requires separate PROVIDER, ACCESS, SECRET, DATABASE, and DNS authoriza
 
 ## Provisioning state — observed 2026-09-04
 
-| Resource | State | Created by |
+| Resource | State | Identifier or value |
 | --- | --- | --- |
-| `hakan-run-app-staging` (D1) | **CREATED / VERIFIED**, empty | Provider tooling |
-| `hakan-run-analytics-staging` (D1) | **CREATED / VERIFIED**, empty | Provider tooling |
-| `hakan-run-web-staging` (Worker) | NOT CREATED | First `wrangler deploy --env staging` |
-| `APP_DB` / `ANALYTICS_DB` bindings | NOT BOUND | Same deployment, from this repository's configuration |
-| Daily cron trigger `30 8 * * *` | NOT REGISTERED | Same deployment |
-| `staging.hakan.run` hostname and DNS record | NOT CREATED | Same deployment, from the `routes` custom-domain entry |
-| Access team domain `blue-waterfall-9473.cloudflareaccess.com` | **CONFIRMED**, recorded | Account-level Zero Trust |
-| `hakan-run-boss-staging` (Access application) | NOT CREATED | Owner, Zero Trust dashboard |
-| `hakan-run-staging` (Turnstile widget) | **CREATED**, site key recorded | Owner, Turnstile dashboard |
-| `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` | NOT SET | Owner, `wrangler secret put --env staging` |
+| `hakan-run-app-staging` (D1) | **CREATED / VERIFIED**, schema applied | `71a28b10-861f-4554-9e14-5464c7116394` |
+| `hakan-run-analytics-staging` (D1) | **CREATED / VERIFIED**, schema applied | `4998c398-4f42-4472-a008-24e737359a03` |
+| `hakan-run-web-staging` (Worker) | **CREATED / VERIFIED** | `944dbffc89f2490cbc0288a819502ad6` |
+| `APP_DB` / `ANALYTICS_DB` bindings | **BOUND** by the first deployment | from `wrangler.jsonc` |
+| Daily cron trigger `30 8 * * *` | **REGISTERED** by the first deployment | from `wrangler.jsonc` |
+| `staging.hakan.run` hostname and DNS record | **CREATED** by the first deployment | from the `routes` custom-domain entry |
+| Access team domain | **CONFIRMED** | `blue-waterfall-9473.cloudflareaccess.com` |
+| `hakan-run-boss-staging` (Access application) | **CREATED / VERIFIED** | app `4f3f249c-5a5e-4a14-a673-12f7282d96a8` |
+| `hakan-run-staging` (Turnstile widget) | **CREATED**, site key recorded | `0x4AAAAAAEm_dH-JFfwoJxQ0` |
+| `TURNSTILE_SECRET_KEY` | **SET** as a Worker secret | value never recorded anywhere |
+| `RESEND_API_KEY` | NOT SET | not required while notifications are off |
+
+### Verified schema state
+
+Both migrations were applied on 2026-09-04 and confirmed by reading `sqlite_master` and the `d1_migrations` ledger directly, rather than by trusting the applying command's own output.
+
+| Database | Ledger entry | Objects present |
+| --- | --- | --- |
+| `hakan-run-app-staging` | `0001_init.sql` at 09:20:38 | `content_sections`, `content_revisions`, `submissions`, `audit_events`, `settings`, `og_card`, plus 5 indexes |
+| `hakan-run-analytics-staging` | `0001_init.sql` at 09:21:00 | `visitor_events`, `analytics_daily`, `analytics_coverage`, `analytics_deletion_log`, plus 9 indexes including all 6 `visitor_events` access paths |
+
+`analytics_coverage` is present from the first migration, which is the condition the Analytics V3 design depends on: no aggregate is ever readable without an explicit coverage row, and coverage is never inferred.
 
 ### Creation order is constrained, not preferential
 
@@ -33,11 +47,13 @@ The resulting order is fixed:
 
 1. Turnstile widget — independent of everything else; yields the site key and the secret key. **Done.**
 2. Access team domain — an account-level Zero Trust value; readable before any application exists. **Done.**
-3. First staging deployment — creates the Worker, both bindings, the cron trigger and `staging.hakan.run`.
-4. Access application on that hostname — yields `ACCESS_AUD_BOSS`.
-5. Second deployment carrying the now-known `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`.
+3. First staging deployment — creates the Worker, both bindings, the cron trigger and `staging.hakan.run`. **Done**, version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3`.
+4. Access application on that hostname — yields `ACCESS_AUD_BOSS`. **Done.**
+5. Second deployment carrying the now-known `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`. **Outstanding.**
 
-Between steps 3 and 5 the Boss surface is unreachable rather than open: `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS` are deliberately empty strings in `wrangler.jsonc`, and Worker-side verification rejects every `/boss/*` and `/api/boss/*` request while either is unset. Failing closed during provisioning is the intended behaviour, not a gap to work around.
+Between steps 3 and 5 the Boss surface is unreachable rather than open: `ACCESS_AUD_BOSS` is an empty string in the deployed version, and Worker-side verification rejects every `/boss/*` and `/api/boss/*` request while it is unset. Failing closed during provisioning is the intended behaviour, not a gap to work around.
+
+That window is still open in the runtime. The audience tag is recorded in this repository, but a variable takes effect at deployment, so staging keeps denying every private request until step 5 runs. The order was deliberate: Access could not be configured before a hostname existed, and the hostname could not exist before a deployment.
 
 ## Environment model
 
@@ -115,7 +131,7 @@ This table is the reviewable contract for `env.staging.vars` in `wrangler.jsonc`
 | `ENVIRONMENT` | `staging` | `production` | Environment self-identification for logging and guards |
 | `TURNSTILE_SITE_KEY` | `0x4AAAAAAEm_dH-JFfwoJxQ0` | production site key | Public widget key rendered in the page |
 | `ACCESS_TEAM_DOMAIN` | `blue-waterfall-9473.cloudflareaccess.com` | Access team domain | JWKS discovery for Access token verification |
-| `ACCESS_AUD_BOSS` | empty until the staging Access application exists | production Access application audience | Audience claim the Worker must require |
+| `ACCESS_AUD_BOSS` | `c9f9d407…e02e1e`, in the repository; reaches the runtime at the next deployment | production Access application audience | Audience claim the Worker must require |
 | `BOSS_OWNER_EMAIL` | `hakan@dndr.net` | owner identity value | Owner allowlist checked after token verification |
 | `ANALYTICS_ENABLED` | `true` | set at cutover | Explicit switch for first-party PAGE collection |
 | `NOTIFICATIONS_ENABLED` | `false` until the Resend sender is verified | set at cutover | Explicit switch for notification dispatch |
@@ -150,12 +166,15 @@ Access protects `/boss/*` at the edge. The Worker independently verifies the res
 | Item | Staging | Production |
 | --- | --- | --- |
 | Application name | `hakan-run-boss-staging` | `hakan-run-boss-production` |
-| Protected path | `staging.hakan.run`, `/boss` and `/api/boss` including subpaths | production origin, same paths |
+| Application ID | `4f3f249c-5a5e-4a14-a673-12f7282d96a8` | assigned at cutover |
+| Audience tag | `c9f9d4070414d021c4aad110bc37f11d45795951902147b555abc89742e02e1e` | must differ |
+| Protected destinations | `staging.hakan.run` — `/boss`, `/boss/*`, `/api/boss/*` | production origin, same paths |
 | Policy | Allow, emails, `hakan@dndr.net` only | Owner identity only |
 | Identity provider | One-time PIN | Chosen at cutover |
 | Team domain | `blue-waterfall-9473.cloudflareaccess.com` | same account |
 | Session duration | 24 hours | Chosen at cutover |
-| Status | Specified — not created | Planned — not created |
+| Policy name | `owner-only` | assigned at cutover |
+| Status | **Created / verified** | Planned — not created |
 
 One-time PIN is deliberate for staging: it introduces no third-party identity provider into the trust boundary and no credential that could be shared with production. The values above are the specification for the application to be created; `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS` are read back from the provider afterwards and are never predicted from them.
 
@@ -170,7 +189,7 @@ The two applications are separate so that a staging policy change cannot widen p
 | Widget mode | Managed | Chosen at cutover |
 | Site key | `0x4AAAAAAEm_dH-JFfwoJxQ0`, public, injected as `TURNSTILE_SITE_KEY` | Public, injected as `TURNSTILE_SITE_KEY` |
 | Secret key | `TURNSTILE_SECRET_KEY` binding | `TURNSTILE_SECRET_KEY` binding |
-| Status | **Created**; secret binding not yet set | Planned — not created |
+| Status | **Created**; secret binding set on the staging Worker | Planned — not created |
 
 An absent `TURNSTILE_SECRET_KEY` makes submission verification fail closed with `turnstile_not_configured`; it never falls through to accepting an unverified submission.
 
@@ -193,13 +212,13 @@ Resend is notification delivery only. It is never the record of a submission.
 | Item | Staging | Production |
 | --- | --- | --- |
 | Hostname | `staging.hakan.run` | `hakan.run`, currently served by legacy hosting |
-| DNS changes so far | None made | None |
+| DNS changes so far | `staging.hakan.run` only, created by deployment | None |
 | workers.dev origin | Disabled, so staging has exactly one origin | Disabled at cutover |
 | Indexing | Staging must be excluded from search indexing | Existing behavior preserved |
 | Public availability | Staging is not a public product surface | Public |
-| Status | Declared in configuration; record not yet created | Unchanged; cutover is Phase 10 |
+| Status | **Created** by the first deployment | Unchanged; cutover is Phase 10 |
 
-`staging.hakan.run` is declared as a custom domain in `wrangler.jsonc`, so the proxied DNS record is created by the first staging deployment rather than by a hand-made record that could drift from configuration. No DNS record has been created or modified. Whether the `hakan.run` zone is already managed by Cloudflare has not been verified from this repository and must be confirmed in the dashboard before the first deployment; the connected tooling exposes no zone or DNS read.
+`staging.hakan.run` is declared as a custom domain in `wrangler.jsonc`, so its proxied DNS record was created by the first staging deployment rather than by a hand-made record that could drift from configuration. The deployment succeeding is itself the proof that the `hakan.run` zone is managed by Cloudflare, since a custom domain cannot be attached to a zone the account does not control.
 
 A staging subdomain does not alter any production record. The apex `hakan.run` remains on legacy hosting and is untouched.
 

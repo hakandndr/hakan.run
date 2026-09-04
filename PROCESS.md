@@ -763,3 +763,70 @@ can verify, and `RESEND_API_KEY`, which is not required while
 
 Nothing was deployed, migrated, pushed or activated. No Access application was
 created. No production resource was touched.
+
+## Phase 2B — Access application recorded, staging provisioning complete
+
+### Value recorded
+
+The staging Access application `hakan-run-boss-staging`
+(`4f3f249c-5a5e-4a14-a673-12f7282d96a8`) exists, and its audience tag
+`c9f9d407…e02e1e` is now `ACCESS_AUD_BOSS` in the staging environment. The
+application uses One-time PIN with policy `owner-only` allowing `hakan@dndr.net`,
+a 24-hour session, and destinations `/boss`, `/boss/*` and `/api/boss/*`.
+
+The audience tag is non-secret. It identifies which application a token was
+issued for; it authorises nothing on its own, because the Worker still verifies
+the signature against the team key set and checks the issuer and expiry before
+the audience claim is worth anything. Recording it in configuration is what makes
+a token minted for a different application unusable here.
+
+### Provider state verified, not assumed
+
+Every claim in this entry was checked against the provider rather than taken from
+the output of the command that made the change. A migration command reporting
+success and a schema actually being present are different facts, and only the
+second one matters later.
+
+`sqlite_master` on `hakan-run-app-staging` returns all six application tables —
+`content_sections`, `content_revisions`, `submissions`, `audit_events`,
+`settings`, `og_card` — with their five indexes. `hakan-run-analytics-staging`
+returns `visitor_events`, `analytics_daily`, `analytics_coverage` and
+`analytics_deletion_log` with nine indexes, including all six `visitor_events`
+access paths the query layer plans against. Both `d1_migrations` ledgers hold a
+single row for `0001_init.sql`, at 09:20:38 and 09:21:00 on 2026-09-04.
+
+`analytics_coverage` existing from the first migration is the load-bearing
+detail: the Analytics V3 design refuses to read an aggregate without an explicit
+coverage row, so a deployment whose analytics database lacked that table would
+silently fall back to raw reads for everything.
+
+The Worker `hakan-run-web-staging` exists as `944dbffc89f2490cbc0288a819502ad6`.
+
+### The fail-closed window is still open, on purpose
+
+Recording the audience tag in this repository does not change the running
+environment. A Worker variable takes effect at deployment, so staging continues
+to run first-deploy version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3` with an empty
+`ACCESS_AUD_BOSS` and denies every `/boss/*` and `/api/boss/*` request until the
+next deployment. Cloudflare Access will authenticate the owner at the edge; the
+Worker will still refuse, because edge authentication is not authorisation.
+
+The test pinning that state stays, with its comment rewritten. The window it
+described is closing, but the assertion it makes is permanent: a partially
+configured Access binding must never be treated as sufficient, whether it arises
+from a provisioning gap or from a later edit that drops the audience.
+
+### Validation
+
+- `node --test worker/tests/*.test.js` — 41 passed, 0 failed.
+- `wrangler.jsonc` parses; the audience is byte-identical to the value supplied,
+  64 lowercase hex characters, and the team domain still carries no scheme.
+- `git diff --check` — clean; no CR bytes.
+- Attribution and residue scan — clean.
+- No secret value appears in the diff.
+
+### Deliberate non-actions
+
+Nothing was deployed, migrated, pushed or activated in this turn. The only
+provider calls made were reads. No production resource exists for Hakan.run and
+none was touched.

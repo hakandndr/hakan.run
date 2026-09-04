@@ -28,10 +28,11 @@ test('an unconfigured Access binding denies rather than opening the surface', as
   assert.equal(result.reason, 'access_not_configured');
 });
 
-// The state the staging environment is actually in between the first deployment
-// and the deployment that carries the Access audience tag: team domain and owner
-// known, audience still empty. This is a provisioning window, not a config error,
-// so it is pinned rather than left to inspection.
+// The state staging ran in between its first deployment and the deployment that
+// carries the Access audience tag: team domain and owner known, audience still
+// empty. That window is closed, but the assertion stays: a partially configured
+// Access binding must never be treated as good enough, whether it arises from a
+// provisioning gap or from a later edit that drops the audience.
 test('a known team domain with no audience still denies', async () => {
   const result = await verifyAccess(request('/boss'), {
     ACCESS_TEAM_DOMAIN: 'blue-waterfall-9473.cloudflareaccess.com',
