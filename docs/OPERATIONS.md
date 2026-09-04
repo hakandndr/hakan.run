@@ -93,7 +93,7 @@ For documentation-only phases:
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
-The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed three times and the running version is `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, which carries `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS` and the `run_worker_first` routing rule. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
+The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed four times and the running version is `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`, built in the staging mode, which carries `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
 
 ## Authorization and promotion
 
@@ -165,6 +165,28 @@ Re-verified without authenticating:
 - `GET /api/analytics/page` and `GET /api/contact` return 405 JSON.
 
 Still to be evaluated against a deployed version: visual parity against the Phase 1B baseline, static asset caching headers, the Turnstile and submission assertions, the analytics write assertion, and the assertion that content is served from the staging `APP_DB` — the last of which cannot pass before the content bootstrap and a public read path exist.
+
+### Verified staging indexing — version `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`
+
+The staging-mode artifact is deployed. Observed live:
+
+- `/robots.txt` carries the staging policy: a `User-agent: *` group with `Disallow: /`, no `Sitemap:` directive, and no occurrence of the production host;
+- `/sitemap.xml` returns a valid empty `urlset`, 110 bytes, zero `<loc>` entries, no production URL;
+- the served document carries `<meta name="robots" content="noindex, nofollow">`;
+- the Access flow is unaffected, and an authenticated `/boss` still renders the SPA 404 because the Boss frontend shell does not exist yet;
+- the production host is unchanged: `hakan.run/robots.txt` still allows crawling and names the production sitemap, which still lists its five public URLs.
+
+The document canonical link and the Open Graph URLs on staging still point at production. Under `noindex, nofollow` they carry no indexing consequence; changing them is a content decision rather than an indexing-safety one.
+
+### Open issue — the zone prepends its own `Allow: /` above the staging policy
+
+The `robots.txt` that `staging.hakan.run` actually serves is not the artifact's file alone. Cloudflare Managed Content prepends a block at the zone level, and that block opens with its own `User-agent: *` group carrying `Content-Signal: search=yes,ai-train=no,use=reference` and **`Allow: /`**, followed by `Disallow: /` groups for a list of named AI crawlers. The artifact's `User-agent: *` group with `Disallow: /` follows it.
+
+The staging directive is therefore present, but it must not be assumed effective. Under RFC 9309 groups matching the same user-agent are merged, and where an allow rule and a disallow rule match a URL with equal specificity the less restrictive rule applies. `Allow: /` and `Disallow: /` are the same length, so a crawler following that rule takes the allow. The zone-level block is currently able to neutralise the artifact's directive for `User-agent: *`.
+
+What is actually preventing indexing today is the document directive, `noindex, nofollow`, which is verified live. The two controls were built as belt and braces, and one of them is being overridden by a setting outside the build. Note the interaction: had the `Disallow: /` won, a crawler would not fetch the page and would never see the `noindex`; because the allow wins, the page is fetched and the `noindex` applies. The outcome is currently correct for the wrong reason, which is not a state to leave undocumented.
+
+Resolving it is a zone-level change and therefore separately authorized: disable Managed Content for the `staging.hakan.run` hostname, or scope it so it does not emit a `User-agent: *` `Allow: /` group there. Nothing in the repository can fix this, because the injection happens after the origin response leaves the Worker and the artifact.
 
 ### Deployment to staging
 

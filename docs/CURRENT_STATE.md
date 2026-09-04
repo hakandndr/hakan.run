@@ -7,10 +7,10 @@ This document records repository-backed truth for the modernization working copy
 | Area | Verified state |
 | --- | --- |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
-| Modernization working copy | `D:\IT\hakan\hakan-run-next` |
+| Modernization working copy | `D:\IT\hakan\hakan-run-next`, self-contained since the Phase 1B `node_modules` junctions into the legacy checkout were removed and dependencies installed with `npm ci` from this repository's own lockfile |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `f512e79`, pushed; this documentation-only commit is its child |
-| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `f512e79`; this documentation-only commit is local and unpushed |
+| Modernization HEAD | `d668206`, pushed; this documentation-only commit is its child |
+| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `d668206`; this documentation-only commit is local and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |

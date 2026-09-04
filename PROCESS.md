@@ -1226,3 +1226,76 @@ each recreates the directory and prints its verification line. The build now
 fails rather than producing an unguarded staging artifact, so a passing build is
 the evidence. Then push and deploy the staging artifact under separate
 authorization.
+
+## Phase 2C — staging indexing deployed, and a zone-level override found
+
+### Deployment
+
+`hakan-run-web-staging`, version `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`, on
+`staging.hakan.run`. This is the first artifact built in the staging mode, so it
+is the first one carrying the indexing policy.
+
+### Verified live
+
+- `/robots.txt` carries the staging policy: a `User-agent: *` group with
+  `Disallow: /`, no `Sitemap:` directive, no occurrence of the production host.
+- `/sitemap.xml` returns a valid empty `urlset`: 110 bytes, zero `<loc>`
+  entries, no production URL.
+- The served document carries `<meta name="robots" content="noindex, nofollow">`.
+- The Access flow is unaffected. An authenticated `/boss` still renders the SPA
+  404, because the Boss frontend shell does not exist yet.
+- `hakan.run` is unchanged: production still allows crawling, still names its
+  sitemap, and that sitemap still lists five public URLs.
+
+### The zone prepends its own `Allow: /`
+
+The served file is not the artifact's file alone. Cloudflare Managed Content
+prepends a block at the zone level whose first group is `User-agent: *` with
+`Content-Signal: search=yes,ai-train=no,use=reference` and `Allow: /`, followed
+by `Disallow: /` groups for named AI crawlers. The artifact's `User-agent: *`
+group with `Disallow: /` comes after it.
+
+The staging directive is present. It should not be recorded as effective. Under
+RFC 9309, groups matching the same user-agent are merged, and where an allow and
+a disallow match a URL with equal specificity the less restrictive rule wins.
+`Allow: /` and `Disallow: /` are the same length, so a crawler applying that rule
+takes the allow, and a zone setting outside the build overrides the artifact.
+
+What prevents indexing today is the document directive, which is verified live.
+The two controls were built as belt and braces and one of them is currently
+neutralised. The interaction is worth stating plainly: had `Disallow: /` won, a
+crawler would never fetch the page and would never see the `noindex`; because the
+allow wins, the page is fetched and the `noindex` applies. The outcome is right
+for the wrong reason.
+
+This cannot be fixed in the repository — the injection happens after the response
+leaves the Worker and the artifact. It is a zone-level decision: disable Managed
+Content for `staging.hakan.run`, or scope it so it emits no `User-agent: *`
+`Allow: /` group there. Separately authorized as a provider change.
+
+### The modernization checkout is now self-contained
+
+The Phase 1B `node_modules` junctions into the legacy checkout have been removed
+and dependencies installed with `npm ci` from this repository's own lockfile.
+Vite resolves from `D:\IT\hakan\hakan-run-next\apps\web\node_modules\vite`, and
+no dependency resolves from `D:\IT\hakan\hakan-run`. The build isolation guard
+added in `d668206` rejects any dependency whose real path lies outside the
+repository root, so the arrangement cannot return unnoticed.
+
+### Changed
+
+Documentation only: `HANDOFF.md`, `docs/CURRENT_STATE.md`,
+`docs/OPERATIONS.md`, `docs/ROADMAP.md`, and this entry.
+
+### Deliberate non-actions
+
+No functional code changed: nothing under `worker/`, `apps/web/`, `migrations/`,
+and no change to `wrangler.jsonc` or either `package.json`. Access, the Boss
+routes and UI, the Worker APIs, both databases and every provider setting are
+unchanged — including the Managed Content setting described above, which is
+recorded rather than altered. Nothing was deployed or pushed in this step.
+
+### Exact next action
+
+Decide the Managed Content question for `staging.hakan.run`, then the Boss V3
+frontend shell.
