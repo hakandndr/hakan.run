@@ -6,16 +6,16 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `193f0f2` plus the Access audience commit |
+| HEAD | `4cd61f8` before this change set; this reconciliation commit is its child |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead and unpushed |
-| Current phase | Phase 2B staging provisioned and the Phase 2C schemas applied; staging runs the first-deploy version and awaits the deployment that carries `ACCESS_AUD_BOSS` |
+| Remote tracking | `origin/develop/hakan-run-v2` was at `4cd61f8`, identical to the local branch, when this change set began. This commit is local and unpushed |
+| Current phase | Phase 2C. Staging is provisioned, migrated and deployed twice. This change set corrects the Access team domain after the account-wide Zero Trust rename and adds Worker-first routing for the protected and API paths. Neither reaches the runtime before the next deployment |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Second staging deployment, carrying `ACCESS_AUD_BOSS`; then run the staging smoke matrix, whose private-surface assertions cannot be evaluated before that deployment |
+| Exact next action | Deploy this commit to staging, then run the staging smoke matrix using a fresh Access session rather than one established before the team rename |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | Local commits pending; pushing requires separate authorization |
-| Deploy state | First staging deployment performed, version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3`; the second is separately authorized and not yet run. Production never deployed |
-| Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8`. Production unchanged and unprovisioned |
+| Push state | `4cd61f8` and everything before it are pushed. This commit is local; pushing requires separate authorization |
+| Deploy state | Staging deployed twice; the running version is `59a843f7-a5f5-44ac-8038-9233a6abd8fb`. It carries `ACCESS_AUD_BOSS` but the former team domain and no Worker-first routing, so it cannot verify an Access assertion. Production never deployed |
+| Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8` on team domain `dndrnet.cloudflareaccess.com`. Production unchanged and unprovisioned |
 
 ## Current implementation
 
@@ -70,18 +70,45 @@ Worker. The Access application `hakan-run-boss-staging`
 (`4f3f249c-5a5e-4a14-a673-12f7282d96a8`) protects `/boss`, `/boss/*` and
 `/api/boss/*` under One-time PIN with policy `owner-only` allowing
 `hakan@dndr.net` and a 24-hour session, on team domain
-`blue-waterfall-9473.cloudflareaccess.com`.
+`dndrnet.cloudflareaccess.com`.
 
 The provisioning order was forced rather than chosen. A Worker cannot be created
 empty, so `hakan-run-web-staging` came into existence at its first deployment,
 which also created the bindings, the trigger and the hostname from
 `wrangler.jsonc`. The Access application needed that hostname, and its audience
-tag could only be read back afterwards. The consequence is that staging currently
-runs the first-deploy version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3` with an empty
-`ACCESS_AUD_BOSS` and denies every private request. The audience tag is recorded
-in the repository and reaches the runtime at the next deployment. That partially
-configured state is pinned by a test so it can never be mistaken for a working
-one.
+tag could only be read back afterwards. That provisioning window closed with the
+second deployment, version `59a843f7-a5f5-44ac-8038-9233a6abd8fb`, which carries
+`ACCESS_AUD_BOSS`. The test pinning the partially configured state stays: a
+partially configured Access binding must never be treated as sufficient, whether
+it arises from a provisioning gap or from a later edit that drops the audience.
+
+Two defects survived that window and are what this change set fixes.
+
+The first is identity. The value recorded as `ACCESS_TEAM_DOMAIN` was
+`blue-waterfall-9473.cloudflareaccess.com`, which is not a team domain at all: it
+is the free-text organisation name shown on the Access login page, and it
+resolves to no Access organisation. The account-wide Zero Trust team is
+`dndrnet.cloudflareaccess.com`, and `worker/lib/access.js` builds both the JWKS
+URL and the expected issuer from that variable, so the former value made every
+key-set fetch fail and every private request deny with `verification_failed`.
+
+The second is routing. Cloudflare Static Assets are served before the Worker, and
+a top-level navigation that matches no file receives `index.html` under
+`not_found_handling: single-page-application` without the Worker running at all.
+Browser navigation to `/boss` therefore rendered the public 404 shell with HTTP
+200, and `/api/boss/*` returned HTML rather than JSON, while Worker-side Access
+verification never executed. Requests issued as `fetch` did reach the Worker and
+denied correctly, which is why the two faults masked each other. `run_worker_first`
+now lists `/api/*`, `/boss` and `/boss/*`; every other path keeps the default
+asset-first behaviour, so static delivery is unchanged.
+
+Neither fix is visible until the next deployment, because a Worker variable and
+an assets routing rule both take effect at deploy time.
+
+This change set corrects routing, identity and API enforcement. It does not
+implement the Boss frontend shell: the SPA still has no `/boss` route, so once
+the Worker is reached and the owner is verified, the served shell will continue
+to render the application's own 404 view until that shell exists.
 
 The staging content bootstrap remains outstanding and belongs to Phase 2C.
 

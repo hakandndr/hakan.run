@@ -830,3 +830,100 @@ from a provisioning gap or from a later edit that drops the audience.
 Nothing was deployed, migrated, pushed or activated in this turn. The only
 provider calls made were reads. No production resource exists for Hakan.run and
 none was touched.
+
+## Phase 2C — Access identity corrected and Worker-first routing declared
+
+### Why the private surface was still failing after the second deployment
+
+The second staging deployment, version `59a843f7-a5f5-44ac-8038-9233a6abd8fb`,
+carried `ACCESS_AUD_BOSS` and closed the provisioning window. The Boss surface
+still did not work, for two independent reasons that had been masking each other.
+
+**Identity.** `ACCESS_TEAM_DOMAIN` was recorded as
+`blue-waterfall-9473.cloudflareaccess.com`. That string is not a team domain. It
+is the free-text organisation name on the Access login page, which Cloudflare
+pre-fills with a random label, and it resolves to no Access organisation:
+requesting its key set returns "Unable to find your Access organization".
+`worker/lib/access.js` derives both the JWKS URL and the expected issuer from
+that variable, so every private request denied with `verification_failed`. The
+account-wide Zero Trust team has since been renamed to
+`dndrnet.cloudflareaccess.com`, which is the authoritative issuer and key-set
+host and is what this change set records.
+
+**Routing.** Cloudflare Static Assets are served before the Worker. Under
+`not_found_handling: single-page-application`, a top-level navigation that
+matches no file receives `index.html` without the Worker running at all.
+Browser navigation to `/boss` therefore rendered the application's own 404 view
+with HTTP 200, and `/api/boss/*` returned HTML rather than JSON, while
+Worker-side Access verification never executed.
+
+The two faults masked each other precisely. A `fetch` request is not a
+navigation, so it reached the Worker and denied correctly with
+`{"error":"forbidden","reason":"verification_failed"}`; a navigation never
+reached the Worker and returned a 200 shell. Reading either symptom alone
+suggested the wrong cause.
+
+Cloudflare Access continued to gate `/boss`, `/boss/*` and `/api/boss/*` at the
+edge throughout. The surface was unreachable, not unprotected, and no privileged
+data was served: the shell the asset layer returned is the public bundle.
+
+### Changed
+
+- `wrangler.jsonc` — `env.staging.vars.ACCESS_TEAM_DOMAIN` set to
+  `dndrnet.cloudflareaccess.com`; `assets.run_worker_first` declared as
+  `["/api/*", "/boss", "/boss/*"]`. Every other path keeps the default
+  asset-first behaviour, so static delivery and its caching are unchanged.
+  `run_worker_first` is part of the authorization boundary, not a performance
+  setting: removing it silently disables Worker-side verification for browser
+  navigation.
+- `worker/tests/boss-authorization.test.js` — the team domain constant in the
+  partially-configured-Access test. The assertion is unchanged; only the domain
+  it names is now a real one.
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/ENVIRONMENTS.md`,
+  `docs/OPERATIONS.md`, `docs/ROADMAP.md` — reconciled with verified state:
+  staging migrations applied, the Worker created and deployed twice,
+  `ACCESS_AUD_BOSS` configured, the team domain corrected, the test count 41 not
+  40, `4cd61f8` pushed rather than pending, and legacy `main` now
+  `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote while the
+  modernization base remains `e3467d2`.
+
+### Deliberate non-actions
+
+No source file under `worker/` or `apps/web/` changed. The Boss frontend shell
+was not implemented: the SPA still has no `/boss` route, so after this deploys
+and the owner is verified, the served shell will continue to render the
+application's 404 view until that shell exists. This change set fixes routing,
+identity and API enforcement, not the missing Boss UI. No `/api/content` endpoint
+was added, no production Supabase content was read or bootstrapped, no provider
+setting was changed, no Access application or policy was touched, nothing was
+deployed or pushed, and no production resource exists or was touched.
+
+### Validation
+
+- `node --test worker/tests/boss-authorization.test.js` — 9 passed, 0 failed.
+- `node --test worker/tests/*.test.js` — 41 passed, 0 failed.
+- `wrangler.jsonc` parses with comments stripped and reports
+  `run_worker_first` as `["/api/*","/boss","/boss/*"]`,
+  `not_found_handling` still `single-page-application`, the staging team domain
+  `dndrnet.cloudflareaccess.com`, the audience unchanged, `workers_dev` false,
+  and `env` containing only `staging`.
+- `git diff --check` — clean.
+- Application lint and build could not run in this environment: `node_modules`
+  is a link farm this shell cannot traverse. This change set alters no
+  application source, so neither is gating; both run from `apps/web` on the
+  development machine.
+
+### Known issue recorded, not fixed here
+
+`staging.hakan.run/robots.txt` currently serves `Allow: /` with a sitemap
+pointing at production, so staging is indexable. That contradicts the Phase 2B
+acceptance gate and the environment safety rule in `docs/OPERATIONS.md`. It is
+not fixed in this change set because it is a separate concern with its own
+build-time change, and mixing it with an authorization fix would make both
+harder to review. It is the next staging hygiene task.
+
+### Exact next action
+
+Push, then deploy to staging, then run the smoke matrix with a fresh Access
+session. A session established before the team rename carries the former issuer
+and would fail verification for a reason unrelated to this deployment.

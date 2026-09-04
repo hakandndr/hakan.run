@@ -6,7 +6,15 @@
   "assets": {
     "directory": "dist/apps/web",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    // Static assets are served before the Worker by default, and a top-level
+    // navigation that matches no file receives index.html without the Worker
+    // ever running. That made /boss render the public 404 shell and
+    // /api/boss/* return HTML instead of JSON, with Worker-side Access
+    // verification never executing. Listing these routes runs the Worker
+    // first for them; every other path keeps the default asset-first
+    // behaviour, so static delivery is unchanged.
+    "run_worker_first": ["/api/*", "/boss", "/boss/*"]
   },
   "observability": { "enabled": true },
 
@@ -21,7 +29,7 @@
         "NOTIFICATIONS_ENABLED": "false",
         "NOTIFICATION_SENDER": "noreply@hakan.run",
         "NOTIFICATION_RECIPIENT": "hakan@dndr.net",
-        "ACCESS_TEAM_DOMAIN": "blue-waterfall-9473.cloudflareaccess.com",
+        "ACCESS_TEAM_DOMAIN": "dndrnet.cloudflareaccess.com",
         // Audience tag of the staging Access application hakan-run-boss-staging.
         // Read back from the provider after the application was created, never
         // predicted. Non-secret: it identifies which application a token was

@@ -6,11 +6,11 @@ This document records repository-backed truth for the modernization working copy
 
 | Area | Verified state |
 | --- | --- |
-| Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
+| Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next` |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `193f0f2` plus the Access audience commit |
-| Modernization remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead of the remote and unpushed |
+| Modernization HEAD | `4cd61f8` before this change set; this reconciliation commit is its child |
+| Modernization remote tracking | `origin/develop/hakan-run-v2` was at `4cd61f8`, identical to the local branch, when this change set began; this commit is local and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |
@@ -18,7 +18,7 @@ This document records repository-backed truth for the modernization working copy
 | Analytics | Static GA4 loader plus PHP flat-file visitor logging |
 | Control Room | Legacy `/control-room` implementation using Supabase Auth, optional TOTP MFA, content editors, and tracker UI |
 | Hosting model | Source describes a static frontend and separate PHP runtime on the legacy Hostinger-style deployment model; live hosting was not inspected in Phase 1A |
-| Modernization infrastructure | Not created; Phase 2A specifies it, Phase 2B would create it |
+| Modernization infrastructure | Staging created, migrated and deployed; see the Phase 2B section below. Production not created |
 | Production | Unchanged by modernization work |
 | Visual baseline | 21 tracked Chromium snapshots plus focused regression tests at `1440 × 1200`, `1024 × 900`, `768 × 900`, and `390 × 844` |
 
@@ -53,12 +53,26 @@ its secret is set as a Worker secret, and the Access application
 `/boss`, `/boss/*` and `/api/boss/*` under a One-time PIN policy allowing
 `hakan@dndr.net` only.
 
-One step remains. The deployed Worker still runs the first-deploy version
-`1e0c39c1-9a61-4472-9bcc-8d4594656bf3`, whose `ACCESS_AUD_BOSS` is empty, so
-staging denies every private request. The audience tag is now recorded in the
-repository but reaches the runtime only at the next deployment. This is the
-intended fail-closed interval, not a defect: Access could not be configured
-before a hostname existed, and the hostname could not exist before a deployment.
+The provisioning window closed with the second deployment, version
+`59a843f7-a5f5-44ac-8038-9233a6abd8fb`, which carries `ACCESS_AUD_BOSS`. Two
+defects survived it and are corrected in this change set, neither of them
+reaching the runtime before the next deployment.
+
+The recorded `ACCESS_TEAM_DOMAIN` was `blue-waterfall-9473.cloudflareaccess.com`,
+which is not a team domain: it is the free-text organisation name shown on the
+Access login page and resolves to no Access organisation. The account-wide Zero
+Trust team is `dndrnet.cloudflareaccess.com`. Because `worker/lib/access.js`
+derives both the JWKS URL and the expected issuer from that variable, the former
+value made every private request deny with `verification_failed`.
+
+Cloudflare Static Assets are also served before the Worker, so a top-level
+navigation matching no file received `index.html` under
+`not_found_handling: single-page-application` without the Worker running.
+Browser navigation to `/boss` rendered the public 404 view with HTTP 200 and
+`/api/boss/*` returned HTML instead of JSON, while Access verification never
+executed; `fetch` requests did reach the Worker and denied correctly, so the two
+faults masked each other. `run_worker_first` now lists `/api/*`, `/boss` and
+`/boss/*`, and every other path keeps the default asset-first behaviour.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy
@@ -70,9 +84,10 @@ Phase 2C is implemented locally. The repository now contains the APP_DB and
 ANALYTICS_DB schemas, the Analytics V3 query layer with its coverage ledger, the
 Boss V3 API surface for the six canonical modules, Cloudflare Access
 verification, PAGE-only ingestion, and the persist-before-notify submission
-path, with 40 tests covering merge correctness, query plans, fail-closed
-authorization and local-day semantics. Nothing has been applied remotely: no
-migration has run against staging and no Worker exists.
+path, with 41 tests covering merge correctness, query plans, fail-closed
+authorization and local-day semantics. This code has been applied remotely:
+`0001_init.sql` is applied to both staging databases, the Worker
+`hakan-run-web-staging` exists, and staging has been deployed twice.
 
 Configuration still chosen at provisioning time: Access identity provider and
 session policy, and the Resend sender verification path. Retention is no longer

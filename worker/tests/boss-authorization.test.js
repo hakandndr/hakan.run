@@ -35,7 +35,7 @@ test('an unconfigured Access binding denies rather than opening the surface', as
 // provisioning gap or from a later edit that drops the audience.
 test('a known team domain with no audience still denies', async () => {
   const result = await verifyAccess(request('/boss'), {
-    ACCESS_TEAM_DOMAIN: 'blue-waterfall-9473.cloudflareaccess.com',
+    ACCESS_TEAM_DOMAIN: 'dndrnet.cloudflareaccess.com',
     ACCESS_AUD_BOSS: '',
     BOSS_OWNER_EMAIL: 'hakan@dndr.net',
   });
