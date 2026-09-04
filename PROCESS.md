@@ -927,3 +927,80 @@ harder to review. It is the next staging hygiene task.
 Push, then deploy to staging, then run the smoke matrix with a fresh Access
 session. A session established before the team rename carries the former issuer
 and would fail verification for a reason unrelated to this deployment.
+
+## Phase 2C — staging deployed and the private surface verified
+
+### Deployment
+
+`hakan-run-web-staging`, version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, on
+`staging.hakan.run`. Runtime `ACCESS_TEAM_DOMAIN` is
+`dndrnet.cloudflareaccess.com`. This is the deployment that carries both fixes
+from `049af6e`: the corrected Access team domain and the `run_worker_first`
+routing rule. `f512e79`, which pins that routing boundary with a test, is also
+in the deployed commit range.
+
+### Smoke results
+
+Observed by the owner in a fresh incognito session, which matters: a session
+established before the account-wide team rename carries the former issuer and
+would fail verification for a reason unrelated to this deployment.
+
+- `/boss` redirects to DNDR Labs Access on `dndrnet.cloudflareaccess.com`.
+- One-time PIN authentication succeeds.
+- The authenticated request reaches the application and renders the existing SPA
+  404 view. The Boss frontend shell is not implemented, so this is the expected
+  outcome rather than a failure — and it is only visible because the request now
+  reaches the Worker and the owner is verified.
+- `/api/boss/system` returns JSON rather than HTML and reports
+  `bindings.access`, `appDb`, `analyticsDb` and `turnstile` all true.
+- `/api/boss/dashboard` returns JSON.
+
+Re-verified against the live deployment without authenticating:
+
+- A top-level navigation to `/api/nope` returns HTTP 404 with
+  `{"error":"not_found"}`. The same navigation previously returned HTTP 200 with
+  the single-page-application shell. This is the direct evidence that the Worker
+  now runs before the asset layer, and it needs no credentials to reproduce.
+- `/boss`, `/boss/analytics`, `/api/boss/system` and `/api/boss/dashboard`
+  redirect to Access when unauthenticated.
+- `GET /api/analytics/page` and `GET /api/contact` return 405 JSON.
+
+Both infrastructure defects are therefore closed: the stale and invalid Access
+team domain, and asset-first routing bypassing Worker dispatch for `/boss` and
+`/api/*`.
+
+### What the smoke matrix has not yet covered
+
+Visual parity against the Phase 1B baseline, static asset caching headers, the
+Turnstile and submission assertions, the analytics write assertion, and the
+assertion that content is served from the staging `APP_DB`. The last cannot pass
+before the content bootstrap and a public read path exist, so it is not a defect
+in this deployment.
+
+### Changed
+
+Documentation only: `HANDOFF.md`, `docs/CURRENT_STATE.md`,
+`docs/ENVIRONMENTS.md`, `docs/OPERATIONS.md`, `docs/ROADMAP.md`, and this entry.
+`docs/OPERATIONS.md` now also records `npx wrangler deploy --env staging` as the
+canonical staging delivery command, which was previously described as not yet
+canonical because no deployment had been performed.
+
+### Deliberate non-actions
+
+No functional code changed: no file under `worker/`, `apps/web/`, `migrations/`,
+and no change to `wrangler.jsonc`. The Boss frontend shell was not implemented.
+Staging indexing was not changed. No provider setting, Access application or
+policy was touched. Nothing was deployed or pushed in this step, and no
+production resource exists or was touched.
+
+### Known issue carried forward
+
+`staging.hakan.run/robots.txt` still serves `Allow: /` with a sitemap pointing at
+production, so staging remains indexable. That contradicts the Phase 2B
+acceptance gate and the environment safety rule in this document set. It is the
+next staging hygiene task and is deliberately not bundled with a deployment
+record.
+
+### Exact next action
+
+Staging indexing hygiene, then the Boss V3 frontend shell.

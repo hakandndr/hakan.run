@@ -4,7 +4,7 @@
 
 Phase 2B staging is **provisioned**. Every staging resource in this document now exists and has been verified against the provider: both D1 databases with their schemas applied, the Worker with its bindings and cron trigger, the `staging.hakan.run` hostname, the Access application, the Turnstile widget, and the Turnstile secret binding. The per-resource state table below is authoritative and is updated only from an observed provider response, never from an assumption.
 
-Staging has been deployed twice; the running version is `59a843f7-a5f5-44ac-8038-9233a6abd8fb` and it carries `ACCESS_AUD_BOSS`. Two configuration defects survived the provisioning window and are corrected in this document and in `wrangler.jsonc`: `ACCESS_TEAM_DOMAIN` named the Access login page's organisation-name text rather than the account's Zero Trust team domain, and no Worker-first routing was declared, so browser navigations to the protected paths were answered by static assets before the Worker ran. Both take effect only at the next deployment. Production remains untouched and unprovisioned.
+Staging has been deployed three times. The running version is `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, and it carries `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, and the `run_worker_first` routing rule. Two configuration defects survived the provisioning window — `ACCESS_TEAM_DOMAIN` named the Access login page's organisation-name text rather than the account's Zero Trust team domain, and no Worker-first routing was declared, so browser navigations to the protected paths were answered by static assets before the Worker ran — and both are now fixed in configuration and live in the deployed version. Production remains untouched and unprovisioned.
 
 Names not yet marked created are proposed naming conventions, not confirmations that a resource exists. Non-secret identifiers such as D1 database identifiers are recorded deliberately once observed. Secret values are never stored here; only secret *names* are listed so that binding requirements are reviewable.
 
@@ -50,11 +50,11 @@ The resulting order is fixed:
 3. First staging deployment — creates the Worker, both bindings, the cron trigger and `staging.hakan.run`. **Done**, version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3`.
 4. Access application on that hostname — yields `ACCESS_AUD_BOSS`. **Done.**
 5. Second deployment carrying `ACCESS_AUD_BOSS`. **Done**, version `59a843f7-a5f5-44ac-8038-9233a6abd8fb`.
-6. Third deployment carrying the corrected `ACCESS_TEAM_DOMAIN` and the `run_worker_first` routing rule. **Outstanding.**
+6. Third deployment carrying the corrected `ACCESS_TEAM_DOMAIN` and the `run_worker_first` routing rule. **Done**, version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, smoke-verified in a fresh session.
 
 Between steps 3 and 5 the Boss surface is unreachable rather than open: `ACCESS_AUD_BOSS` is an empty string in the deployed version, and Worker-side verification rejects every `/boss/*` and `/api/boss/*` request while it is unset. Failing closed during provisioning is the intended behaviour, not a gap to work around.
 
-That window closed at step 5. The private surface still denies, for two different reasons that step 6 fixes: the deployed `ACCESS_TEAM_DOMAIN` names an organisation that does not exist, so the JWKS fetch fails and verification denies; and without `run_worker_first` a browser navigation to a protected path never reaches the Worker at all, receiving the static single-page-application fallback instead.
+That window closed at step 5. Two further faults then kept the surface closed, and step 6 fixed both: the deployed `ACCESS_TEAM_DOMAIN` named an organisation that does not exist, so the JWKS fetch failed and verification denied; and without `run_worker_first` a browser navigation to a protected path never reached the Worker at all, receiving the static single-page-application fallback instead. Since step 6 the owner reaches the private surface after authenticating, and everyone else is redirected to Access.
 
 ## Environment model
 

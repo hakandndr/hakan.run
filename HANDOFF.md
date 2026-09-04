@@ -6,15 +6,15 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `4cd61f8` before this change set; this reconciliation commit is its child |
+| HEAD | `f512e79`, pushed. This documentation-only commit is its child |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Remote tracking | `origin/develop/hakan-run-v2` was at `4cd61f8`, identical to the local branch, when this change set began. This commit is local and unpushed |
-| Current phase | Phase 2C. Staging is provisioned, migrated and deployed twice. This change set corrects the Access team domain after the account-wide Zero Trust rename and adds Worker-first routing for the protected and API paths. Neither reaches the runtime before the next deployment |
+| Remote tracking | `origin/develop/hakan-run-v2` is at `f512e79`. This documentation-only commit is local and unpushed |
+| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified. Both infrastructure defects are fixed in the running version. The remaining Phase 2C work is product work, not infrastructure: the Boss V3 frontend shell, a public content read path, and the one-time content bootstrap |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Deploy this commit to staging, then run the staging smoke matrix using a fresh Access session rather than one established before the team rename |
+| Exact next action | Staging indexing hygiene: `staging.hakan.run/robots.txt` still serves `Allow: /` with a sitemap pointing at production. After that, the Boss V3 frontend shell |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | `4cd61f8` and everything before it are pushed. This commit is local; pushing requires separate authorization |
-| Deploy state | Staging deployed twice; the running version is `59a843f7-a5f5-44ac-8038-9233a6abd8fb`. It carries `ACCESS_AUD_BOSS` but the former team domain and no Worker-first routing, so it cannot verify an Access assertion. Production never deployed |
+| Push state | `f512e79` and everything before it are pushed. This documentation-only commit is local; pushing requires separate authorization |
+| Deploy state | Staging deployed three times; the running version is `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, carrying `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, and the `run_worker_first` routing rule. Smoke-verified in a fresh session. Production never deployed |
 | Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8` on team domain `dndrnet.cloudflareaccess.com`. Production unchanged and unprovisioned |
 
 ## Current implementation
@@ -105,10 +105,26 @@ asset-first behaviour, so static delivery is unchanged.
 Neither fix is visible until the next deployment, because a Worker variable and
 an assets routing rule both take effect at deploy time.
 
-This change set corrects routing, identity and API enforcement. It does not
-implement the Boss frontend shell: the SPA still has no `/boss` route, so once
-the Worker is reached and the owner is verified, the served shell will continue
-to render the application's own 404 view until that shell exists.
+That change set corrected routing, identity and API enforcement. It did not
+implement the Boss frontend shell: the SPA still has no `/boss` route.
+
+Both fixes are now deployed and verified. Staging runs version
+`a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, whose runtime `ACCESS_TEAM_DOMAIN` is
+`dndrnet.cloudflareaccess.com`. In a fresh incognito session `/boss` redirects to
+DNDR Labs Access on that domain, one-time PIN authentication succeeds, and the
+authenticated request reaches the application; it renders the existing SPA 404
+view because the Boss frontend shell does not exist yet, which is the expected
+outcome rather than a failure. `/api/boss/system` returns JSON rather than HTML
+and reports `bindings.access`, `appDb`, `analyticsDb` and `turnstile` all true,
+and `/api/boss/dashboard` returns JSON.
+
+Independent unauthenticated re-verification: a top-level navigation to
+`/api/nope` returns HTTP 404 with `{"error":"not_found"}`. The same navigation
+previously returned HTTP 200 with the single-page-application shell, so this is
+the direct evidence that the Worker now runs before the asset layer.
+`/boss`, `/boss/analytics` and `/api/boss/*` redirect to Access when
+unauthenticated, and `GET /api/analytics/page` and `GET /api/contact` return
+405 JSON.
 
 The staging content bootstrap remains outstanding and belongs to Phase 2C.
 

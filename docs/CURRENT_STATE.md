@@ -9,8 +9,8 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next` |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `4cd61f8` before this change set; this reconciliation commit is its child |
-| Modernization remote tracking | `origin/develop/hakan-run-v2` was at `4cd61f8`, identical to the local branch, when this change set began; this commit is local and unpushed |
+| Modernization HEAD | `f512e79`, pushed; this documentation-only commit is its child |
+| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `f512e79`; this documentation-only commit is local and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |
@@ -55,8 +55,7 @@ its secret is set as a Worker secret, and the Access application
 
 The provisioning window closed with the second deployment, version
 `59a843f7-a5f5-44ac-8038-9233a6abd8fb`, which carries `ACCESS_AUD_BOSS`. Two
-defects survived it and are corrected in this change set, neither of them
-reaching the runtime before the next deployment.
+defects survived it. Both are fixed and both are now deployed.
 
 The recorded `ACCESS_TEAM_DOMAIN` was `blue-waterfall-9473.cloudflareaccess.com`,
 which is not a team domain: it is the free-text organisation name shown on the
@@ -73,6 +72,31 @@ Browser navigation to `/boss` rendered the public 404 view with HTTP 200 and
 executed; `fetch` requests did reach the Worker and denied correctly, so the two
 faults masked each other. `run_worker_first` now lists `/api/*`, `/boss` and
 `/boss/*`, and every other path keeps the default asset-first behaviour.
+
+### Staging deployment and smoke verification
+
+Staging runs version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9` on
+`hakan-run-web-staging` at `staging.hakan.run`, with runtime
+`ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`.
+
+Verified in a fresh incognito session: `/boss` redirects to DNDR Labs Access on
+`dndrnet.cloudflareaccess.com`; one-time PIN authentication succeeds; the
+authenticated request reaches the application and renders the existing SPA 404
+view, because the Boss frontend shell is not implemented yet;
+`/api/boss/system` returns JSON rather than HTML and reports `bindings.access`,
+`appDb`, `analyticsDb` and `turnstile` all true; `/api/boss/dashboard` returns
+JSON.
+
+Re-verified without authenticating: a top-level navigation to `/api/nope`
+returns HTTP 404 with `{"error":"not_found"}`, where the same navigation
+previously returned HTTP 200 with the application shell. That is the direct
+evidence that the Worker now runs before the asset layer. `/boss`,
+`/boss/analytics` and `/api/boss/*` redirect to Access when unauthenticated, and
+`GET /api/analytics/page` and `GET /api/contact` return 405 JSON.
+
+The private surface is therefore reachable by the owner and closed to everyone
+else. What remains on it is product work: the Boss frontend shell, a public
+content read path, and the one-time content bootstrap.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy

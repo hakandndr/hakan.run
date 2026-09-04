@@ -57,7 +57,7 @@ For documentation-only phases:
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
-The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed twice and the running version is `59a843f7-a5f5-44ac-8038-9233a6abd8fb`. No production resource has been created or touched.
+The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed three times and the running version is `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, which carries `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS` and the `run_worker_first` routing rule. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
 
 ## Authorization and promotion
 
@@ -105,12 +105,30 @@ Provisioning is ordered by dependency, not by convenience, because a Worker cann
 5. **First deployment.** *Done*, version `1e0c39c1-9a61-4472-9bcc-8d4594656bf3`. Created `hakan-run-web-staging` (`944dbffc89f2490cbc0288a819502ad6`), both D1 bindings, the daily cron trigger and the `staging.hakan.run` custom domain, all from `wrangler.jsonc`. `ACCESS_AUD_BOSS` was empty in this version, so the private surface denies every request.
 6. **Access application.** *Done.* `hakan-run-boss-staging` (`4f3f249c-5a5e-4a14-a673-12f7282d96a8`) over `/boss`, `/boss/*` and `/api/boss/*`, One-time PIN, policy `owner-only` allowing `hakan@dndr.net`, 24-hour session. Audience tag read back and recorded.
 7. **Second deployment.** *Done*, version `59a843f7-a5f5-44ac-8038-9233a6abd8fb`. Carried the real `ACCESS_AUD_BOSS`.
-8. **Third deployment.** *Outstanding.* Carries the corrected `ACCESS_TEAM_DOMAIN` and the `run_worker_first` routing rule. This is the point at which the private surface becomes reachable by the owner: until then the Worker cannot fetch a key set, and browser navigation does not reach the Worker at all.
-9. **Smoke matrix.** Only after step 8, because the private-surface assertions cannot be evaluated before the deployed Worker knows its team domain and runs before the asset layer. Use a fresh Access session: one established before the team rename carries the former issuer and would fail verification for a reason unrelated to the deployment.
+8. **Third deployment.** *Done*, version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`. Carried the corrected `ACCESS_TEAM_DOMAIN` and the `run_worker_first` routing rule. This is the point at which the private surface became reachable by the owner: before it the Worker could not fetch a key set, and browser navigation did not reach the Worker at all.
+9. **Smoke matrix.** *Private-surface and routing assertions run and passed* against version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, in a fresh Access session — one established before the team rename carries the former issuer and would fail verification for a reason unrelated to the deployment. Results are recorded below. The visual-parity and caching assertions of the full matrix have not been run against this version.
 
 Steps 5, 7 and 8 each cross the DEPLOY boundary and are separately authorized. Step 4 crossed MIGRATE. Steps 1, 2 and 6 crossed PROVIDER and ACCESS. No step in this list touches a production resource.
 
-The window between steps 5 and 7 was a deliberate fail-closed interval, not an exposure: the Worker rejected every `/boss/*` and `/api/boss/*` request while `ACCESS_AUD_BOSS` was empty. It closed at step 7. The surface still denies until step 8, now because the deployed team domain names no Access organisation and because browser navigation is answered by the asset layer before the Worker runs. Cloudflare Access continues to gate the paths at the edge throughout, so the surface remains unreachable rather than unprotected.
+The window between steps 5 and 7 was a deliberate fail-closed interval, not an exposure: the Worker rejected every `/boss/*` and `/api/boss/*` request while `ACCESS_AUD_BOSS` was empty. It closed at step 7. The surface stayed closed until step 8, then because the deployed team domain named no Access organisation and because browser navigation was answered by the asset layer before the Worker ran. Cloudflare Access gated the paths at the edge throughout, so the surface was unreachable rather than unprotected.
+
+### Verified staging results — version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`
+
+Observed in a fresh incognito session:
+
+- `/boss` redirects to DNDR Labs Access on `dndrnet.cloudflareaccess.com`;
+- one-time PIN authentication succeeds;
+- the authenticated request reaches the application and renders the existing SPA 404 view, because the Boss frontend shell is not implemented yet. This is the expected outcome at this stage, not a failure;
+- `/api/boss/system` returns JSON rather than HTML, and reports `bindings.access`, `appDb`, `analyticsDb` and `turnstile` all true;
+- `/api/boss/dashboard` returns JSON.
+
+Re-verified without authenticating:
+
+- a top-level navigation to `/api/nope` returns HTTP 404 with `{"error":"not_found"}`, where the same navigation previously returned HTTP 200 with the application shell. This is the direct evidence that the Worker now runs before the asset layer;
+- `/boss`, `/boss/analytics`, `/api/boss/system` and `/api/boss/dashboard` redirect to Access when unauthenticated;
+- `GET /api/analytics/page` and `GET /api/contact` return 405 JSON.
+
+Still to be evaluated against a deployed version: visual parity against the Phase 1B baseline, static asset caching headers, the Turnstile and submission assertions, the analytics write assertion, and the assertion that content is served from the staging `APP_DB` — the last of which cannot pass before the content bootstrap and a public read path exist.
 
 ### Deployment to staging
 
