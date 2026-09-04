@@ -10,6 +10,7 @@ node_modules
 
 # ── Build output ──────────────────────────────────────────
 dist/
+.wrangler/
 distcd/
 apps/web/dist/
 apps/web/distcd/

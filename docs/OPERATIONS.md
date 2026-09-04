@@ -153,6 +153,30 @@ Rollback must be possible without data loss. This constrains how schema changes 
 - Staging never connects to the production Supabase project, and the target deploys no `/run/` endpoint, no `/control-room` route, and no third-party form integration.
 - No DNS change is part of staging deployment.
 
+### Local verification
+
+```bash
+npm run test:worker   # analytics correctness, query plans, authorization, submissions
+```
+
+The worker tests apply the real migration files to an in-memory SQLite database
+and drive the production query builders, including `EXPLAIN QUERY PLAN` checks.
+D1 is SQLite, so a plan proven there is the plan production emits. They need no
+Cloudflare resource, no network and no dependency beyond Node.
+
+Application lint and build are unchanged by this work and run from `apps/web`.
+
+### Migration application
+
+Migrations live in `migrations/app` and `migrations/analytics` and are declared
+per binding in `wrangler.jsonc`. They have **not** been applied to any remote
+database. Applying them to staging is a separate authorized action:
+
+```bash
+npx wrangler d1 migrations apply hakan-run-app-staging --env staging --remote
+npx wrangler d1 migrations apply hakan-run-analytics-staging --env staging --remote
+```
+
 ### Analytics retention operations
 
 There is no scheduled purge of raw analytics detail in any environment. The

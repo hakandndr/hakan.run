@@ -1,0 +1,45 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hakan-run-web",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "dist/apps/web",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "observability": { "enabled": true },
+
+  // Staging is the only configured environment. Production resources do not
+  // exist yet and are added at cutover, never by copying this block.
+  "env": {
+    "staging": {
+      "name": "hakan-run-web-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "ANALYTICS_ENABLED": "true",
+        "NOTIFICATIONS_ENABLED": "false",
+        "NOTIFICATION_SENDER": "noreply@hakan.run",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD_BOSS": "",
+        "BOSS_OWNER_EMAIL": "hakan@dndr.net",
+        "TURNSTILE_SITE_KEY": ""
+      },
+      "d1_databases": [
+        {
+          "binding": "APP_DB",
+          "database_name": "hakan-run-app-staging",
+          "database_id": "71a28b10-861f-4554-9e14-5464c7116394",
+          "migrations_dir": "migrations/app"
+        },
+        {
+          "binding": "ANALYTICS_DB",
+          "database_name": "hakan-run-analytics-staging",
+          "database_id": "4998c398-4f42-4472-a008-24e737359a03",
+          "migrations_dir": "migrations/analytics"
+        }
+      ],
+      "triggers": { "crons": ["30 8 * * *"] }
+    }
+  }
+}

@@ -58,6 +58,14 @@ configuration and are recorded here deliberately; secret values never are.
 
 Content lives in `APP_DB`, one isolated database per environment. Staging never reads or writes the production Supabase `site_content` table, and no second Supabase project is created. Staging content is bootstrapped once from a read-only snapshot of authoritative production content; production content is migrated separately at cutover. See decision D-020 and the staging content authority section of [ARCHITECTURE.md](./ARCHITECTURE.md).
 
+## Worker configuration
+
+`wrangler.jsonc` defines the service and its `staging` environment. The staging
+D1 bindings point at the created databases by identifier, the assets binding
+serves the built React/Vite output with single-page-application fallback, and a
+daily cron trigger drives aggregation. No production environment block exists;
+one is added at cutover rather than copied from staging.
+
 ## Environment variables — non-secret
 
 Declared in source-controlled Worker configuration. None of these values is a secret.

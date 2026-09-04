@@ -9,9 +9,9 @@
 | HEAD | `dffb405` plus the Phase 2A specification commit |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead and unpushed |
-| Current phase | Phase 2B partially provisioned — staging D1 databases created; Worker, Access, Turnstile and hostname outstanding |
+| Current phase | Phase 2C implemented locally — schemas, analytics layer, Boss V3 API and runtime foundation; nothing applied remotely |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Owner creates the staging Worker, Access application, Turnstile widget and `staging.hakan.run` hostname in the Cloudflare dashboard; then Phase 2C schema and Boss V3 shell |
+| Exact next action | Owner creates the staging Worker, Access application, Turnstile widget and `staging.hakan.run` hostname; then apply migrations to staging and run the staging smoke matrix |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
 | Push state | Local commits pending; pushing requires separate authorization |
 | Deploy state | Not performed and not authorized |

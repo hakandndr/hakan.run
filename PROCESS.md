@@ -565,3 +565,77 @@ therefore published.
 No production resource was created or modified. No schema, migration or seed was
 applied to either new database. No Worker, Access, Turnstile or DNS change. No
 deployment, no push, no production data mutation.
+
+## Phase 2C — local implementation of the Analytics V3 foundation
+
+Baseline `develop/hakan-run-v2@030facb81c8af64a9e087b529ae15a64df4bd9c3`.
+
+### What was built
+
+- `migrations/app/0001_init.sql` — content sections with draft and published
+  separation, immutable content revisions, submissions carrying their own
+  notification outcome, audit events, settings, and the OG card text row.
+- `migrations/analytics/0001_init.sql` — PAGE-only `visitor_events` with no
+  `expires_at` and therefore no mechanism for an automatic purge,
+  `analytics_daily` carrying `aggregate_version`, the `analytics_coverage`
+  ledger, and a deletion log for audited operator deletions.
+- `worker/analytics/queries.js` — one definition of every analytics query,
+  returning `{ sql, params }` and nothing else.
+- `worker/analytics/coverage.js` — source planning and merge-before-truncate.
+- `worker/analytics/summary.js` — summary assembly over that plan.
+- `worker/analytics/aggregate.js` — scheduled aggregation with no delete path.
+- `worker/analytics/ingest.js` — PAGE-only enforcement at the write boundary.
+- `worker/lib/` — local-day time handling, Access verification, Turnstile,
+  Resend delivery, canonical routes, responses.
+- `worker/boss/index.js` — the six canonical modules and nothing else.
+- `worker/public/submissions.js` — persist, acknowledge, then notify.
+- `worker/index.js` and `wrangler.jsonc` — routing, bindings, cron trigger.
+
+### Test approach
+
+Tests use `node --test` with `node:sqlite`, applying the real migration files
+and driving the real query builders. D1 is SQLite, so `EXPLAIN QUERY PLAN` here
+reflects production plan selection. This adds no dependency: no vitest, no
+wrangler test runner, no workers pool.
+
+40 tests pass, covering the merge failure classes the reference implementation
+actually hit — leading partial day, current day, missing middle day, covered
+zero versus uncovered day, unledgered aggregate rows, wrong `aggregate_version`,
+Top-N truncated before merge, a country split across both sources — plus
+fail-closed authorization for every private route, persist-before-notify
+including a failing provider, daylight-saving day boundaries, and the PAGE-only
+write gate.
+
+### Query-plan findings
+
+Every range-bounded analytics read resolves as an indexed `SEARCH`, not a scan:
+the event stream and its count through `visitor_events_occurred_idx`, the daily
+series through `visitor_events_local_day_idx`, totals through a covering actor
+index, and TODAY ordinals bounded to one local day. Oldest-event age reads a
+single row through the time index with no sort, so the System panel does not
+scan as retention grows.
+
+The window function used for TODAY ordinals is bounded to one indexed local day.
+This is not the pattern the reference audit rejected: that one ranked the entire
+table with no predicate.
+
+Accepted, recorded costs: OFFSET pagination, whose cost grows with page depth
+and whose migration path is keyset on `(occurred_at DESC, id DESC)`; and exact
+`COUNT(DISTINCT ip_address)`, which stays exact and therefore scans rather than
+being approximated. Neither is optimised now, because nothing measured shows a
+problem at current volume.
+
+### Validation
+
+- `node --test worker/tests/*.test.js` — 40 passed, 0 failed.
+- `git diff --check` — clean.
+- Attribution and residue scan — clean.
+- Application lint and build could not run in this environment: the repository's
+  `node_modules` are Windows junctions that the Linux shell cannot read. This
+  change touches no application source, so neither is gating.
+
+### Deliberate non-actions
+
+No migration was applied to any remote database. No Worker, Access application,
+Turnstile widget or DNS record was created. Nothing was deployed or pushed. No
+production resource exists for Hakan.run and none was touched.

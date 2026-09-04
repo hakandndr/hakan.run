@@ -187,6 +187,24 @@ event stream. It must not perform an additional D1 lookup.
 of the affected range and row count, an explicit operator confirmation, and an
 audit record in `APP_DB`.
 
+### Implemented shape
+
+Phase 2C implements this design locally. `worker/analytics/queries.js` holds one
+definition of every analytics query and returns `{ sql, params }` only, so the
+Worker binds them to D1 and the tests bind the same builders to SQLite. There is
+no second copy of the SQL for tests to pass against.
+
+PAGE-only is enforced at the write boundary in `worker/analytics/ingest.js`:
+anything that is not a canonical public page is refused, so `visitor_events`
+never holds asset, API or system paths. Read queries therefore carry no path
+allow-list, which keeps their index selection simple.
+
+`worker/analytics/coverage.js` plans sources and merges results;
+`worker/analytics/summary.js` assembles every summary figure through that plan.
+A filter the daily aggregate cannot express — address, city or referrer — moves
+the whole range to raw rather than silently reporting a number that ignores the
+filter.
+
 ### Known analytics cost risks
 
 Recorded now so they are chosen deliberately rather than discovered later:

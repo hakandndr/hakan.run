@@ -208,3 +208,12 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Rationale: Text is content and belongs in the content authority; visual identity is design and belongs in source. Splitting them keeps the card current without putting the brand at the mercy of a text field.
 - Consequences: The existing `og-image.png` design is the parity baseline the generator must reproduce. Card generation reads published content only, never drafts.
 - Status: Approved target; not implemented.
+
+## D-024 — PAGE-only is enforced at the write boundary
+
+- Decision: The analytics ingestion endpoint refuses any path that is not a canonical public page, so `visitor_events` contains PAGE events exclusively. Read queries carry no path allow-list.
+- Context: The reference implementation inherited a table polluted with asset and system paths, so every read query had to filter by an explicit path list, which complicated index selection and made query plans harder to reason about.
+- Alternatives considered: Filter on read as the reference does; record everything and classify later.
+- Rationale: A greenfield table can be kept clean by construction. Validating once on write is cheaper and more reliable than filtering on every read forever.
+- Consequences: Adding a public route means updating the canonical route list. Events for an unknown path are refused rather than silently stored, which is visible and testable.
+- Status: Approved and implemented.

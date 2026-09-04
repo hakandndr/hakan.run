@@ -7,7 +7,9 @@
     "build": "concurrently --raw \"npm run build --prefix apps/web\"",
     "start": "concurrently --kill-others --raw",
     "lint": "concurrently --raw \"npm run lint --prefix apps/web\"",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:worker": "node --test \"worker/tests/*.test.js\"",
+    "check": "npm run lint && npm run test:worker"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

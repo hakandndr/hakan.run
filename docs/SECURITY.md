@@ -83,6 +83,18 @@ Authorization for `/boss/*` and `/api/boss/*` is layered and fails closed at eve
 
 Client route guards and UI state are presentation only and are explicitly outside the trust model. This directly addresses the legacy debt in which `/control-room` had no source-enforced owner identity.
 
+### Implemented verification
+
+`worker/lib/access.js` performs the runtime half of the private-surface
+contract: it fetches the team key set, verifies the assertion signature, then
+checks audience, issuer and expiry, and only then compares the identity against
+the configured owner. Every outcome other than a fully verified owner returns a
+denial. There is no development bypass and no environment in which the check is
+skipped, so the surface cannot be opened by configuration drift.
+
+The private shell is denied by the same check as the private APIs, and each API
+call re-verifies independently: a previously served shell grants nothing.
+
 ### Fail-closed requirements
 
 A request must be denied, not degraded, when any of the following is true:

@@ -75,7 +75,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Schema that cannot express trusted coverage; a Boss shell whose authorization depends on client routing; premature content migration.
 - Acceptance gates: Migrations applied to staging only; coverage ledger present from the first analytics migration; Boss shell denies unauthenticated and non-owner requests at the Worker; no production resource touched.
 - Authorization boundaries: DATABASE, MIGRATE, ACCESS and DEPLOY remain separate.
-- Status: Planned; blocked on the remaining Phase 2B resources.
+- Status: **Code complete locally, not applied.** Schemas, the coverage ledger, the analytics query layer, the Boss V3 API surface, Access verification, PAGE ingestion and the submission path are implemented and covered by 40 local tests. Migrations have not been applied to any remote database, and the Worker has not been created or deployed. Remaining: the owner-created Worker, Access application, Turnstile widget and hostname, then migration application and staging validation.
 
 ## Phase 9B — Editable social / OG card
 

@@ -50,6 +50,14 @@ commitment surfaced in Boss System rather than a cron delete, aggregate reads ar
 authorised only by an explicit coverage ledger, and uncovered, current or partial
 days fall back to indexed raw events. See decisions D-021 and D-022.
 
+Phase 2C is implemented locally. The repository now contains the APP_DB and
+ANALYTICS_DB schemas, the Analytics V3 query layer with its coverage ledger, the
+Boss V3 API surface for the six canonical modules, Cloudflare Access
+verification, PAGE-only ingestion, and the persist-before-notify submission
+path, with 40 tests covering merge correctness, query plans, fail-closed
+authorization and local-day semantics. Nothing has been applied remotely: no
+migration has run against staging and no Worker exists.
+
 Configuration still chosen at provisioning time: Access identity provider and
 session policy, and the Resend sender verification path. Retention is no longer
 an open question — it is settled by D-021.
