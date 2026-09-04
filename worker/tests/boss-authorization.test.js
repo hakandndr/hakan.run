@@ -28,6 +28,20 @@ test('an unconfigured Access binding denies rather than opening the surface', as
   assert.equal(result.reason, 'access_not_configured');
 });
 
+// The state the staging environment is actually in between the first deployment
+// and the deployment that carries the Access audience tag: team domain and owner
+// known, audience still empty. This is a provisioning window, not a config error,
+// so it is pinned rather than left to inspection.
+test('a known team domain with no audience still denies', async () => {
+  const result = await verifyAccess(request('/boss'), {
+    ACCESS_TEAM_DOMAIN: 'blue-waterfall-9473.cloudflareaccess.com',
+    ACCESS_AUD_BOSS: '',
+    BOSS_OWNER_EMAIL: 'hakan@dndr.net',
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'access_not_configured');
+});
+
 test('a missing assertion denies', async () => {
   const result = await verifyAccess(request('/boss'), configuredEnv);
   assert.equal(result.ok, false);

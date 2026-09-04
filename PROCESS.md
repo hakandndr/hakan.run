@@ -708,3 +708,58 @@ No migration was applied to either staging database. No Worker was created or
 deployed. No Access application, Turnstile widget or DNS record was created. No
 secret value was written to a tracked file or disclosed. Nothing was pushed. No
 production resource was touched.
+
+## Phase 2B — confirmed public values and pre-deploy audit
+
+### Values recorded
+
+The owner supplied two confirmed non-secret values: Turnstile site key
+`0x4AAAAAAEm_dH-JFfwoJxQ0` and Access team domain
+`blue-waterfall-9473.cloudflareaccess.com`. Both are now in `env.staging.vars`.
+
+The team domain is stored as a bare hostname with no scheme. `worker/lib/access.js`
+prefixes `https://` itself when it builds the JWKS URL and when it compares the
+issuer claim, so a stored value carrying the scheme would produce both an
+unreachable key set and an issuer that can never match. The failure would present
+as a total Boss denial with no obvious cause, which is why the constraint is now
+stated in `docs/ENVIRONMENTS.md` next to the value rather than left implicit in
+the code.
+
+`ACCESS_AUD_BOSS` stays empty, with a comment in `wrangler.jsonc` saying why. It
+is the one value that cannot exist before the Access application does, and
+predicting it would defeat the verification it feeds.
+
+### The provisioning window is now a tested state
+
+`verifyAccess` requires team domain, audience and owner email together, so a
+known team domain with an empty audience denies. The existing coverage passed an
+entirely empty environment, which proves the general case but not the specific
+configuration staging will actually run between its first and second deployment.
+That exact state — real team domain, real owner, empty audience — is now pinned
+by its own test. A future edit that treats a partially configured Access binding
+as good enough fails the suite instead of silently opening the private surface.
+
+### Audit result
+
+Branch `develop/hakan-run-v2`, clean worktree at `a1160d9`. Both staging D1
+identifiers in configuration match the live databases. Staging carries both D1
+bindings, the `staging.hakan.run` custom domain, the `30 8 * * *` cron trigger,
+`workers_dev` disabled, notifications off with sender and recipient pinned to
+owner-controlled addresses, and owner email `hakan@dndr.net`.
+
+Two secrets remain unset: `TURNSTILE_SECRET_KEY`, required before any submission
+can verify, and `RESEND_API_KEY`, which is not required while
+`NOTIFICATIONS_ENABLED` is `false`. Neither has a value in any tracked file.
+
+### Validation
+
+- `node --test worker/tests/*.test.js` — 41 passed, 0 failed.
+- `wrangler.jsonc` parses and reports the expected staging shape.
+- `git diff --check` — clean; no CR bytes.
+- Attribution and residue scan — clean.
+- No secret value appears in the diff.
+
+### Deliberate non-actions
+
+Nothing was deployed, migrated, pushed or activated. No Access application was
+created. No production resource was touched.

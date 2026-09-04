@@ -98,8 +98,8 @@ A staging deployment must never be configured with production content credential
 
 Provisioning is ordered by dependency, not by convenience, because a Worker cannot be created empty and an Access audience tag cannot be read before its application exists. `docs/ENVIRONMENTS.md` holds the per-resource state table.
 
-1. **Turnstile widget.** Create `hakan-run-staging`, Managed, scoped to `staging.hakan.run` only. Record the site key into `TURNSTILE_SITE_KEY` in `wrangler.jsonc`; the secret key is set as a secret binding and never enters a tracked file.
-2. **Access team domain.** Read the account-level Zero Trust team domain and record it as `ACCESS_TEAM_DOMAIN`. It exists independently of any application.
+1. **Turnstile widget.** *Done.* `hakan-run-staging` exists, scoped to `staging.hakan.run`; site key `0x4AAAAAAEm_dH-JFfwoJxQ0` is recorded in `wrangler.jsonc`. The secret key is set as a secret binding and never enters a tracked file.
+2. **Access team domain.** *Done.* `blue-waterfall-9473.cloudflareaccess.com`, recorded as `ACCESS_TEAM_DOMAIN` without a scheme, which is the form `worker/lib/access.js` expects.
 3. **Secrets.** `wrangler secret put TURNSTILE_SECRET_KEY --env staging`, and `RESEND_API_KEY` once the sender domain is verified. A missing secret fails its route closed; it never degrades to accepting unverified input.
 4. **Migrations.** Apply the `APP_DB` and `ANALYTICS_DB` migrations to staging as a distinct recorded action. D1 exists already, so this does not depend on the Worker.
 5. **First deployment.** Creates `hakan-run-web-staging`, both D1 bindings, the daily cron trigger and the `staging.hakan.run` custom domain, all from `wrangler.jsonc`. `ACCESS_AUD_BOSS` is still empty at this point, so the private surface denies every request.

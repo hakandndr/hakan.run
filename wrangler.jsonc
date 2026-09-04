@@ -21,10 +21,14 @@
         "NOTIFICATIONS_ENABLED": "false",
         "NOTIFICATION_SENDER": "noreply@hakan.run",
         "NOTIFICATION_RECIPIENT": "hakan@dndr.net",
-        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_TEAM_DOMAIN": "blue-waterfall-9473.cloudflareaccess.com",
+        // Deliberately empty until the staging Access application exists and its
+        // audience tag can be read back. verifyAccess() denies every private
+        // request while this is unset, so the Boss surface is unreachable rather
+        // than unprotected. Never fill this in with a predicted value.
         "ACCESS_AUD_BOSS": "",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
-        "TURNSTILE_SITE_KEY": ""
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAEm_dH-JFfwoJxQ0"
       },
       "d1_databases": [
         {

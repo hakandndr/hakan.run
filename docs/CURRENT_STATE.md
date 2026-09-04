@@ -9,7 +9,7 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next` |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `d920f1d` — Phase 2C Analytics V3 foundation and Boss V3 API |
+| Modernization HEAD | `a1160d9` — Phase 2B provider audit and staging configuration corrections |
 | Modernization remote tracking | `origin/develop/hakan-run-v2`; local commits are ahead of the remote and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
@@ -44,8 +44,9 @@ Phase 2B is **partially provisioned**, re-audited against live provider state on
 `hakan-run-analytics-staging` (`4998c398-4f42-4472-a008-24e737359a03`), both
 reporting zero tables because no migration has been applied. No Worker named
 `hakan-run-web-staging` exists in the account; the account's eight Workers all
-belong to other projects. The Access application, Turnstile widget and
-`staging.hakan.run` hostname do not exist.
+belong to other projects. The staging Turnstile widget exists and its
+public site key is recorded; the Access application and the `staging.hakan.run`
+hostname do not exist.
 
 The remainder of Phase 2B is not a list of independent tasks. `hakan-run-web-staging`
 comes into existence at its first deployment, and its bindings, cron trigger and

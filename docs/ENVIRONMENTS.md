@@ -18,8 +18,9 @@ Creation requires separate PROVIDER, ACCESS, SECRET, DATABASE, and DNS authoriza
 | `APP_DB` / `ANALYTICS_DB` bindings | NOT BOUND | Same deployment, from this repository's configuration |
 | Daily cron trigger `30 8 * * *` | NOT REGISTERED | Same deployment |
 | `staging.hakan.run` hostname and DNS record | NOT CREATED | Same deployment, from the `routes` custom-domain entry |
+| Access team domain `blue-waterfall-9473.cloudflareaccess.com` | **CONFIRMED**, recorded | Account-level Zero Trust |
 | `hakan-run-boss-staging` (Access application) | NOT CREATED | Owner, Zero Trust dashboard |
-| `hakan-run-staging` (Turnstile widget) | NOT CREATED | Owner, Turnstile dashboard |
+| `hakan-run-staging` (Turnstile widget) | **CREATED**, site key recorded | Owner, Turnstile dashboard |
 | `TURNSTILE_SECRET_KEY`, `RESEND_API_KEY` | NOT SET | Owner, `wrangler secret put --env staging` |
 
 ### Creation order is constrained, not preferential
@@ -30,8 +31,8 @@ An Access self-hosted application needs its hostname to resolve through Cloudfla
 
 The resulting order is fixed:
 
-1. Turnstile widget — independent of everything else; yields the site key and the secret key.
-2. Access team domain — an account-level Zero Trust value; readable before any application exists.
+1. Turnstile widget — independent of everything else; yields the site key and the secret key. **Done.**
+2. Access team domain — an account-level Zero Trust value; readable before any application exists. **Done.**
 3. First staging deployment — creates the Worker, both bindings, the cron trigger and `staging.hakan.run`.
 4. Access application on that hostname — yields `ACCESS_AUD_BOSS`.
 5. Second deployment carrying the now-known `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`.
@@ -112,14 +113,16 @@ This table is the reviewable contract for `env.staging.vars` in `wrangler.jsonc`
 | Variable | Staging value | Production value | Purpose |
 | --- | --- | --- | --- |
 | `ENVIRONMENT` | `staging` | `production` | Environment self-identification for logging and guards |
-| `TURNSTILE_SITE_KEY` | staging site key, empty until the widget exists | production site key | Public widget key rendered in the page |
-| `ACCESS_TEAM_DOMAIN` | empty until the Access application exists | Access team domain | JWKS discovery for Access token verification |
-| `ACCESS_AUD_BOSS` | empty until the Access application exists | production Access application audience | Audience claim the Worker must require |
+| `TURNSTILE_SITE_KEY` | `0x4AAAAAAEm_dH-JFfwoJxQ0` | production site key | Public widget key rendered in the page |
+| `ACCESS_TEAM_DOMAIN` | `blue-waterfall-9473.cloudflareaccess.com` | Access team domain | JWKS discovery for Access token verification |
+| `ACCESS_AUD_BOSS` | empty until the staging Access application exists | production Access application audience | Audience claim the Worker must require |
 | `BOSS_OWNER_EMAIL` | `hakan@dndr.net` | owner identity value | Owner allowlist checked after token verification |
 | `ANALYTICS_ENABLED` | `true` | set at cutover | Explicit switch for first-party PAGE collection |
 | `NOTIFICATIONS_ENABLED` | `false` until the Resend sender is verified | set at cutover | Explicit switch for notification dispatch |
 | `NOTIFICATION_SENDER` | `noreply@hakan.run` | set at cutover | From address for notification dispatch |
 | `NOTIFICATION_RECIPIENT` | `hakan@dndr.net` | owner recipient | Sole notification destination; staging must never send to a third party |
+
+`ACCESS_TEAM_DOMAIN` is recorded as a bare hostname with no scheme. `worker/lib/access.js` builds both the JWKS URL and the expected issuer by prefixing `https://` itself, so a stored value carrying the scheme would produce a malformed key-set URL and an issuer that never matches.
 
 `ACCESS_AUD_BOSS` is an audience tag, not a credential; it is environment-specific and must differ between staging and production because the Access applications differ. An empty `ACCESS_TEAM_DOMAIN` or `ACCESS_AUD_BOSS` is a valid provisioning state and denies the private surface; it is never a value to fill in with a guess.
 
@@ -150,6 +153,7 @@ Access protects `/boss/*` at the edge. The Worker independently verifies the res
 | Protected path | `staging.hakan.run`, `/boss` and `/api/boss` including subpaths | production origin, same paths |
 | Policy | Allow, emails, `hakan@dndr.net` only | Owner identity only |
 | Identity provider | One-time PIN | Chosen at cutover |
+| Team domain | `blue-waterfall-9473.cloudflareaccess.com` | same account |
 | Session duration | 24 hours | Chosen at cutover |
 | Status | Specified — not created | Planned — not created |
 
@@ -164,9 +168,9 @@ The two applications are separate so that a staging policy change cannot widen p
 | Widget name | `hakan-run-staging` | `hakan-run-production` |
 | Hostname scope | `staging.hakan.run` only | Production hostname only |
 | Widget mode | Managed | Chosen at cutover |
-| Site key | Public, injected as `TURNSTILE_SITE_KEY` | Public, injected as `TURNSTILE_SITE_KEY` |
+| Site key | `0x4AAAAAAEm_dH-JFfwoJxQ0`, public, injected as `TURNSTILE_SITE_KEY` | Public, injected as `TURNSTILE_SITE_KEY` |
 | Secret key | `TURNSTILE_SECRET_KEY` binding | `TURNSTILE_SECRET_KEY` binding |
-| Status | Specified — not created | Planned — not created |
+| Status | **Created**; secret binding not yet set | Planned — not created |
 
 An absent `TURNSTILE_SECRET_KEY` makes submission verification fail closed with `turnstile_not_configured`; it never falls through to accepting an unverified submission.
 
