@@ -6,14 +6,14 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next`, self-contained: its own `node_modules` installed from its own lockfile, no junction into the legacy checkout |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `34bc26a`, this documentation-only commit. Its parent `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
+| HEAD | the public content authority commit. Its ancestor `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Remote tracking | `origin/develop/hakan-run-v2` is at `cefa9b1`, pushed 2026-09-04 20:29 -0700. This documentation-only commit is local and unpushed |
-| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified, and the Boss V3 frontend shell is live on staging and verified section by section behind a real Access session. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining: a public content read path, the one-time content bootstrap, and the legacy analytics history import |
+| Remote tracking | `origin/develop/hakan-run-v2` moves when the owner pushes, which is separately authorized and can happen between sessions. Read it with `git rev-parse origin/develop/hakan-run-v2` rather than from this table; a SHA written here is a claim that expires |
+| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified, and the Boss V3 frontend shell is live on staging. The public content read path `GET /api/content` is implemented and the frontend consumes it; the staging content bootstrap is implemented and tested but not executed. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining: the production snapshot and the bootstrap run, and the legacy analytics history import |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Decide the order of the three remaining Phase 2C items: the public content read path, the one-time content bootstrap into the staging `APP_DB`, and the legacy `/control-room` analytics history import. The zone-level Managed Content question in `docs/OPERATIONS.md` remains open and is independent of that order |
+| Exact next action | Supply a read-only export of the authoritative production `site_content` — `SELECT section, data FROM site_content ORDER BY section;` as JSON — and state whether production is in fact serving Supabase rows rather than the built-in fallback. Nothing else unblocks the bootstrap, and no part of it can be answered from the repository |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | `cefa9b1` and everything before it are pushed, so the deployed staging artifact is reproducible from the remote. This documentation-only commit is local; pushing requires separate authorization |
+| Push state | The public content authority commit is local and unpushed; pushing requires separate authorization. `cefa9b1`, the deployed staging commit, is pushed, so the running artifact is reproducible from the remote |
 | Deploy state | Staging deployed five times; the running version is `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from `cefa9b1` in the staging mode, carrying the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
 | Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8` on team domain `dndrnet.cloudflareaccess.com`. Production unchanged and unprovisioned |
 
@@ -145,7 +145,20 @@ Content renders its empty state rather than fabricated rows. The legacy
 `/control-room` analytics history has not been imported, so Analytics reflects
 only first-party staging events. Production is untouched and unprovisioned.
 
-The staging content bootstrap remains outstanding and belongs to Phase 2C.
+The public content authority now exists in the runtime. `GET /api/content`
+serves published rows from `APP_DB` and nothing else — the Worker contains no
+Supabase client on any path, so D-020 holds structurally rather than by
+configuration — and the frontend consumes it as its primary source while keeping
+content, nothing-published, transport failure and malformed contract apart from
+one another. The built-in fallback stays, with its role stated: it is the
+synchronous initial value that makes the first paint possible, not a stand-in
+for content that failed to load.
+
+The staging content bootstrap is implemented, tested and idempotent, and has not
+been run. It is blocked on one thing only: a read-only export of the
+authoritative production `site_content`, which the repository does not contain
+and cannot derive. See `docs/CURRENT_STATE.md` for exactly what is needed and
+`docs/OPERATIONS.md` for the procedure once it exists.
 
 An editable social/OG card is now on the roadmap as Phase 9B: the served card is
 generated from published `APP_DB` content, Boss edits a bounded set of text

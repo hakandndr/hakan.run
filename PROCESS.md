@@ -1588,3 +1588,190 @@ Decide the order of the three remaining Phase 2C items: the public content read
 path, the one-time content bootstrap into the staging `APP_DB`, and the legacy
 analytics history import. The zone-level Managed Content question in
 `docs/OPERATIONS.md` remains open and is independent of that order.
+
+## Phase 2C — public content authority
+
+`APP_DB` is now the runtime content authority for staging, and the public read
+path exists. The bootstrap is written and proven but has not been run, because
+its input does not exist in this repository.
+
+### The audit that preceded the code
+
+The legacy contract, read rather than assumed: `apps/web/src/content.js` is a
+twelve-key fallback object; `ContentContext` seeded state from it, overlaid an
+optional `localStorage.siteContent` blob, then overlaid Supabase
+`public.site_content` rows after mount. Every merge is a shallow per-section
+replace, and there is no runtime schema validator. `docs/CONTENT-CMS.md` already
+recorded that several of those twelve keys — `header`, `about` — are not read by
+the components at all.
+
+Four schema mismatches came out of that comparison, and each one shaped a
+decision rather than being worked around:
+
+1. **No ordering column.** `content_sections` is keyed by `section` and has no
+   position. Boss's own list orders by primary key, which is alphabetical by
+   accident of storage. Ordering is now a source-controlled fact in
+   `worker/lib/content-sections.js`, used by both the read path and the
+   bootstrap, so the API's order cannot drift with the data.
+2. **No draft concept in the source.** Supabase `site_content` has one live row
+   per section. The target has draft, published and revision columns. A snapshot
+   row therefore maps to a *published* section with `draft_data` left null:
+   inventing a draft from a published value would assert an edit that never
+   happened.
+3. **No content hash.** Nothing in the schema supports "have I already applied
+   this?". Rather than add a column, idempotency is a comparison of the stored
+   published bytes against the snapshot's, canonicalised for key order.
+4. **`content_revisions.actor` is NOT NULL and `note` exists.** The bootstrap
+   writes both, plus an audit event per changed section, so a seeded row is
+   indistinguishable in structure from a published one.
+
+### `/api/content`
+
+Published-only: a row counts as published when it has both a `published_at` and
+a `published_data`. A draft is never public and a half-written publish is not
+publication — the query requires both halves rather than trusting the timestamp.
+
+`APP_DB` only. There is no Supabase client anywhere in the Worker, and a test
+asserts it by scanning the Worker source for imports and project URLs with
+comments stripped. D-020 is now a property of the code. A promise that staging
+will not be pointed at production is worth less than an inability to point it
+there.
+
+Fail closed on malformed persisted content. `published_data` is TEXT holding
+JSON; if any published row does not parse, or parses to something that is not an
+object, the whole response is 500 and names the section. The tempting version of
+this is to skip the bad row and return the rest — and that is the bug, because a
+silently dropped section is indistinguishable from an unpublished one to the
+client, which then renders its fallback for it and calls that success. Nothing
+would ever report the corruption.
+
+Cache behaviour: `public, max-age=60, stale-while-revalidate=300` with a weak
+ETag over the serialized body, and a 304 for a matching conditional request. The
+payload is byte-identical for every caller, so revalidation is the common case.
+
+### The frontend, and what the fallback is actually for
+
+The Supabase read is gone from `ContentContext`; the runtime source is
+`/api/content`. Four outcomes are kept apart by
+`apps/web/src/content-source/source.js`: content, nothing published, transport or
+server failure, and a malformed contract. Only the first changes what is
+rendered.
+
+The distinction is the point. Three of the four leave the built-in fallback on
+screen, so a test that only checked what a visitor sees would pass for all three
+and would not notice a site running on built-in copy because its authority was
+unreachable. `empty` is an answer about the world; `failed` is the absence of an
+answer. A failure keeps the fallback visible — a blank site helps nobody — and is
+reported as a failure, never as "there is no content".
+
+A failed or malformed response carries no sections at all, so a partial overlay
+is not merely avoided but unrepresentable: there is nothing to merge from a
+failure even by accident.
+
+The fallback's role is now written down where it is used. `content.js` is the
+synchronous initial value: every section key exists in it, so components reading
+`content.colors.accentPurple` on the first paint have something to read. Without
+it the first render throws rather than merely looking unstyled. That is why it
+stays, and it is a different job from standing in for failed content.
+
+### Two things left in place deliberately, and named
+
+The `localStorage.siteContent` overlay written by the legacy Admin surface is
+still applied, between the fallback and the API. The API is applied last and
+wins for every section it publishes, and a test pins that precedence in both
+directions. This overlay contradicts D-014 and should go with the legacy
+`/control-room` surface under D-019; removing it as a side effect of this change
+would have been a route removal smuggled into a content change.
+
+`/control-room` still imports the Supabase client for its own authentication.
+The content path cannot reach Supabase, and a test pins the exact two files that
+still can — the client module and the legacy Admin page — so a third would be a
+deliberate act. But "staging never reaches production Supabase" is structural
+only for content; for `/control-room` it currently rests on staging builds
+having no `VITE_SUPABASE_URL`. That is configuration, not structure, and it is
+recorded as such rather than described as done.
+
+The legacy Admin write path no longer upserts to Supabase, since the client is
+no longer read from there. It writes to browser storage and now says so: it is a
+local preview, not publishing.
+
+### The bootstrap, and why it did not run
+
+`tools/content-bootstrap.js` plans the seed and cannot perform it: no network,
+no credential, no provider. It reads a snapshot and emits SQL for staging
+`APP_DB`. A test asserts that no generated statement names `site_content`, so
+the read source cannot become a write target.
+
+Idempotency is proven against the real migration in an in-memory database: a
+second run of the same snapshot produces zero statements, writes no revision,
+and does not move `updated_at`. Key reordering is not a content change. A real
+change writes exactly one new revision and bumps `published_revision`, and a
+test asserts that the published revision and its revision row always agree.
+Another test runs the bootstrap and then reads it back through the real
+`/api/content` query, so the seed and the public contract are proven against
+each other rather than separately.
+
+It stopped where the instruction said to stop. The authoritative production
+content is the live `site_content` table in the production Supabase project. The
+repository holds that table's schema and one historical portfolio update, and
+neither proves the current values: the Control Room has been able to upsert any
+section since, and Git records none of it. `content.js` is the fallback, not a
+snapshot.
+
+There is also a prior question the repository cannot answer. The production
+build reads its Supabase configuration at build time and falls back to
+`content.js` when it is absent. If production was built without those variables,
+the authoritative content is `content.js` and the bootstrap input is a different
+thing entirely. Fetching `hakan.run` did not settle it — the served document is
+a single-page-application shell whose body is rendered client-side — and reading
+a credential out of the production bundle to query the project directly is not a
+step to take without being asked.
+
+So the phase stops at that boundary with the work either side of it complete.
+
+### Changed
+
+- `worker/lib/content-sections.js`, `worker/public/content.js` — new; the
+  canonical order and the public read path.
+- `worker/index.js` — the `/api/content` route. `run_worker_first` already
+  covers `/api/*`, so no routing configuration changed.
+- `worker/tests/public-content.test.js` — new, 20 tests.
+- `apps/web/src/content-source/source.js` and its test — new, 17 tests. Named
+  `content-source` because `@/content` is already the fallback module.
+- `apps/web/src/contexts/ContentContext.jsx` — reads `/api/content`; the
+  Supabase read removed; the fallback's role documented; `source` exposed.
+- `tools/content-bootstrap.js` and its test — new, 16 tests.
+- `tests/content.spec.ts` — new, 7 end-to-end scenarios over the four outcomes
+  and the precedence order.
+- `package.json` — `test:tools`, and `test:web` covers the new directory.
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/OPERATIONS.md`,
+  `docs/ROADMAP.md`, `PROCESS.md`.
+
+### Validation
+
+- `npm run check` — lint clean, worker 65 passed, web 71 passed, tools 16
+  passed, 0 failed.
+- The Playwright suites and the staging build could not run in the auditing
+  environment: the installed esbuild binary is the Windows one. Both run from
+  the development machine, and the staging build and its indexing artifact
+  verification must pass before any deployment.
+
+### Exact next action
+
+Supply the read-only production `site_content` export, and state whether
+production is serving Supabase rows or the built-in fallback. Nothing else
+unblocks the bootstrap.
+
+### A note on recording push state
+
+The previous entry recorded a correction: a documentation commit asserted a
+remote SHA that a push had already invalidated. The same thing happened again
+while writing this entry, which makes it a pattern rather than a slip.
+
+The fix is not to check more carefully. Push happens under separate
+authorization and between sessions, so any specific remote SHA written into a
+document is a claim with a short and unpredictable life. The state tables now
+say how to read the current value instead of what it was, and record only the
+durable fact — which commits are pushed and which are not, relative to the
+deployed one. A document should not restate something a single command answers
+better.

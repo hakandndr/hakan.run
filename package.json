@@ -9,8 +9,9 @@
     "lint": "concurrently --raw \"npm run lint --prefix apps/web\"",
     "test": "playwright test",
     "test:worker": "node --test \"worker/tests/*.test.js\"",
-    "test:web": "node --test \"apps/web/tools/*.test.js\" \"apps/web/src/boss/*.test.js\" \"apps/web/src/head/*.test.js\"",
-    "check": "npm run lint && npm run test:worker && npm run test:web"
+    "test:web": "node --test \"apps/web/tools/*.test.js\" \"apps/web/src/boss/*.test.js\" \"apps/web/src/head/*.test.js\" \"apps/web/src/content-source/*.test.js\"",
+    "test:tools": "node --test \"tools/*.test.js\"",
+    "check": "npm run lint && npm run test:worker && npm run test:web && npm run test:tools"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",

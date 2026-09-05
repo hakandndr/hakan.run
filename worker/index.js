@@ -12,6 +12,7 @@ import { verifyAccess } from './lib/access.js';
 import { handleBossApi } from './boss/index.js';
 import { handlePageEvent } from './analytics/ingest.js';
 import { handleSubmission } from './public/submissions.js';
+import { handlePublicContent } from './public/content.js';
 import { aggregationStatements, lastCompleteDay } from './analytics/aggregate.js';
 
 const isBossPath = (path) => path === '/boss' || path.startsWith('/boss/');
@@ -42,6 +43,13 @@ export default {
     if (path === '/api/analytics/page') {
       if (request.method !== 'POST') return methodNotAllowed('POST');
       return handlePageEvent(request, env);
+    }
+
+    // Public content authority. Reads published rows from APP_DB and nothing
+    // else; there is no Supabase client in this Worker.
+    if (path === '/api/content') {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+      return handlePublicContent(request, env);
     }
 
     if (path === '/api/contact') {

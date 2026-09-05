@@ -9,8 +9,8 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next`, self-contained since the Phase 1B `node_modules` junctions into the legacy checkout were removed and dependencies installed with `npm ci` from this repository's own lockfile |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `34bc26a`, this documentation-only commit; its parent `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
-| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `cefa9b1`, so the running staging artifact is reproducible from the remote; this documentation-only commit is local and unpushed |
+| Modernization HEAD | the public content authority commit; its ancestor `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
+| Modernization remote tracking | `cefa9b1`, the deployed staging commit, is pushed, so the running artifact is reproducible from the remote. The current position of `origin/develop/hakan-run-v2` is read with `git rev-parse`, not from this table: the owner pushes under separate authorization and a SHA recorded here expires without notice |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |
@@ -143,9 +143,68 @@ its empty state. The legacy `/control-room` analytics history has not been
 imported, so Analytics reflects first-party staging events only. Production
 remains untouched and unprovisioned.
 
-What remains: a public content read path, the one-time content bootstrap, and
-the legacy analytics history import — the last being a later, separate,
-owner-supplied migration.
+What remains: the one-time content bootstrap and the legacy analytics history
+import — the last being a later, separate, owner-supplied migration.
+
+### Public content authority
+
+`GET /api/content` exists and is the runtime content read path. It reads
+published rows from `APP_DB` and nothing else: there is no Supabase client
+anywhere in the Worker, so "staging never reads production Supabase at runtime"
+(D-020) is a property of the code rather than of configuration, and a test
+asserts it.
+
+A row counts as published only when it carries both a `published_at` and a
+`published_data`; a draft is never public, and a half-written publish is not
+publication. `content_sections` has no ordering column, so order comes from a
+source-controlled canonical list rather than from alphabetical primary-key
+order. Malformed persisted content fails the whole response with 500 rather
+than the bad section being skipped: a silently dropped section is
+indistinguishable from an unpublished one to the client, which would then
+render its fallback and call that success.
+
+The frontend consumes `/api/content` as its primary runtime source and
+distinguishes four outcomes: content, nothing published, transport or server
+failure, and a malformed contract. Only the first changes what is rendered. The
+other three leave the built-in fallback on screen, and the two failures are
+reported rather than swallowed.
+
+The fallback's role is now explicit rather than incidental. `apps/web/src/content.js`
+is the synchronous initial value: every section key exists in it, so components
+reading nested fields have something to read on the first paint, before any
+network answer. It is not a stand-in for content that failed to load — a
+failure keeps the fallback visible and is still recorded and reported as a
+failure.
+
+Runtime precedence is the built-in fallback, then the `localStorage` overlay
+left by the legacy Admin surface, then the API. The API is applied last and
+wins for every section it publishes. That legacy overlay contradicts D-014 and
+survives only until the legacy `/control-room` surface is removed under D-019;
+its precedence is pinned by a test so the removal is a decision rather than a
+discovery.
+
+### Blocked: the authoritative production snapshot
+
+The bootstrap is designed, implemented and tested, and has not been run,
+because its input does not exist in this repository and cannot be produced from
+it.
+
+The authoritative production content is the `site_content` table in the
+production Supabase project. The repository contains the table's schema
+(`supabase/migrations/001_site_content.sql`) and one historical row-level
+update (`002_update_portfolio_cards.sql`), but neither proves the live values:
+the Control Room has been able to upsert any section since, and Git records
+none of it. `apps/web/src/content.js` is the fallback object, not a snapshot of
+production.
+
+What is required from the owner is one read-only export —
+`SELECT section, data FROM site_content ORDER BY section;` as JSON — plus a
+statement of whether production is in fact serving Supabase rows at all. The
+production build reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at
+build time and falls back to `content.js` when they are absent, so if
+production was built without them the authoritative content is `content.js`
+itself and the bootstrap input is different. That question is not answerable
+from the repository.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy

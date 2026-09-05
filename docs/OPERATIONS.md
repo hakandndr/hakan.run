@@ -340,6 +340,51 @@ the System page, run the delete preview for the intended cutoff, confirm
 explicitly, and let the operation write its audit record. The runbook for that
 operation is defined with the Boss System module and is not automated.
 
+### Staging content bootstrap — prepared, not executed
+
+The bootstrap is planned in `tools/content-bootstrap.js`. It opens no network
+connection, holds no credential and names no provider: it reads a snapshot file
+and emits SQL for the staging `APP_DB`. Running that SQL is a separate step
+across the DATABASE boundary and is separately authorized.
+
+Direction is enforced by construction rather than by care. The production
+Supabase `site_content` table is a read source and is never named in a generated
+statement; a test asserts that no emitted SQL mentions it. Nothing in the tool
+can write to production because nothing in it can reach production.
+
+Procedure, once the snapshot exists:
+
+1. **Owner exports the snapshot.** From the production Supabase project:
+   `SELECT section, data FROM site_content ORDER BY section;` exported as JSON.
+   The export is the input; the credential used to produce it stays with the
+   owner and never enters this repository, a Worker variable, or the staging
+   runtime.
+2. **Validate and compare.** `readSnapshot` refuses an unrecognised shape, a
+   duplicated section, or a non-object payload rather than coercing it.
+   `compareToCanonical` reports sections present in one of the snapshot and the
+   canonical list but not the other. Neither difference is resolved silently:
+   both are reported for an owner decision.
+3. **Plan.** `planBootstrap` compares the snapshot against the current staging
+   rows and classifies each section as insert, update or unchanged.
+4. **Review.** `bootstrapSql` renders the plan as a readable script. Review
+   precedes execution; the plan is not applied as a side effect of producing it.
+5. **Execute** against staging `APP_DB` only, under separate authorization.
+6. **Verify** through `GET /api/content`, which is the same read path the public
+   site uses. A test asserts that bootstrapped rows are exactly what that
+   endpoint then serves.
+
+Idempotency is a comparison, not a schema change. `content_sections` has no
+content-hash column, so a section whose stored `published_data` already equals
+the snapshot's — compared after canonicalising key order — is skipped entirely:
+no row write, no revision, no `updated_at` change. Re-running the same snapshot
+produces a plan with nothing to do. A revision is written only when the
+published bytes actually change, so `content_revisions` stays a history of
+content rather than a log of how many times the bootstrap was run.
+
+The bootstrap is blocked on the snapshot itself. See
+`docs/CURRENT_STATE.md` for what is required and why it cannot be produced from
+the repository.
+
 ### Authorization reminder
 
 PROVIDER, ACCESS, SECRET, DATABASE, MIGRATE, DEPLOY, ACTIVATE, and DNS remain independently authorized. Specification of these procedures does not authorize performing any of them.
