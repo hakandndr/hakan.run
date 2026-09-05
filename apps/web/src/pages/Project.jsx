@@ -6,6 +6,7 @@ import Stats from '@/components/Stats';
 import SectionAnimator from '@/components/SectionAnimator';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import NotFound from '@/pages/NotFound';
 
 const projectData = {
   'full-stack-development': {
@@ -159,17 +160,30 @@ const ContentCard = ({ cmdPrefix, label, accentClass = 'text-accent-purple', chi
 
 const Project = () => {
   const { projectId } = useParams();
-  const project = projectData[projectId] || projectData['full-stack-development'];
-  const repoName = projectId || 'full-stack-development';
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [projectId]);
+
+  // Detail records are hardcoded here and keyed by the legacy slugs. Published
+  // content now carries different slugs — the four production portfolio cards
+  // are external links and never route here — so an unknown slug is genuinely
+  // unknown, and rendering the first legacy record for it would publish the
+  // wrong project under the right URL, with its title, description and meta
+  // description all wrong and nothing to signal it.
+  //
+  // The narrow fix is to stop substituting. This phase does not invent detail
+  // pages for the new slugs; it only stops answering for them incorrectly. The
+  // hook above runs first so this stays an ordinary conditional render.
+  if (!Object.prototype.hasOwnProperty.call(projectData, projectId)) return <NotFound />;
+
+  const project = projectData[projectId];
+  const repoName = projectId;
   const repoUrls = {
     'full-stack-development': 'https://github.com/hakandndr/hakan.run',
     'ai-and-automation': 'https://github.com/hakandndr/hakan.run',
   };
   const repoUrl = repoUrls[projectId];
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [projectId]);
 
   return (
     <motion.div

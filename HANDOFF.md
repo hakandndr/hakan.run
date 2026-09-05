@@ -11,7 +11,7 @@
 | Remote tracking | `origin/develop/hakan-run-v2` moves when the owner pushes, which is separately authorized and can happen between sessions. Read it with `git rev-parse origin/develop/hakan-run-v2` rather than from this table; a SHA written here is a claim that expires |
 | Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified, and the Boss V3 frontend shell is live on staging. The public content read path `GET /api/content` is implemented and the frontend consumes it; the staging content bootstrap is implemented and tested but not executed. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining: the production snapshot and the bootstrap run, and the legacy analytics history import |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Supply a read-only export of the authoritative production `site_content` — `SELECT section, data FROM site_content ORDER BY section;` as JSON — and state whether production is in fact serving Supabase rows rather than the built-in fallback. Nothing else unblocks the bootstrap, and no part of it can be answered from the repository |
+| Exact next action | Review the bootstrap plan — `node tools/plan-content-bootstrap.js --sql` — then execute it against staging `APP_DB` under separate authorization. The plan is 12 inserts, 36 statements, and every validation passes |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
 | Push state | The public content authority commit is local and unpushed; pushing requires separate authorization. `cefa9b1`, the deployed staging commit, is pushed, so the running artifact is reproducible from the remote |
 | Deploy state | Staging deployed five times; the running version is `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from `cefa9b1` in the staging mode, carrying the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
@@ -154,11 +154,25 @@ one another. The built-in fallback stays, with its role stated: it is the
 synchronous initial value that makes the first paint possible, not a stand-in
 for content that failed to load.
 
-The staging content bootstrap is implemented, tested and idempotent, and has not
-been run. It is blocked on one thing only: a read-only export of the
-authoritative production `site_content`, which the repository does not contain
-and cannot derive. See `docs/CURRENT_STATE.md` for exactly what is needed and
-`docs/OPERATIONS.md` for the procedure once it exists.
+The authoritative production `site_content` export is now in the repository at
+`tools/snapshots/production-site-content.csv` — ten rows of public site copy —
+and the bootstrap dataset is composed, normalised and validated from it. The
+dataset is the full canonical twelve: ten sections from production, and
+`typography` and `visibility` promoted out of the bundled fallback so APP_DB
+becomes the complete authority rather than half of one.
+
+`contact.formEndpoint` is excluded and the contact form now posts to the
+Worker's own `POST /api/contact`; one absolute production image URL is rewritten
+to a root-relative path. Both are declared rules with tests, not incidental
+edits.
+
+The four production portfolio images have been supplied into
+`apps/web/public/portfolio/`, so the asset gate is open and the planner emits a
+plan: 12 inserts, 36 statements. The gate itself is unchanged and still refuses
+any dataset that names an image the site does not serve.
+
+The bootstrap has not been executed. Producing the plan and applying it are
+separate acts, and the second is separately authorized.
 
 An editable social/OG card is now on the roadmap as Phase 9B: the served card is
 generated from published `APP_DB` content, Boss edits a bounded set of text

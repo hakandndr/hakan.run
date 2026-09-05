@@ -183,28 +183,54 @@ survives only until the legacy `/control-room` surface is removed under D-019;
 its precedence is pinned by a test so the removal is a decision rather than a
 discovery.
 
-### Blocked: the authoritative production snapshot
+### The authoritative production snapshot, and what it showed
 
-The bootstrap is designed, implemented and tested, and has not been run,
-because its input does not exist in this repository and cannot be produced from
-it.
+The owner supplied the export and it is recorded at
+`tools/snapshots/production-site-content.csv`: ten rows of public site copy,
+which settles the authority question that the repository alone could not answer.
+Production serves Supabase rows for those ten sections and the bundled fallback
+for the other two.
 
-The authoritative production content is the `site_content` table in the
-production Supabase project. The repository contains the table's schema
-(`supabase/migrations/001_site_content.sql`) and one historical row-level
-update (`002_update_portfolio_cards.sql`), but neither proves the live values:
-the Control Room has been able to upsert any section since, and Git records
-none of it. `apps/web/src/content.js` is the fallback object, not a snapshot of
-production.
+The snapshot is not the bootstrap dataset. Three differences are deliberate and
+each is a declared, tested rule rather than a judgement made during the run:
 
-What is required from the owner is one read-only export —
-`SELECT section, data FROM site_content ORDER BY section;` as JSON — plus a
-statement of whether production is in fact serving Supabase rows at all. The
-production build reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at
-build time and falls back to `content.js` when they are absent, so if
-production was built without them the authoritative content is `content.js`
-itself and the bootstrap input is different. That question is not answerable
-from the repository.
+- **`typography` and `visibility` are promoted.** They have never existed as
+  Supabase rows, and today the bundle supplies them at runtime. Their values are
+  unchanged; the authority moves. Without this the new authority would be
+  incomplete on the day it took over, and neither could ever be edited from Boss.
+- **`contact.formEndpoint` is excluded.** It is the legacy third-party form
+  endpoint that D-018 replaces. Carrying it across would move a decommissioned
+  integration into the new authority and would let staging post into a live
+  production mailbox.
+- **`about.block1.image` is rewritten** from `https://hakan.run/media/...` to
+  `/media/...`. Every other asset in the dataset is root-relative; left alone,
+  staging would hot-link the production host for that one image.
+
+Everything else is preserved exactly, including the thirteen genuinely external
+URLs — four portfolio `externalUrl` values and the social links. A validation
+refuses any *other* value that points at the production origin, so a future
+snapshot that grows a case these rules do not cover fails rather than ships.
+
+### The four production portfolio images
+
+The production portfolio names four images —
+`/portfolio/dndr-labs.webp`, `/portfolio/turkcyber.webp`,
+`/portfolio/turkiyecennet-en.webp`, `/portfolio/americawhat.webp`. They were in
+neither this repository nor the legacy checkout at `D:\IT\hakan\hakan-run`,
+because they live on the production webroot, uploaded outside Git — consistent
+with the manual deployment model. The owner has since supplied them into
+`apps/web/public/portfolio/` under exactly the filenames production references.
+
+The bootstrap tool refuses to emit a plan while any referenced asset is missing,
+and that gate is unchanged: the point of moving the authority into APP_DB is
+that what it says is what the site is, and a dataset naming images nobody has
+would make the authority wrong on its first day, invisibly, in the database. A
+test removes one image from the dataset and asserts the gate closes again, so
+the current pass is evidence the check works rather than evidence it stopped
+checking.
+
+Every validation now passes, and the planner emits 12 inserts across 36
+statements. The bootstrap has not been executed.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { useContent } from '@/contexts/ContentContext';
+import { CONTACT_RESULT, submitContact } from '@/content-source/contact';
+import { TURNSTILE_STATE, useTurnstile } from '@/content-source/useTurnstile';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -14,29 +16,57 @@ const Contact = () => {
   const { content } = useContent();
   const ct = content.contact;
   const [status, setStatus] = useState('');
+  const challengeRef = useRef(null);
+  const challenge = useTurnstile(challengeRef);
+
+  const fail = (message) => {
+    setStatus(message);
+    setTimeout(() => setStatus(''), 4000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
     const data = new FormData(form);
-    try {
-      setStatus('Sending...');
-      const response = await fetch(ct.formEndpoint, {
-        method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' },
-      });
-      if (response.ok) {
-        setStatus('Success!');
-        form.reset();
-      } else {
-        setStatus('Message failed. Please try again.');
-        setTimeout(() => setStatus(''), 4000);
-      }
-    } catch {
-      setStatus('Message failed. Please try again.');
-      setTimeout(() => setStatus(''), 4000);
+
+    // The honeypot. Formspree used to drop these; now it is ours to drop, and
+    // the response a bot sees is unchanged so it learns nothing from trying.
+    if (String(data.get('_gotcha') ?? '').trim().length > 0) {
+      setStatus('Success!');
+      form.reset();
+      return;
     }
+
+    if (challenge.state === TURNSTILE_STATE.unavailable) {
+      // The Worker would refuse this with 403. Saying so before the round trip
+      // is the same outcome, sooner, and without a submission the visitor
+      // believes was sent.
+      fail('Message failed. Please try again.');
+      return;
+    }
+
+    setStatus('Sending...');
+    const outcome = await submitContact({
+      fields: {
+        name: data.get('name'),
+        email: data.get('email'),
+        message: data.get('message'),
+      },
+      turnstileToken: challenge.token,
+      sourcePath: '/contact',
+    });
+
+    // A 202 means the submission is durably stored in APP_DB. Notification
+    // happens after that and never changes this answer.
+    if (outcome.result === CONTACT_RESULT.stored) {
+      setStatus('Success!');
+      form.reset();
+      challenge.reset();
+      return;
+    }
+
+    challenge.reset();
+    fail('Message failed. Please try again.');
   };
 
   const isSending = status === 'Sending...';
@@ -140,7 +170,7 @@ const Contact = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                  {/* Honeypot — bots fill this, humans never see it. Formspree drops any submission where it's set. */}
+                  {/* Honeypot — bots fill this, humans never see it. Dropped by handleSubmit. */}
                   <input
                     type="text"
                     name="_gotcha"
@@ -187,6 +217,19 @@ const Contact = () => {
                       placeholder="// describe your project or inquiry..."
                       className="w-full border border-white/[0.08] rounded px-4 py-3 font-mono text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-purple/50 focus:ring-1 focus:ring-accent-purple/30 transition-all duration-200 resize-none" style={{ backgroundColor: '#0D0D0D' }}
                     />
+                  </div>
+
+                  {/* Turnstile. The Worker refuses a submission without a
+                      token, so a challenge that cannot load is reported here
+                      rather than discovered as a failed send. */}
+                  <div>
+                    <div ref={challengeRef} data-contact-challenge={challenge.state} />
+                    {challenge.state === TURNSTILE_STATE.unavailable ? (
+                      <p className="font-mono text-[11px] text-red-400/80 mt-2" role="alert">
+                        <span className="select-none">! </span>
+                        Verification is unavailable ({challenge.reason}), so this form cannot be sent right now.
+                      </p>
+                    ) : null}
                   </div>
 
                   <button

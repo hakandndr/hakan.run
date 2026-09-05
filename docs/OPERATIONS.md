@@ -352,26 +352,45 @@ Supabase `site_content` table is a read source and is never named in a generated
 statement; a test asserts that no emitted SQL mentions it. Nothing in the tool
 can write to production because nothing in it can reach production.
 
-Procedure, once the snapshot exists:
+The snapshot has been supplied and is recorded at
+`tools/snapshots/production-site-content.csv` (ten rows, public site copy only).
+The credential used to produce it stayed with the owner and never entered this
+repository, a Worker variable, or the staging runtime.
 
-1. **Owner exports the snapshot.** From the production Supabase project:
-   `SELECT section, data FROM site_content ORDER BY section;` exported as JSON.
-   The export is the input; the credential used to produce it stays with the
-   owner and never enters this repository, a Worker variable, or the staging
-   runtime.
-2. **Validate and compare.** `readSnapshot` refuses an unrecognised shape, a
-   duplicated section, or a non-object payload rather than coercing it.
-   `compareToCanonical` reports sections present in one of the snapshot and the
-   canonical list but not the other. Neither difference is resolved silently:
-   both are reported for an owner decision.
-3. **Plan.** `planBootstrap` compares the snapshot against the current staging
-   rows and classifies each section as insert, update or unchanged.
-4. **Review.** `bootstrapSql` renders the plan as a readable script. Review
-   precedes execution; the plan is not applied as a side effect of producing it.
-5. **Execute** against staging `APP_DB` only, under separate authorization.
-6. **Verify** through `GET /api/content`, which is the same read path the public
-   site uses. A test asserts that bootstrapped rows are exactly what that
-   endpoint then serves.
+Procedure:
+
+1. **Compose.** `composeDataset` builds the full canonical twelve from two named
+   sources: the production snapshot for the ten sections it carries, and the
+   bundled `apps/web/src/content.js` for `typography` and `visibility`, which
+   have never existed as production rows. A section present in both is taken
+   whole from production and never blended — a partial merge would create a
+   value that exists in neither source. A snapshot section outside the canonical
+   list stops the composition rather than being seeded.
+2. **Exclude and transform.** `EXCLUDED_PATHS` removes `contact.formEndpoint`;
+   `TRANSFORM_RULES` rewrites `about.block1.image` from the absolute production
+   URL to a root-relative path. Each rule declares the value it expects, so a
+   rule that has stopped matching reality fails loudly instead of quietly doing
+   nothing. Both are reported in the composed result.
+3. **Validate.** `validateDataset` requires exactly the twelve canonical
+   sections, no formspree or supabase string anywhere in the payload, no value
+   pointing at the production origin beyond the declared transform, and every
+   referenced image present under `apps/web/public`. The asset check is a gate,
+   not a warning: no plan is produced while one is missing.
+4. **Plan.** `planBootstrap` compares the normalised dataset against the current
+   staging rows and classifies each section as insert, update or unchanged.
+5. **Review.** `node tools/plan-content-bootstrap.js --sql` prints the summary
+   and the script for a human. `--sql-only` writes executable SQL to stdout and
+   sends every human line, including a validation failure, to stderr — so a
+   redirect captures statements and never prose. An unrecognised option is
+   refused with exit 2 rather than falling through to the default mode, because
+   a mistyped flag that silently writes a summary into `bootstrap.sql` is not
+   discovered until the file reaches a database. The planner connects to
+   nothing; producing a plan and executing it are separate acts and only the
+   first lives in this repository.
+6. **Execute** against staging `APP_DB` only, under separate authorization.
+7. **Verify** through `GET /api/content`, which is the same read path the public
+   site uses. A test bootstraps into the real schema and asserts the endpoint
+   then serves the normalised dataset exactly, section for section.
 
 Idempotency is a comparison, not a schema change. `content_sections` has no
 content-hash column, so a section whose stored `published_data` already equals
@@ -381,9 +400,34 @@ produces a plan with nothing to do. A revision is written only when the
 published bytes actually change, so `content_revisions` stays a history of
 content rather than a log of how many times the bootstrap was run.
 
-The bootstrap is blocked on the snapshot itself. See
-`docs/CURRENT_STATE.md` for what is required and why it cannot be produced from
-the repository.
+The four production portfolio images — `dndr-labs.webp`, `turkcyber.webp`,
+`turkiyecennet-en.webp`, `americawhat.webp` — have been copied from the
+production webroot into `apps/web/public/portfolio/` under exactly the filenames
+production references. Step 3 passes and the planner emits 12 inserts across 36
+statements. The gate is unchanged and still fails for any missing asset.
+
+The planner is run from the repository root, on Windows or POSIX alike:
+
+```
+node tools/plan-content-bootstrap.js --sql-only > bootstrap.sql
+npx wrangler d1 execute hakan-run-app-staging --env staging --remote --file=bootstrap.sql
+```
+
+`--remote` is not optional: without it wrangler writes a local emulated database
+and nothing reaches staging. The binding is `APP_DB`; `ANALYTICS_DB` is never
+named by a generated statement.
+
+### Public runtime configuration
+
+`GET /api/config` returns `{ contract, environment, turnstileSiteKey }` and
+nothing else. The Turnstile *site* key is public by design but
+environment-specific, so it comes from the environment at runtime rather than
+from source or from the build — a build-time value would make one artifact
+unusable in the other environment. `TURNSTILE_SITE_KEY` has been declared in
+`wrangler.jsonc` since staging was provisioned; this is the reader it was
+declared for. The response is enumerated rather than passed through, so a new
+Worker variable cannot become public by accident, and a test asserts the secret
+key never appears in it.
 
 ### Authorization reminder
 

@@ -13,6 +13,7 @@ import { handleBossApi } from './boss/index.js';
 import { handlePageEvent } from './analytics/ingest.js';
 import { handleSubmission } from './public/submissions.js';
 import { handlePublicContent } from './public/content.js';
+import { handlePublicConfig } from './public/config.js';
 import { aggregationStatements, lastCompleteDay } from './analytics/aggregate.js';
 
 const isBossPath = (path) => path === '/boss' || path.startsWith('/boss/');
@@ -50,6 +51,13 @@ export default {
     if (path === '/api/content') {
       if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
       return handlePublicContent(request, env);
+    }
+
+    // Public, non-secret runtime configuration. The Turnstile site key is
+    // environment-specific, so the environment supplies it rather than the build.
+    if (path === '/api/config') {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+      return handlePublicConfig(request, env);
     }
 
     if (path === '/api/contact') {

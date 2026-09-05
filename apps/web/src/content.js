@@ -1,4 +1,10 @@
-// Fallback content used before optional local and Supabase section overrides.
+// Fallback content: the synchronous initial value, before the /api/content
+// overlay. Not a second authority — see contexts/ContentContext.jsx.
+//
+// `contact.formEndpoint` used to live here. It is gone: submissions go to the
+// Worker's POST /api/contact, and the excluded field must not survive in the
+// bundle either, or a later reader would find two answers to where the form
+// posts.
 
 export const siteContent = {
 
@@ -209,7 +215,6 @@ export const siteContent = {
       { name: 'Instagram',   url: 'https://www.instagram.com/hdundar/' },
       { name: 'X (Twitter)', url: 'https://x.com/hDundar' },
     ],
-    formEndpoint: 'https://formspree.io/f/maqapajb',
   },
 
   // ─── FOOTER ───────────────────────────────────────────────────────────────

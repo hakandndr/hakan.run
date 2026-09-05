@@ -1775,3 +1775,261 @@ say how to read the current value instead of what it was, and record only the
 durable fact — which commits are pushed and which are not, relative to the
 deployed one. A document should not restate something a single command answers
 better.
+
+## Phase 2C — bootstrap preparation, and the form that had to move with it
+
+The authoritative production export arrived, and with it the answer the previous
+audit could not reach: production serves Supabase rows for ten sections and the
+bundled fallback for the other two. The dataset is now composed, normalised and
+validated. It has not been executed.
+
+### The snapshot is not the dataset
+
+Three differences between what production stores and what APP_DB will hold, each
+a declared rule with a test rather than a judgement made mid-run.
+
+`typography` and `visibility` are **promoted**. They have never been Supabase
+rows; today the bundle supplies them at runtime. Their values do not change —
+the authority does. Leaving them behind would have reproduced the current
+half-authority in the new system, and neither could ever be edited from Boss.
+This is the one place the dataset deliberately does not reproduce production
+behaviour, and it is the point of the phase.
+
+`contact.formEndpoint` is **excluded**. It is the legacy third-party endpoint
+D-018 replaces. Excluding it at read time would not have been enough: a value
+that exists in the authority is eventually used by something.
+
+`about.block1.image` is **transformed** from `https://hakan.run/media/...` to
+`/media/...`. One image in the whole dataset was stored absolute; left alone,
+staging would have hot-linked production for it. The rule declares the value it
+expects and throws when it stops matching, so a rule that has silently become a
+no-op is not a state this can reach. A separate validation rejects any *other*
+production-origin URL, which is what catches the case the rules do not cover.
+
+The thirteen genuinely external URLs — four portfolio `externalUrl` values and
+the social links — are preserved untouched. "Rewrite absolute URLs" would have
+been the easy rule and the wrong one.
+
+### The gate, and the four images it was waiting for
+
+The production portfolio names four images that existed in neither this
+repository nor the legacy checkout. They live on the production webroot,
+uploaded outside Git, which is consistent with a deployment model that has
+always been a manual upload — and they were not retrievable from here: binary
+assets on a public host, which was not something to fetch unasked.
+
+`validateDataset` refuses to produce a plan while any referenced asset is
+missing. That is not a convenience check. The whole claim of this phase is that
+what APP_DB says is what the site is; a dataset naming four images nobody has
+would make that claim false on the first day, and false invisibly — the database
+would look complete.
+
+So the tool stopped, named the four files and the exact fields referencing them,
+and produced nothing. The owner then supplied them. The gate is unchanged, and a
+test now removes an image from the dataset and asserts it closes again, so a
+passing run is evidence the check works rather than evidence it stopped
+checking.
+
+### The contact form had to move in the same change
+
+Excluding `contact.formEndpoint` is not a data-only edit. `Contact.jsx` read
+`ct.formEndpoint` and posted a multipart body to it. Once the bootstrapped
+`contact` section replaces the fallback's — the overlay is a whole-section
+replace — that key is gone and the call becomes `fetch(undefined)`. Shipping the
+exclusion alone would have broken the form on the first bootstrap, quietly.
+
+So the form now posts JSON to the Worker's `POST /api/contact`. Three things
+about that contract shaped the code. Success is **202**, not 200, because it
+means "durably stored" rather than "delivered" — so `response.ok` is the right
+test and anything narrower would reject a successful submission. A **403** means
+the challenge was refused, which is a different fact from a server failure and
+is mapped separately. And the Worker **fails closed**: no token, no submission.
+
+That last point made Turnstile mandatory rather than decorative, and Turnstile
+needs a site key the browser can see. The key is public but
+environment-specific, so it cannot be hardcoded, and baking it in at build time
+would make one artifact unusable in the other environment — the build-time
+configuration this project spent a phase removing. `TURNSTILE_SITE_KEY` has been
+sitting in `wrangler.jsonc` since staging was provisioned, read by nothing.
+`GET /api/config` is the reader it was declared for: three enumerated fields, so
+a new Worker variable cannot become public by accident, and a test asserts the
+secret never appears in the response. It is deliberately not part of
+`/api/content` — a site key is not content.
+
+A challenge that cannot load is reported on the page rather than discovered as a
+failed send. The Worker would refuse that submission anyway; saying so first is
+the same outcome, sooner, and without a visitor believing their message went.
+The honeypot survives the move — Formspree used to drop those and now we do —
+and the status text, timings and error copy are unchanged.
+
+The endpoint is also gone from the fallback: `content.js` no longer declares
+`formEndpoint`. A test scans the bundle source, comments stripped, and asserts
+no file mentions the old service at all. Leaving it in the fallback would have
+meant two answers to where the form posts.
+
+### The project route that answered for slugs it does not have
+
+`Project.jsx` keys hardcoded detail records by the legacy slugs and fell back to
+the first one for anything unknown. Production's four portfolio cards carry
+different slugs and are external links, so nothing routes there — but a direct
+visit to `/project/dndr-labs` would have rendered the Full Stack Development
+record under that URL, with its title, description and meta description all
+wrong and nothing to signal it.
+
+The narrow fix is to stop substituting: an unknown slug renders the 404. No
+detail pages were invented for the new slugs; this phase only stops the route
+answering incorrectly. The scroll effect moved above the guard so the early
+return stays an ordinary conditional render rather than a conditional hook.
+
+### A portability bug the other platform found
+
+The planner failed on Windows with `ERR_UNSUPPORTED_ESM_URL_SCHEME: Received
+protocol 'd:'`.
+
+`import()` takes a URL, not a filesystem path. On POSIX an absolute path is
+accepted anyway, so the distinction is invisible there; on Windows
+`D:\IT\...\content.js` parses as a URL whose scheme is the drive letter, and
+Node refuses it. The cause is not the backslashes and not the drive — it is
+passing a path where a URL was required, which one platform forgives and the
+other does not. Two sites did it: the planner and one test helper.
+
+`toModuleUrl` in `tools/module-url.js` wraps `pathToFileURL`, which is the
+standard conversion and handles the drive, the separators and the characters
+that need escaping. It passes an already-formed URL through unchanged, while
+being careful not to mistake `d:\...` for one — a naive "does it have a scheme"
+check sees `d:` and would hand the broken specifier straight back.
+
+The regression test does not describe the bug, it reproduces it: it asserts that
+`new URL()` on the raw Windows path really does yield protocol `d:`, and that
+the converted specifier yields `file:`. That assertion holds on either platform,
+which is the point — the fix has to be provable from the machine that never saw
+the failure. A source scan then enforces the rule across `tools/`, `worker/` and
+`apps/web/`, so the next dynamic import of a path fails a test here rather than
+on someone's Windows machine.
+
+The first version of that regression test then failed on Windows itself, which
+was fitting: it asserted `toModuleUrl('/home/claude/content.js')` equals
+`file:///home/claude/content.js`. On Windows a rooted path with no drive
+resolves against the current drive, so the answer is
+`file:///D:/home/claude/content.js` — Node behaving correctly, and a
+POSIX-shaped expectation written on a POSIX machine. The assertion now checks
+the portable property instead: an absolute path converts and converts back to
+itself, and a rooted path yields a `file:` URL whose pathname ends where it
+should, drive prefix or not.
+
+The three things worth keeping: a POSIX-only test run cannot tell you a path is
+portable, because POSIX is the platform that forgives this class of mistake; the
+failure surfaced in the one script written to be run by hand rather than by the
+suite, which is exactly where portability bugs hide; and a test written to prove
+portability can carry the same assumption as the code it guards.
+
+### Two test defects the end-to-end run found, and one thing they were hiding
+
+The contact suite blocked the Turnstile script and then expected the form to
+succeed. Those are contradictory: the Worker refuses a submission with no token,
+so the page correctly declines to send one, and the button never left
+`$send --now`. The application was right and the test asked for something the
+design forbids.
+
+The fix is not to relax the assertion but to stop blocking the script. It is now
+served as a stub defining the same surface the hook uses — `render` hands back a
+token, `reset` clears it — so the whole path runs: config, script, widget,
+token, submission, 202, success. The token is fake because verifying it is the
+Worker's job and the Worker is stubbed here; everything on this side of the
+boundary is real, and the submitted body is now asserted to carry it.
+
+That also exposed a test passing for the wrong reason. "A refused submission
+keeps the visitor informed" stubbed a 403 and checked for the failure message —
+which appeared, but because nothing was ever sent. It now asserts the request
+actually happened. A page that never submits also never succeeds, and a test
+that cannot tell those apart is not testing much. The refusal-before-sending
+path kept its own test, where it belongs.
+
+The third failure was a stale expectation of mine: `/project/full-stack-development`
+renders the record titled `Full-Stack SaaS Platform`, not `Full Stack
+Development`. The slug and the title are different strings and always were; I
+had asserted the slug prettified. The page content is canonical and unchanged,
+and the test now asserts the real title and heading.
+
+### Changed
+
+- `tools/module-url.js` — new; the path-to-URL conversion and the rule it names.
+- `tools/content-bootstrap.js` — CSV reader, two-source composition, declared
+  exclusions and transforms, asset verification, and a validation gate.
+- `tools/plan-content-bootstrap.js` — new; prints the plan, connects to nothing.
+- `tools/snapshots/production-site-content.csv` — the authoritative export.
+- `worker/public/config.js`, `worker/index.js` — `GET /api/config`.
+- `apps/web/src/content-source/contact.js`, `useTurnstile.js` — new.
+- `apps/web/src/pages/Contact.jsx` — posts to the Worker; Turnstile; honeypot
+  handled locally; status UX unchanged.
+- `apps/web/src/pages/Project.jsx` — unknown slug renders the 404.
+- `apps/web/src/content.js` — `contact.formEndpoint` removed.
+- `worker/tests/public-config.test.js`, `apps/web/src/content-source/contact.test.js`,
+  `tests/contact.spec.ts` — new.
+- `tools/content-bootstrap.test.js` — extended.
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/OPERATIONS.md`,
+  `docs/ROADMAP.md`, `PROCESS.md`.
+
+### Validation
+
+- `npm run check` — lint clean; worker 71 passed, web 83 passed, tools 55
+  passed, 0 failed.
+- `node tools/plan-content-bootstrap.js --sql` — passes on Windows and POSIX;
+  the plan is 12 inserts across 36 statements.
+- Playwright, Chromium and Mobile Chrome: the Boss, content and contact suites,
+  25 passed each, 0 failed; the remaining public suites 12 passed. The visual
+  baseline suite is excluded from this run because its snapshots are
+  platform-specific.
+- The staging build and its indexing artifact verification pass on the
+  development machine.
+
+### Exact next action
+
+Review `node tools/plan-content-bootstrap.js --sql`, then execute against
+staging `APP_DB` under separate authorization.
+
+### `--sql-only`, and a flag that was never wired up
+
+The review said to trim the summary out of `--sql` before feeding the file to a
+database. That was a bad instruction: it makes correctness depend on someone
+remembering. The obvious next move was to reach for `--sql-only`, which did not
+exist — and because unknown flags were ignored, the script fell through to its
+default mode and wrote a human summary into a file named `bootstrap.sql`. No
+error, no clue, and the mistake only becomes visible when a database tries to
+execute `snapshot rows      10`.
+
+Two changes, and the second matters more than the first.
+
+`--sql-only` now writes SQL to stdout and routes every human line to stderr —
+the summary, the provenance table, the asset list, and any validation failure.
+Diagnostics are not lost when stdout is redirected; they move. A failed run
+writes nothing at all to stdout and exits nonzero, so a redirect cannot leave a
+file that looks like an empty plan.
+
+And an unrecognised option is now refused with exit 2. Silently ignoring a
+near-miss flag is what turned a typo into a corrupt output file; a mode-selecting
+argument that can be misspelled without complaint is a defect in its own right,
+independent of which modes exist.
+
+The regression test spawns the script and reads its actual streams, because none
+of this is visible from inside the process. Testing the helpers would have gone
+on passing throughout: `bootstrapSql` was always correct, and the bug was
+entirely in the wiring between argv and the output stream. The failure path is
+covered the same way, against a fixture tree with one portfolio image withheld —
+a real copy rather than a symlink farm, since Node resolves module symlinks and
+the script would otherwise find the real repository and pass.
+
+One detail worth recording about the forbidden-word list. `excluded` appears 48
+times in the SQL as the keyword in `ON CONFLICT DO UPDATE SET x = excluded.x`,
+and `production` appears in the revision note and the audit detail. Both are
+content, not prose leaking from the summary. A word list that does not know the
+difference starts forbidding the output it exists to protect, so those two are
+deliberately absent and the reason is written next to the list.
+
+### Validation
+
+- `npm run check` — lint clean; worker 71 passed, web 83 passed, tools 65
+  passed, 0 failed.
+- `node tools/plan-content-bootstrap.js --sql-only > bootstrap.sql`, executed
+  against the real migration in an in-memory database: 12 sections, 12
+  revisions, 12 audit events, no errors.
