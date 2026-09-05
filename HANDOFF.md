@@ -6,15 +6,15 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next`, self-contained: its own `node_modules` installed from its own lockfile, no junction into the legacy checkout |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `3b70ebf`, pushed. The Boss V3 frontend shell commit is its child |
+| HEAD | `34bc26a`, this documentation-only commit. Its parent `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
-| Remote tracking | `origin/develop/hakan-run-v2` is at `3b70ebf`. The Boss shell commit is local and unpushed |
-| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified. The Boss V3 frontend shell is implemented and awaits a deployment. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining after the shell: a public content read path and the one-time content bootstrap |
+| Remote tracking | `origin/develop/hakan-run-v2` is at `cefa9b1`, pushed 2026-09-04 20:29 -0700. This documentation-only commit is local and unpushed |
+| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified, and the Boss V3 frontend shell is live on staging and verified section by section behind a real Access session. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining: a public content read path, the one-time content bootstrap, and the legacy analytics history import |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Deploy the Boss shell to staging and walk the six sections behind a real Access session. The zone-level Managed Content question in `docs/OPERATIONS.md` remains open and is independent of it |
+| Exact next action | Decide the order of the three remaining Phase 2C items: the public content read path, the one-time content bootstrap into the staging `APP_DB`, and the legacy `/control-room` analytics history import. The zone-level Managed Content question in `docs/OPERATIONS.md` remains open and is independent of that order |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | `3b70ebf` and everything before it are pushed. The Boss shell commit is local; pushing requires separate authorization |
-| Deploy state | Staging deployed four times; the running version is `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`, built in the staging mode, carrying `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
+| Push state | `cefa9b1` and everything before it are pushed, so the deployed staging artifact is reproducible from the remote. This documentation-only commit is local; pushing requires separate authorization |
+| Deploy state | Staging deployed five times; the running version is `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from `cefa9b1` in the staging mode, carrying the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
 | Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8` on team domain `dndrnet.cloudflareaccess.com`. Production unchanged and unprovisioned |
 
 ## Current implementation
@@ -106,7 +106,7 @@ Neither fix is visible until the next deployment, because a Worker variable and
 an assets routing rule both take effect at deploy time.
 
 That change set corrected routing, identity and API enforcement. It did not
-implement the Boss frontend shell: the SPA still has no `/boss` route.
+implement the Boss frontend shell: the SPA had no `/boss` route until `cefa9b1`.
 
 Both fixes are now deployed and verified. Staging runs version
 `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, whose runtime `ACCESS_TEAM_DOMAIN` is
@@ -125,6 +125,25 @@ the direct evidence that the Worker now runs before the asset layer.
 `/boss`, `/boss/analytics` and `/api/boss/*` redirect to Access when
 unauthenticated, and `GET /api/analytics/page` and `GET /api/contact` return
 405 JSON.
+
+The Boss V3 shell is now live on staging, in version
+`bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from `cefa9b1`. All six canonical
+sections were walked behind a real Access session on
+`dndrnet.cloudflareaccess.com` and each rendered its own surface:
+`/boss` the Dashboard, `/boss/analytics` Analytics, `/boss/content` its
+bootstrap-not-run empty state, `/boss/submissions` and `/boss/audit` their empty
+states, and `/boss/system` the staging environment and its bindings.
+
+The SPA 404 on an authenticated `/boss` is resolved. It was the expected outcome
+of the three previous staging versions and is no longer reachable: the private
+surface now has a frontend behind the same Access boundary that already guarded
+it, and no second login was introduced.
+
+Three things are deliberately still absent, and the live behaviour shows each of
+them honestly rather than hiding it. The staging `APP_DB` holds no content, so
+Content renders its empty state rather than fabricated rows. The legacy
+`/control-room` analytics history has not been imported, so Analytics reflects
+only first-party staging events. Production is untouched and unprovisioned.
 
 The staging content bootstrap remains outstanding and belongs to Phase 2C.
 

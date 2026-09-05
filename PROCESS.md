@@ -1504,3 +1504,87 @@ addressable; a `<dt>` with its `<dd>` already is.
   the staging artifact verification passed. The Chromium run had this one
   failure and no other. The Chromium and Mobile Chrome suites are rerun there
   after this change; Playwright still cannot run in the auditing environment.
+
+## Phase 2C — Boss V3 shell deployed to staging
+
+Documentation-only record of a deployment that has already happened. Nothing in
+this entry changed functional code.
+
+### What was deployed
+
+Commit `cefa9b1`, built in the staging mode, deployed as staging Worker version
+`bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`. This is the fifth staging deployment.
+
+### What was verified live
+
+All six canonical sections were walked behind a real Cloudflare Access session
+on `dndrnet.cloudflareaccess.com`:
+
+- `/boss` — Dashboard renders;
+- `/boss/analytics` — Analytics renders;
+- `/boss/content` — the empty, bootstrap-not-run state renders;
+- `/boss/submissions` — the empty state renders;
+- `/boss/audit` — the empty state renders;
+- `/boss/system` — the staging environment and bindings render.
+
+Access remains enforced through DNDR Labs on `dndrnet.cloudflareaccess.com`. The
+shell added no second login: it authenticates nothing, stores no session, and
+the Worker still verifies the Access assertion independently.
+
+### The SPA 404 on an authenticated `/boss` is resolved
+
+Three staging versions in a row answered an authenticated `/boss` with the
+public 404 view. That was correct at the time and was recorded as expected
+rather than explained away, because the cause moved twice: first the Worker
+could not fetch a key set, then the asset layer answered the navigation before
+the Worker ran, and after both were fixed the honest remaining reason was that
+no `/boss` route existed in the frontend at all. The private surface was
+reachable and empty. It is now reachable and renders.
+
+Worth keeping for the next time something looks fixed: the routing and identity
+defects masked each other, and fixing both left a third condition that only
+looked like the same symptom. A green smoke result on `/api/boss/system` and a
+404 on `/boss` were both true simultaneously.
+
+### Three absences, recorded as absences
+
+The staging `APP_DB` holds no content. The one-time bootstrap has not been run,
+and `/boss/content` says so in its own words rather than showing nothing.
+
+The legacy `/control-room` analytics history has not been imported. Staging
+Analytics reflects first-party staging events only. That migration is later,
+separate and owner-supplied; mixing it in now would blur two provenances in one
+dataset.
+
+Production remains untouched and unprovisioned. No production resource has been
+created, bound, configured or deployed at any point in Phase 2.
+
+These are why the shell's four-state design mattered here: on a surface whose
+honest answer is currently "nothing yet" for three of six sections, an empty
+panel and a failed read must not look the same, and they do not.
+
+### A correction made while writing this entry
+
+This entry was first drafted stating that `cefa9b1` was deployed but unpushed,
+because that was true at the last check in the working session. It was not true
+by the time the entry was written: `origin/develop/hakan-run-v2` was updated to
+`cefa9b1` at 2026-09-04 20:29 -0700, before this commit was made. The deployed
+staging artifact is therefore reproducible from the remote.
+
+The claim was corrected rather than left standing. It is recorded here because
+the mistake is instructive: repository state read early in a session is not
+still evidence later in it, and a documentation commit that asserts push state
+has to re-read it at the moment of writing.
+
+### Changed
+
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/OPERATIONS.md`,
+  `docs/ROADMAP.md` — deployment, verification and remaining-work state.
+- `PROCESS.md` — this entry.
+
+### Exact next action
+
+Decide the order of the three remaining Phase 2C items: the public content read
+path, the one-time content bootstrap into the staging `APP_DB`, and the legacy
+analytics history import. The zone-level Managed Content question in
+`docs/OPERATIONS.md` remains open and is independent of that order.

@@ -93,7 +93,7 @@ For documentation-only phases:
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
-The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed four times and the running version is `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`, built in the staging mode, which carries `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
+The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed five times and the running version is `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from commit `cefa9b1` in the staging mode, which carries the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. `cefa9b1` is pushed, so this artifact is reproducible from the remote. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
 
 ## Authorization and promotion
 
@@ -143,8 +143,10 @@ Provisioning is ordered by dependency, not by convenience, because a Worker cann
 7. **Second deployment.** *Done*, version `59a843f7-a5f5-44ac-8038-9233a6abd8fb`. Carried the real `ACCESS_AUD_BOSS`.
 8. **Third deployment.** *Done*, version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`. Carried the corrected `ACCESS_TEAM_DOMAIN` and the `run_worker_first` routing rule. This is the point at which the private surface became reachable by the owner: before it the Worker could not fetch a key set, and browser navigation did not reach the Worker at all.
 9. **Smoke matrix.** *Private-surface and routing assertions run and passed* against version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, in a fresh Access session — one established before the team rename carries the former issuer and would fail verification for a reason unrelated to the deployment. Results are recorded below. The visual-parity and caching assertions of the full matrix have not been run against this version.
+10. **Fourth deployment.** *Done*, version `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`. Carried the staging indexing policy, verified live and recorded below.
+11. **Fifth deployment.** *Done*, version `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from commit `cefa9b1`. Carried the Boss V3 frontend shell. This is the point at which the private surface stopped being an empty room: the owner reaches it, and it renders.
 
-Steps 5, 7 and 8 each cross the DEPLOY boundary and are separately authorized. Step 4 crossed MIGRATE. Steps 1, 2 and 6 crossed PROVIDER and ACCESS. No step in this list touches a production resource.
+Steps 5, 7, 8, 10 and 11 each cross the DEPLOY boundary and are separately authorized. Step 4 crossed MIGRATE. Steps 1, 2 and 6 crossed PROVIDER and ACCESS. No step in this list touches a production resource.
 
 The window between steps 5 and 7 was a deliberate fail-closed interval, not an exposure: the Worker rejected every `/boss/*` and `/api/boss/*` request while `ACCESS_AUD_BOSS` was empty. It closed at step 7. The surface stayed closed until step 8, then because the deployed team domain named no Access organisation and because browser navigation was answered by the asset layer before the Worker ran. Cloudflare Access gated the paths at the edge throughout, so the surface was unreachable rather than unprotected.
 
@@ -177,6 +179,43 @@ The staging-mode artifact is deployed. Observed live:
 - the production host is unchanged: `hakan.run/robots.txt` still allows crawling and names the production sitemap, which still lists its five public URLs.
 
 The document canonical link and the Open Graph URLs on staging still point at production. Under `noindex, nofollow` they carry no indexing consequence; changing them is a content decision rather than an indexing-safety one.
+
+### Verified staging Boss shell — version `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`
+
+Built from commit `cefa9b1`. Observed live, behind a real Access session on
+`dndrnet.cloudflareaccess.com`:
+
+- `/boss` — the Dashboard renders;
+- `/boss/analytics` — Analytics renders;
+- `/boss/content` — the empty, bootstrap-not-run state renders;
+- `/boss/submissions` — the empty state renders;
+- `/boss/audit` — the empty state renders;
+- `/boss/system` — the staging environment and the Worker-reported bindings render.
+
+The SPA 404 on an authenticated `/boss` is resolved. Versions
+`a445f4e3-2cdc-4401-a9de-826b20e5cfd9` and
+`3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc` both answered that path with the public
+404 view, which was correct while no shell existed and is recorded as such
+above. Access is unchanged and remains the outer boundary: the shell
+authenticates nothing, stores no session, and the Worker still verifies the
+assertion independently.
+
+Three empty results in that list are the truth about staging rather than
+defects, and are recorded here so a later reader does not mistake them for
+regressions:
+
+- the staging `APP_DB` holds no content, because the one-time bootstrap has not
+  been run, which is what `/boss/content` is reporting;
+- the legacy `/control-room` analytics history has not been imported, so
+  `/boss/analytics` reflects first-party staging events only;
+- production is untouched and unprovisioned.
+
+An empty panel and a failed read are deliberately distinguishable in this
+surface, so these are readable as empty rather than as broken.
+
+Not evaluated against this version: visual parity against the Phase 1B baseline,
+static asset caching headers, the Turnstile and submission assertions, and the
+analytics write assertion.
 
 ### Open issue — the zone prepends its own `Allow: /` above the staging policy
 

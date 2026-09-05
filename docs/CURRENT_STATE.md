@@ -9,8 +9,8 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next`, self-contained since the Phase 1B `node_modules` junctions into the legacy checkout were removed and dependencies installed with `npm ci` from this repository's own lockfile |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | `3b70ebf`, pushed; the Boss V3 frontend shell commit is its child |
-| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `3b70ebf`; the Boss shell commit is local and unpushed |
+| Modernization HEAD | `34bc26a`, this documentation-only commit; its parent `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
+| Modernization remote tracking | `origin/develop/hakan-run-v2` is at `cefa9b1`, so the running staging artifact is reproducible from the remote; this documentation-only commit is local and unpushed |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
 | Backend and data | Browser Supabase client plus separately deployed PHP visitor-log endpoints |
@@ -119,9 +119,33 @@ legacy `/control-room` route still exists in this branch and is untouched; the
 target defines no such route (decision D-019), and removing it belongs to a
 separate change.
 
-What remains: a public content read path and the one-time content bootstrap.
-Historical analytics from the legacy Control Room are a later, separate
-migration and are deliberately not represented here.
+### Boss V3 shell live on staging — version `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`
+
+The shell is deployed and verified live, built from `cefa9b1` in the staging
+mode. All six sections were walked behind a real Access session on
+`dndrnet.cloudflareaccess.com`:
+
+- `/boss` — the Dashboard renders;
+- `/boss/analytics` — Analytics renders;
+- `/boss/content` — the empty, bootstrap-not-run state renders;
+- `/boss/submissions` — the empty state renders;
+- `/boss/audit` — the empty state renders;
+- `/boss/system` — the staging environment and the Worker-reported bindings render.
+
+The SPA 404 on an authenticated `/boss` is resolved. Every staging version
+before this one answered that path with the public 404 view, which was the
+expected outcome while the shell did not exist; it is no longer reachable.
+Access remains the outer boundary and no second login was added.
+
+Three absences are real and are visible in the live surface rather than papered
+over. The staging `APP_DB` still holds no content, which is why Content shows
+its empty state. The legacy `/control-room` analytics history has not been
+imported, so Analytics reflects first-party staging events only. Production
+remains untouched and unprovisioned.
+
+What remains: a public content read path, the one-time content bootstrap, and
+the legacy analytics history import — the last being a later, separate,
+owner-supplied migration.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy
