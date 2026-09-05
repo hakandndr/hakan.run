@@ -2033,3 +2033,84 @@ deliberately absent and the reason is written next to the list.
 - `node tools/plan-content-bootstrap.js --sql-only > bootstrap.sql`, executed
   against the real migration in an in-memory database: 12 sections, 12
   revisions, 12 audit events, no errors.
+
+## Phase 2C — APP_DB is the content authority for staging
+
+Documentation-only record of work already performed. Nothing in this entry
+changed functional code.
+
+### What happened
+
+The composed twelve-section dataset was bootstrapped into staging `APP_DB`, and
+staging was deployed from commit `4c59b6e` as version
+`634cf810-21f4-4c05-972e-48dc97d4027b`.
+
+Verified in the database: 12 content sections, 12 revisions, 12 audit events,
+every `published_revision` at 1, no drafts, no `formspree` reference in any
+published payload, and a coherence query — each published section joined to the
+revision its `published_revision` names, comparing the stored bytes — returning
+zero rows. Every audit event carries actor `bootstrap` and action
+`content.bootstrap`.
+
+Verified live: `/boss/content` lists the twelve sections at revision 1,
+`/boss/audit` shows the twelve events, `/boss/system` reports staging with all
+four bindings configured, and the public site renders the production-derived
+content. The portfolio renders all four production cards with their local image
+assets.
+
+### The one that mattered most
+
+`/contact` loaded Turnstile, a real submission was accepted, the UI reported
+`message sent`, and `/boss/submissions` shows the persisted row.
+
+That is the whole write path proven end to end for the first time: browser to
+`/api/config` for the site key, Turnstile solve, `POST /api/contact`, Turnstile
+verification in the Worker, validation, durable write to `APP_DB`, 202, and the
+row readable from the private surface. Every piece of it was designed and tested
+in isolation across three commits; this is the first time all of it ran together
+against real infrastructure.
+
+Notification is absent, and that is the design rather than a gap.
+`RESEND_API_KEY` stays unset until the sender domain is verified, and the
+ordering contract is `persist -> acknowledge -> notify -> record outcome`. A
+submission is durable before anything is sent, and notification state is
+recorded against the row rather than gating acceptance. An unverified sender
+therefore costs a notification, never a submission.
+
+### What this closes
+
+Phase 1A recorded the content authority as mixed: a fallback object, a browser
+`localStorage` overlay, and Supabase rows, merged shallowly with no way to tell
+which one had answered. `docs/CONTENT-CMS.md` documented the ambiguity;
+D-014 said published content must have one explicit authority.
+
+For staging, it now does. `APP_DB` is the authority, `GET /api/content` is the
+only runtime path to it, the Worker contains no Supabase client on any path, and
+the frontend distinguishes content from nothing-published from failure rather
+than rendering the fallback and calling all three success.
+
+The four portfolio images are worth one line of retrospect. The asset gate
+refused to emit a plan while they were missing, and the reward for that
+stubbornness is visible in the smoke result: the portfolio renders four cards
+with four images, first time, with no broken references to discover later in a
+database that looked complete.
+
+### What is still deliberately absent
+
+The legacy `/control-room` analytics history has not been imported. Production is
+untouched and unprovisioned. `/control-room` and its `localStorage` overlay
+remain in the branch under D-019. The visual-parity and caching assertions of the
+smoke matrix have never been run against a deployed version.
+
+### Changed
+
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/OPERATIONS.md`,
+  `docs/ROADMAP.md` — deployment, bootstrap and verification state.
+- `PROCESS.md` — this entry.
+
+### Exact next action
+
+Decide the two remaining Phase 2C items: the legacy analytics history import,
+and the visual-parity and caching assertions of the smoke matrix. The zone-level
+Managed Content question in `docs/OPERATIONS.md` remains open and is independent
+of both.

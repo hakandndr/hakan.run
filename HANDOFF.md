@@ -6,22 +6,24 @@
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next`, self-contained: its own `node_modules` installed from its own lockfile, no junction into the legacy checkout |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | the public content authority commit. Its ancestor `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
+| HEAD | this documentation-only commit. Its parent `4c59b6e` is the content-authority commit, deployed to staging and running there |
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb` |
 | Remote tracking | `origin/develop/hakan-run-v2` moves when the owner pushes, which is separately authorized and can happen between sessions. Read it with `git rev-parse origin/develop/hakan-run-v2` rather than from this table; a SHA written here is a claim that expires |
-| Current phase | Phase 2C. Staging is provisioned, migrated, deployed and smoke-verified, and the Boss V3 frontend shell is live on staging. The public content read path `GET /api/content` is implemented and the frontend consumes it; the staging content bootstrap is implemented and tested but not executed. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining: the production snapshot and the bootstrap run, and the legacy analytics history import |
+| Current phase | Phase 2C. **`APP_DB` is the canonical content authority for staging.** The bootstrap is executed and verified, the public site renders production-derived content from it, and a real contact submission was accepted and persisted. One zone-level question is open, recorded in `docs/OPERATIONS.md`. Remaining in this phase: the legacy `/control-room` analytics history import, and the visual-parity and caching parts of the smoke matrix |
 | Completed work | Phase 1A/1B governance and visual baseline, Phase 1C publication, and the Phase 2A staging architecture specification |
-| Exact next action | Review the bootstrap plan — `node tools/plan-content-bootstrap.js --sql` — then execute it against staging `APP_DB` under separate authorization. The plan is 12 inserts, 36 statements, and every validation passes |
+| Exact next action | Decide the two remaining Phase 2C items: the legacy `/control-room` analytics history import, and the visual-parity and caching assertions of the smoke matrix, which have never been run against a deployed version. The zone-level Managed Content question in `docs/OPERATIONS.md` remains open and is independent of both |
 | Prohibited actions | Push, deploy, migrate, activate, provider changes, production changes, dependency changes, and runtime implementation without separate authorization |
-| Push state | The public content authority commit is local and unpushed; pushing requires separate authorization. `cefa9b1`, the deployed staging commit, is pushed, so the running artifact is reproducible from the remote |
-| Deploy state | Staging deployed five times; the running version is `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from `cefa9b1` in the staging mode, carrying the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
+| Push state | Read the remote position with `git rev-parse origin/develop/hakan-run-v2`. `4c59b6e` is deployed to staging, so whether the running artifact is reproducible from the remote depends on whether that commit has been pushed |
+| Deploy state | Staging deployed six times; the running version is `634cf810-21f4-4c05-972e-48dc97d4027b`, built from `4c59b6e` in the staging mode, carrying the public content read path, the Worker contact submission path with Turnstile, `GET /api/config`, the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Production never deployed |
 | Infrastructure state | Staging fully provisioned and verified: both D1 databases with `0001_init.sql` applied, Worker `944dbffc89f2490cbc0288a819502ad6` with both bindings and the cron trigger, `staging.hakan.run`, Turnstile widget with its secret set, Access application `4f3f249c-5a5e-4a14-a673-12f7282d96a8` on team domain `dndrnet.cloudflareaccess.com`. Production unchanged and unprovisioned |
 
 ## Current implementation
 
-The modernization branch still contains the unchanged legacy React/Vite frontend, Supabase content and authentication integration, Formspree contact submission, GA4, PHP visitor logging, and the source-described Hostinger/static deployment model.
+The framework is unchanged — React and Vite, delivered by a Worker with static assets — and that was always the plan: the first Cloudflare migration is a hosting migration.
 
-No framework, runtime, data, provider, or visual migration has started. The existing production visual identity remains authoritative and is now represented by `docs/VISUAL_BASELINE.md` and tracked Playwright snapshots.
+What has moved is authority. Public content comes from `APP_DB` through `GET /api/content`; the Supabase read is gone from the runtime and there is no Supabase client anywhere in the Worker. Contact submissions go to the Worker's `POST /api/contact`, verified by Turnstile and persisted before any notification; the Formspree endpoint is excluded from the content authority and absent from the bundle. The `/run/` PHP visitor log is replaced by first-party PAGE analytics in `ANALYTICS_DB`.
+
+Two legacy surfaces remain in the branch and are untouched: `/control-room`, which still imports the Supabase client for its own authentication, and the `localStorage` content overlay it writes. Both are removed under D-019, which is a separate change. The existing production visual identity remains authoritative and is represented by `docs/VISUAL_BASELINE.md` and tracked Playwright snapshots.
 
 ## Continuation order
 

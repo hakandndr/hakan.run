@@ -93,7 +93,7 @@ For documentation-only phases:
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
-The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed five times and the running version is `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from commit `cefa9b1` in the staging mode, which carries the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. `cefa9b1` is pushed, so this artifact is reproducible from the remote. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
+The modernization branch tracks `origin/develop/hakan-run-v2`. Every Cloudflare staging resource now exists: both D1 databases with `0001_init.sql` applied, the Worker `hakan-run-web-staging` with both bindings, the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set, and the Access application. Staging has been deployed six times and the running version is `634cf810-21f4-4c05-972e-48dc97d4027b`, built from commit `4c59b6e` in the staging mode, which carries the public content read path, the Worker contact submission path with Turnstile, `GET /api/config`, the Boss V3 frontend shell, `ACCESS_TEAM_DOMAIN` `dndrnet.cloudflareaccess.com`, `ACCESS_AUD_BOSS`, the `run_worker_first` routing rule and the staging indexing policy. Staging `APP_DB` holds the bootstrapped content and is the canonical content authority for the environment. The canonical staging delivery command is `npx wrangler deploy --env staging`, run against a build produced from the deployed commit. No production resource has been created or touched.
 
 ## Authorization and promotion
 
@@ -145,8 +145,10 @@ Provisioning is ordered by dependency, not by convenience, because a Worker cann
 9. **Smoke matrix.** *Private-surface and routing assertions run and passed* against version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, in a fresh Access session — one established before the team rename carries the former issuer and would fail verification for a reason unrelated to the deployment. Results are recorded below. The visual-parity and caching assertions of the full matrix have not been run against this version.
 10. **Fourth deployment.** *Done*, version `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`. Carried the staging indexing policy, verified live and recorded below.
 11. **Fifth deployment.** *Done*, version `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875`, built from commit `cefa9b1`. Carried the Boss V3 frontend shell. This is the point at which the private surface stopped being an empty room: the owner reaches it, and it renders.
+12. **Content bootstrap.** *Done.* The composed, normalised twelve-section dataset seeded into staging `APP_DB`: 12 sections, 12 revisions, 12 audit events, verified below. This step crosses DATABASE.
+13. **Sixth deployment.** *Done*, version `634cf810-21f4-4c05-972e-48dc97d4027b`, built from commit `4c59b6e`. Carried the public content read path, the Worker contact submission path with Turnstile and `GET /api/config`. This is the point at which `APP_DB` became the environment's content authority in fact and not only in design.
 
-Steps 5, 7, 8, 10 and 11 each cross the DEPLOY boundary and are separately authorized. Step 4 crossed MIGRATE. Steps 1, 2 and 6 crossed PROVIDER and ACCESS. No step in this list touches a production resource.
+Steps 5, 7, 8, 10, 11 and 13 each cross the DEPLOY boundary and are separately authorized. Step 12 crosses DATABASE. Step 4 crossed MIGRATE. Steps 1, 2 and 6 crossed PROVIDER and ACCESS. No step in this list touches a production resource.
 
 The window between steps 5 and 7 was a deliberate fail-closed interval, not an exposure: the Worker rejected every `/boss/*` and `/api/boss/*` request while `ACCESS_AUD_BOSS` was empty. It closed at step 7. The surface stayed closed until step 8, then because the deployed team domain named no Access organisation and because browser navigation was answered by the asset layer before the Worker ran. Cloudflare Access gated the paths at the edge throughout, so the surface was unreachable rather than unprotected.
 
@@ -216,6 +218,40 @@ surface, so these are readable as empty rather than as broken.
 Not evaluated against this version: visual parity against the Phase 1B baseline,
 static asset caching headers, the Turnstile and submission assertions, and the
 analytics write assertion.
+
+### Verified staging content authority — version `634cf810-21f4-4c05-972e-48dc97d4027b`
+
+Built from commit `4c59b6e`, after the bootstrap. Observed in the database:
+
+- `content_sections` 12, `content_revisions` 12, `audit_events` 12;
+- `submissions` 0 before the smoke test;
+- no row carries a draft, and every `published_revision` is 1;
+- no published payload contains a `formspree` reference;
+- the coherence query — every published section joined to the revision its
+  `published_revision` names, comparing `published_data` — returns zero rows;
+- every audit event has actor `bootstrap` and action `content.bootstrap`.
+
+Observed live, behind a real Access session and in a public browser:
+
+- `/boss/content` lists twelve published sections at revision 1;
+- `/boss/audit` shows the twelve bootstrap events;
+- `/boss/system` reports staging with `APP_DB`, `ANALYTICS_DB`, Turnstile and
+  Access configured;
+- the public site renders the production-derived content;
+- the portfolio renders DNDR Labs, TurkCyber, TürkiyeCennet and AmericaWhat with
+  their local image assets — the check the asset gate existed to force;
+- `/contact` loads Turnstile, a real submission was accepted, the UI reported
+  `message sent`, and `/boss/submissions` shows the persisted row;
+- notification is absent by design. `RESEND_API_KEY` is unset until the sender
+  domain is verified, and the write-ordering contract means the submission is
+  durable regardless: persistence precedes acknowledgement, notification follows
+  it, and its outcome is recorded against the row rather than gating acceptance.
+
+Production was not modified. The legacy `/control-room` analytics history has not
+been imported.
+
+Still not evaluated against any deployed version: visual parity against the
+Phase 1B baseline, and static asset caching headers.
 
 ### Open issue — the zone prepends its own `Allow: /` above the staging policy
 

@@ -9,7 +9,7 @@ This document records repository-backed truth for the modernization working copy
 | Legacy baseline | `e3467d221470f5776bf435a5c770a17d0c45f7fb`, the commit this modernization branched from. Legacy `main` has since moved on independently and is `648c609dcc7837af8a9910ae788e222504cdbeb2` on the remote |
 | Modernization working copy | `D:\IT\hakan\hakan-run-next`, self-contained since the Phase 1B `node_modules` junctions into the legacy checkout were removed and dependencies installed with `npm ci` from this repository's own lockfile |
 | Modernization branch | `develop/hakan-run-v2` |
-| Modernization HEAD | the public content authority commit; its ancestor `cefa9b1` is the Boss V3 frontend shell commit, pushed and deployed to staging |
+| Modernization HEAD | this documentation-only commit; its parent `4c59b6e` is the content-authority commit, deployed to staging as version `634cf810-21f4-4c05-972e-48dc97d4027b` |
 | Modernization remote tracking | `cefa9b1`, the deployed staging commit, is pushed, so the running artifact is reproducible from the remote. The current position of `origin/develop/hakan-run-v2` is read with `git rev-parse`, not from this table: the owner pushes under separate authorization and a SHA recorded here expires without notice |
 | Remote | `https://github.com/hakandndr/hakan.run.git` |
 | Frontend | React 18 and Vite 4 client-side SPA |
@@ -229,8 +229,52 @@ test removes one image from the dataset and asserts the gate closes again, so
 the current pass is evidence the check works rather than evidence it stopped
 checking.
 
-Every validation now passes, and the planner emits 12 inserts across 36
-statements. The bootstrap has not been executed.
+Every validation passes, and the planner emits 12 inserts across 36 statements.
+
+### `APP_DB` is the canonical content authority for staging
+
+The bootstrap has been executed and verified. Staging runs version
+`634cf810-21f4-4c05-972e-48dc97d4027b`, built from `4c59b6e`.
+
+Verified in the database after execution:
+
+| Check | Result |
+| --- | --- |
+| `content_sections` | 12 |
+| `content_revisions` | 12 |
+| `audit_events` | 12, all actor `bootstrap`, action `content.bootstrap` |
+| `submissions` before the smoke test | 0 |
+| Rows carrying a draft | 0 |
+| `published_revision` | 1 for every section |
+| `formspree` references in published content | 0 |
+| Coherence query — every published section joined to its revision | zero rows |
+
+Verified live, behind a real Access session and in a public browser:
+
+- `/boss/content` lists all twelve published sections at revision 1;
+- `/boss/audit` shows the twelve bootstrap events;
+- `/boss/system` reports staging with `APP_DB`, `ANALYTICS_DB`, Turnstile and
+  Access all configured;
+- the public staging site renders the production-derived content — the palette,
+  the rewritten copy, the four-card portfolio;
+- the portfolio renders DNDR Labs, TurkCyber, TürkiyeCennet and AmericaWhat with
+  their local image assets, which is the check the asset gate existed to force;
+- `/contact` loads Turnstile, a real submission was accepted, the UI showed
+  `message sent`, and `/boss/submissions` shows the persisted row;
+- notification is disabled and absent, by design: `RESEND_API_KEY` stays unset
+  until the sender domain is verified, and a submission is stored regardless.
+
+That last point is the write-ordering contract working rather than a gap. A
+submission is durable before anything is sent, and notification state is
+recorded against the row instead of gating acceptance.
+
+The mixed content authority described at the top of this document — fallback
+object, browser local state, Supabase rows, with no way to tell which had
+answered — is resolved for staging. Production still runs the legacy
+application and is unchanged.
+
+Two absences remain deliberate: the legacy `/control-room` analytics history has
+not been imported, and production is untouched and unprovisioned.
 
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy
