@@ -2232,3 +2232,57 @@ the ordinal in the event id distinguishes them without inventing a difference.
 Export a fresh log from production immediately before importing, run the
 planner against it, and review. Execution against staging `ANALYTICS_DB` remains
 separately authorized.
+
+## Phase 2C — three staging regressions after the legacy import
+
+The import itself was correct: 5,154 source records, 3,191 imported PAGE events,
+1,963 archived, `event_source = legacy_panel` on exactly 3,191 rows. Every
+failure the live smoke found was contract drift between a producer that changed
+and a consumer that did not.
+
+**Dashboard, HTTP 500.** `oldestEventQuery` became source-scoped and therefore
+gained a bound `event_source = ?`. Every call site goes through the `run` helper,
+which binds — except the Dashboard, which had always used
+`prepare(query.sql).first()` directly. D1 refuses a statement with an unfilled
+placeholder, so this surfaced as a 500 rather than a wrong number, which is the
+better of the two failures. The fix routes it through `run` like everything else.
+One regression test asserts the parameter is passed; a second fails if any
+analytics statement in the Boss API is prepared without `bind()`, so the next
+source-scoped query cannot repeat this.
+
+**System, missing panels.** The backend returned `legacyAnalytics` and
+`eventSources`; the page destructured neither. Nothing errored — the data simply
+had no reader. Both are now rendered, with the legacy panel labelled as not
+governed by the native retention policy and placed after the native one, so the
+separation the backend draws survives into the rendering. Both fields are read
+with a fallback, because a Worker deployed before the frontend returns neither
+and a stale Worker should not break the private surface.
+
+**Analytics, em dashes.** `mergeLabelledCounts` emits `{label, value}`; the Top
+pages and Countries tables asked for `count`, and `DataTable` fell through to its
+placeholder for every row. The totals above them were correct, which made it look
+like a data problem rather than a naming one.
+
+Worth keeping: all three are the same failure mode, and none of them broke a
+test. One API shape changed under three consumers, and only the one that threw
+was noticed before deployment. The new tests read the source for the field names
+rather than asserting rendered output — cheap, and enough. What was missing was
+any assertion at all that the two sides agreed.
+
+### Changed
+
+- `worker/boss/index.js` — Dashboard binds through `run`.
+- `apps/web/src/boss/pages/System.jsx` — legacy history and event-source panels.
+- `apps/web/src/boss/pages/Analytics.jsx` — tables key on `value`.
+- `worker/tests/legacy-retention.test.js`, new
+  `apps/web/src/boss/pages/boss-pages.test.js`, `package.json` test glob.
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `PROCESS.md`.
+
+### Validation
+
+`npm run check` — lint clean; worker 83, web 89, tools 123, 0 failed.
+
+### Exact next action
+
+Deploy to staging and re-run the Boss smoke: Dashboard, System (both new panels),
+Analytics (Top pages and Countries showing counts).

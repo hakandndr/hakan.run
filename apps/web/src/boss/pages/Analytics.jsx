@@ -57,7 +57,7 @@ const Analytics = () => {
           <DataTable
             columns={[
               { key: 'label', label: 'Path' },
-              { key: 'count', label: 'Events' },
+              { key: 'value', label: 'Events' },
             ]}
             rows={topPages}
             rowKey={(row) => row.label}
@@ -72,7 +72,7 @@ const Analytics = () => {
           <DataTable
             columns={[
               { key: 'label', label: 'Country' },
-              { key: 'count', label: 'Events' },
+              { key: 'value', label: 'Events' },
             ]}
             rows={countries}
             rowKey={(row) => row.label}

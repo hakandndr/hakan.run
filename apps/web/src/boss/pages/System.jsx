@@ -27,6 +27,11 @@ const System = () => {
   if (status === 'error') return <ErrorState error={error} onRetry={reload} />;
 
   const { analytics, bindings, environment } = data;
+  // Imported history and the source breakdown are separate figures from the
+  // native retention promise above, and are rendered as such: the policy
+  // governs what this system collected, not what was imported into it.
+  const legacy = data.legacyAnalytics ?? null;
+  const eventSources = data.eventSources ?? [];
 
   return (
     <>
@@ -60,6 +65,41 @@ const System = () => {
           </p>
         ) : null}
       </Panel>
+
+      {legacy && legacy.retainedEvents > 0 ? (
+        <Panel
+          title="Legacy analytics history"
+          hint="Imported from the legacy panel. Not governed by the native retention policy"
+        >
+          <StatGrid
+            items={[
+              { label: 'Imported events', value: legacy.retainedEvents },
+              {
+                label: 'Oldest imported event',
+                value: legacy.oldestEventDay ?? 'none',
+                note: `${legacy.oldestEventAgeDays} day(s) old`,
+              },
+              {
+                label: 'Retention policy',
+                value: legacy.governedByRetentionPolicy ? 'applies' : 'does not apply',
+                note: 'History predates the window by design; deleting it is a separate decision',
+              },
+            ]}
+          />
+        </Panel>
+      ) : null}
+
+      {eventSources.length > 0 ? (
+        <Panel title="Event sources" hint="Every source with retained rows, so a new one cannot go unreported">
+          <StatGrid
+            items={eventSources.map((entry) => ({
+              label: entry.source,
+              value: entry.retainedEvents,
+              note: entry.source === 'native' ? 'Collected by this system' : 'Imported history',
+            }))}
+          />
+        </Panel>
+      ) : null}
 
       <Panel title="Bindings" hint="Reported by the Worker; secret values are never exposed">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

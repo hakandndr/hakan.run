@@ -40,11 +40,16 @@ const audit = (env, identity, action, objectType, objectId, detail, requestId) =
 // --- Dashboard --------------------------------------------------------------
 
 const dashboard = async (env) => {
-  const [submissions, audits, events] = await Promise.all([
+  // `oldestEventQuery` is source-scoped and therefore carries a bound parameter.
+  // Preparing its SQL without binding leaves the placeholder unfilled and D1
+  // rejects the statement, which is how this became a 500 rather than a wrong
+  // number. Go through `run`, the same helper every other call site uses.
+  const [submissions, audits, oldestRows] = await Promise.all([
     env.APP_DB.prepare(`SELECT COUNT(*) AS value FROM submissions WHERE status = 'new'`).first(),
     env.APP_DB.prepare(`SELECT COUNT(*) AS value FROM audit_events`).first(),
-    env.ANALYTICS_DB.prepare(oldestEventQuery().sql).first(),
+    run(env.ANALYTICS_DB)(oldestEventQuery(NATIVE_SOURCE)),
   ]);
+  const events = oldestRows[0] ?? null;
   return json({
     environment: env.ENVIRONMENT ?? 'unknown',
     pendingSubmissions: Number(submissions?.value ?? 0),

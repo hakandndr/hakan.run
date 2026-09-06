@@ -114,3 +114,59 @@ test('the import path never writes coverage or aggregates', () => {
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM analytics_coverage').get().n, 0);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM analytics_daily').get().n, 0);
 });
+
+// --- The Dashboard regression ------------------------------------------------
+
+test('the Dashboard binds the source parameter it now has to bind', async () => {
+  // The live failure: `oldestEventQuery` gained a bound `event_source = ?`, and
+  // the Dashboard still prepared its SQL without binding. D1 refuses a statement
+  // with an unfilled placeholder, so a wrong number would have been the lucky
+  // outcome — it was a 500 instead. This asserts the call site passes params.
+  const { handleBossApi } = await import('../boss/index.js');
+  const seen = [];
+  const analyticsDb = {
+    prepare: (sql) => ({
+      bind: (...params) => {
+        seen.push({ sql, params });
+        return { all: async () => ({ results: [{ oldest: 1, oldest_day: '2026-09-04' }] }) };
+      },
+      // No bind() call means an unbound placeholder reached the database.
+      first: async () => { throw new Error('prepared without binding'); },
+      all: async () => { throw new Error('prepared without binding'); },
+    }),
+  };
+  const appDb = { prepare: () => ({ first: async () => ({ value: 2 }) }) };
+
+  const response = await handleBossApi(
+    new Request('https://staging.hakan.run/api/boss/dashboard'),
+    { ENVIRONMENT: 'staging', APP_DB: appDb, ANALYTICS_DB: analyticsDb },
+    {},
+    { email: 'hakan@dndr.net' },
+  );
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.pendingSubmissions, 2);
+  assert.equal(body.oldestAnalyticsEvent, 1);
+  assert.deepEqual(seen.map((entry) => entry.params), [[NATIVE_SOURCE]]);
+});
+
+test('every analytics statement the Boss API prepares is bound', async () => {
+  // Generalised so the next source-scoped query cannot repeat this.
+  const { handleBossApi } = await import('../boss/index.js');
+  const unbound = [];
+  const analyticsDb = {
+    prepare: (sql) => ({
+      bind: () => ({ all: async () => ({ results: [] }), first: async () => null }),
+      first: async () => { unbound.push(sql); return null; },
+      all: async () => { unbound.push(sql); return { results: [] }; },
+    }),
+  };
+  const appDb = { prepare: () => ({ first: async () => ({ value: 0 }) }) };
+  const env = { ENVIRONMENT: 'staging', APP_DB: appDb, ANALYTICS_DB: analyticsDb };
+
+  for (const path of ['/api/boss/dashboard', '/api/boss/system']) {
+    await handleBossApi(new Request(`https://staging.hakan.run${path}`), env, {}, { email: 'hakan@dndr.net' });
+  }
+  assert.deepEqual(unbound, [], 'an analytics statement was prepared without bind()');
+});

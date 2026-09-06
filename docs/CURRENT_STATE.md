@@ -276,7 +276,7 @@ application and is unchanged.
 Two absences remain deliberate: the legacy `/control-room` analytics history has
 not been imported, and production is untouched and unprovisioned.
 
-### Legacy analytics import — implemented, awaiting a fresh export
+### Legacy analytics import — executed on staging
 
 `migrations/analytics/0002_legacy_import.sql` adds an explicit `event_source`
 column to `visitor_events` (`NOT NULL DEFAULT 'native'`, so the ingestion path
@@ -286,7 +286,18 @@ became an event, and `legacy_import_snapshots`, which records the exact bytes
 each import read.
 
 `tools/legacy-analytics/` parses the log, maps it, and plans the import. It has
-not been run against staging.
+been run against staging: 5,154 source records, 3,191 imported PAGE events,
+1,963 archived, `event_source = legacy_panel` on exactly 3,191 rows, snapshot
+fingerprint `0694feee1760bcbd487780bc58c5f516a218590b3869691289a86f22f6cfd965`.
+
+The first live smoke after that deployment found three regressions, all fixed
+and covered by tests. Boss Dashboard returned 500 because the source-scoped
+`oldestEventQuery` gained a bound parameter and that one call site still
+prepared its SQL without binding. Boss System returned `legacyAnalytics` and
+`eventSources` but the page read neither. Boss Analytics showed em dashes in Top
+pages and Countries because the tables keyed on `count` while the API sends
+`{label, value}`. None was a data problem; all three were contract drift between
+a producer that changed and a consumer that did not.
 
 The source log is live: production keeps appending to it, so any export is a
 cutoff rather than a completion. The tool takes the file path as an argument and
