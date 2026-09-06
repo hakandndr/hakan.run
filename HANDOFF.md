@@ -180,4 +180,12 @@ An editable social/OG card is now on the roadmap as Phase 9B: the served card is
 generated from published `APP_DB` content, Boss edits a bounded set of text
 fields, and the visual identity stays system-controlled. See decision D-023.
 
+Boss Analytics now reads the raw event stream the Worker already served. The
+page visit stream filters on IP, country, city, page, referrer, browser, actor,
+source and date range, pages at 25/50/100, and shows `event_source` as a column
+so imported history and native events stay distinguishable. Retention deletion is
+native-only at every layer — preview, delete, payload and audit — so the imported
+archive cannot be removed by the action that honours the native 90-day promise.
+Inspect and Export are deliberately not implemented; neither endpoint exists.
+
 Provider access, resource creation, secrets, databases, deployment, activation, DNS, push, and production changes remain separately authorized. Any later frontend delivery must use the Phase 1B baseline as its parity contract.

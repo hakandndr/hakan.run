@@ -72,6 +72,14 @@ export const buildEventFilter = (filters = {}, range = null) => {
     conditions.push("referrer_origin LIKE ? ESCAPE '\\'");
     params.push(`${escapePrefix(filters.referrer)}%`);
   }
+  // Exact, and deliberately not restricted to a known enumeration: the source
+  // column is open-ended by design (`eventsBySourceQuery` reports whatever is
+  // there), so a filter that only understood today's two values would hide a
+  // third the moment one existed. The value is bound, never interpolated.
+  if (filters.source) {
+    conditions.push('event_source = ?');
+    params.push(filters.source);
+  }
 
   return {
     where: conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '',
@@ -216,7 +224,8 @@ export const eventStreamQuery = (filters, limit, offset, range = null) => {
   return {
     sql: `SELECT id, occurred_at, date_local, ip_address, country, region, city, colo,
                  path, referrer_origin, user_agent, browser_family, device_class,
-                 actor_class, classification_source, session_id, request_id
+                 actor_class, classification_source, session_id, request_id,
+                 event_source
           FROM visitor_events ${where}
           ORDER BY occurred_at DESC, id DESC
           LIMIT ? OFFSET ?`,
@@ -311,15 +320,26 @@ export const eventsBySourceQuery = () => ({
   params: [],
 });
 
-/** Preview of an operator deletion. Never deletes. */
-export const deletePreviewQuery = (cutoff) => ({
+/**
+ * Preview of an operator deletion. Never deletes.
+ *
+ * Scoped to one source, and native by default, for the same reason the
+ * retention figures are: the 90-day commitment is a promise about data this
+ * system collected. Imported `legacy_panel` history is a deliberate archive
+ * that predates the window by definition, so an unscoped cutoff would have
+ * swept all of it away the first time the operator met the native promise —
+ * silently, and with the preview reporting the larger number as if that were
+ * intended. Preview and delete take the same scope so the count the operator
+ * confirms is the count the delete removes.
+ */
+export const deletePreviewQuery = (cutoff, source = NATIVE_SOURCE) => ({
   sql: `SELECT COUNT(*) AS value, MIN(occurred_at) AS oldest, MAX(occurred_at) AS newest
-        FROM visitor_events WHERE occurred_at < ?`,
-  params: [cutoff],
+        FROM visitor_events WHERE occurred_at < ? AND event_source = ?`,
+  params: [cutoff, source],
 });
 
 /** The confirmed deletion itself. Only ever reached after preview + confirm. */
-export const deleteEventsQuery = (cutoff) => ({
-  sql: `DELETE FROM visitor_events WHERE occurred_at < ?`,
-  params: [cutoff],
+export const deleteEventsQuery = (cutoff, source = NATIVE_SOURCE) => ({
+  sql: `DELETE FROM visitor_events WHERE occurred_at < ? AND event_source = ?`,
+  params: [cutoff, source],
 });

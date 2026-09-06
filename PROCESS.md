@@ -2286,3 +2286,80 @@ any assertion at all that the two sides agreed.
 
 Deploy to staging and re-run the Boss smoke: Dashboard, System (both new panels),
 Analytics (Top pages and Countries showing counts).
+
+## Phase 2C — the Boss analytics raw event stream
+
+The legacy import made `event_source` a real dimension and then left it
+unreadable. Boss Analytics showed totals, coverage and two ranked breakdowns;
+`GET /api/boss/analytics/events` already served the raw stream — pagination,
+row and per-day ordinals, and filters for actor, country, browser, path, IP,
+city, referrer and date range — and nothing in the private surface called it.
+Two months of imported history existed in the database and could not be looked
+at. This completes the existing backend rather than adding a second analytics
+implementation: no new query layer, no client-side aggregation, no second answer
+to a question the Worker already answers.
+
+**The source dimension, made readable.** `parseFilters` now reads `source`,
+`buildEventFilter` turns it into an exact bound `event_source = ?`, and
+`eventStreamQuery` projects the column. The filter is deliberately not validated
+against an enumeration: `eventsBySourceQuery` already reports whatever sources
+exist so a third one cannot hide, and a filter that only understood today's two
+values would have hidden it again the moment it appeared. An absent parameter
+means every source, because the imported history has to be visible by default to
+be reviewable at all.
+
+**Retention is native-only, and now says so.** This is the half that mattered.
+`deletePreviewQuery` and `deleteEventsQuery` were unscoped, so the first time the
+operator honoured the 90-day commitment the cutoff would have swept away the
+entire imported archive — all of it older than the window by definition — and
+the preview would have reported the larger number as though that were the intent.
+Both are now scoped to a source, defaulting to `native`, and both call sites in
+the Boss API state `NATIVE_SOURCE` explicitly rather than relying on the default.
+Preview and delete take the same scope, so the number the operator confirms is
+the number that is removed; the endpoint and the audit record both name the
+scope. Deleting imported history stays a separate decision from meeting the
+native promise, which is the same separation D-021 draws everywhere else.
+
+**The stream on the page.** A DriverFairness-style visit stream in Hakan.run Boss
+styling: filters for IP, Country, City, Page, Referrer, Browser, Actor, Source,
+From and To; source options All / native / legacy_panel; 25/50/100 per page;
+total records; newest first; and the eleven columns `#`, `Today #`, IP Address,
+Source, Actor, Date (PT), Country, City / Region, Page, Referrer, Device /
+Browser. Apply and Reset both return to page one and drop the retained total,
+because reusing a total across a filter change pages against a count describing a
+different query — which surfaces as pages that are empty for no visible reason.
+Totals, Coverage, Top pages and Countries are unchanged.
+
+Two structural choices. The summary and the stream each own their resource read,
+so a failing summary cannot take the raw stream down with it or the reverse; the
+page is now two independent halves rather than one early return. And the request
+path is built by `apps/web/src/boss/pages/eventStreamPath.js`, a plain module,
+because that function is the entire client half of the events contract — which
+filters are sent, under which names, and when `knownTotal` may be reused — and it
+is worth executing in a test rather than reading in one.
+
+Inspect and Export are deliberately absent. Neither endpoint exists, and a
+control that cannot work is worse than a missing one. A test asserts their
+absence so it stays a decision rather than an oversight.
+
+### Changed
+
+- `worker/analytics/queries.js` — `source` in `buildEventFilter`, `event_source`
+  in the stream projection, source-scoped delete preview and delete.
+- `worker/boss/index.js` — `source` in `parseFilters`; both retention call sites
+  explicitly `NATIVE_SOURCE`; the scope reported in the payload and the audit.
+- `apps/web/src/boss/pages/Analytics.jsx` — the page visit stream.
+- `apps/web/src/boss/pages/eventStreamPath.js` — new; the request contract.
+- `worker/tests/analytics-source-stream.test.js` — new, 14 tests.
+- `apps/web/src/boss/pages/boss-pages.test.js` — the stream contract and paging.
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `PROCESS.md`.
+
+### Validation
+
+`npm run check` — lint clean; worker 97, web 101, tools 123, 0 failed.
+Production build succeeds and still satisfies the indexing policy.
+
+### Exact next action
+
+Deploy to staging and smoke the stream: unfiltered first page, `source=native`,
+`source=legacy_panel`, a page-size change, page two, and Reset.

@@ -343,3 +343,22 @@ authorization and local-day semantics. This code has been applied remotely:
 Configuration still chosen at provisioning time: Access identity provider and
 session policy, and the Resend sender verification path. Retention is no longer
 an open question — it is settled by D-021.
+
+### The raw event stream is readable in Boss
+
+Boss Analytics now reads `GET /api/boss/analytics/events` as well as the summary.
+The stream is filterable by IP, country, city, page, referrer, browser, actor,
+source and date range, pages at 25/50/100, reports the total, and orders newest
+first. `event_source` is both a filter and a column, so native events and
+imported `legacy_panel` history are distinguishable on the same page rather than
+reading as one undifferentiated record.
+
+Retention deletion is scoped to `event_source = 'native'` at every layer: the
+preview, the confirmed delete, the endpoint payload and the audit record. The
+90-day commitment is a promise about what this system collected, and the imported
+archive is older than the window by definition; an unscoped cutoff would have
+deleted all of it the first time that promise was met. Removing imported history
+remains a separate, separately authorised decision.
+
+Inspect and Export are not implemented. Neither endpoint exists yet; both are a
+later scope.

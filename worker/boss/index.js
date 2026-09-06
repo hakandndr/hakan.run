@@ -79,6 +79,10 @@ const parseFilters = (url) => ({
   ipExact: url.searchParams.get('ipExact') === 'true',
   city: url.searchParams.get('city') ?? undefined,
   referrer: url.searchParams.get('referrer') ?? undefined,
+  // The stream reads every source. Filtering by one is the operator's choice,
+  // not a default, so an absent parameter means "all sources" rather than
+  // "native only" — the imported history has to be visible to be reviewable.
+  source: url.searchParams.get('source') ?? undefined,
 });
 
 const analyticsEvents = async (url, env) => {
@@ -131,8 +135,11 @@ const analyticsDeletePreview = async (url, env) => {
   const before = day(url.searchParams.get('before'));
   if (!before) return problem('invalid_cutoff', 400);
   const cutoff = localDayBounds(before).start;
-  const rows = await run(env.ANALYTICS_DB)(deletePreviewQuery(cutoff));
-  return json({ before, cutoff, affected: Number(rows[0]?.value ?? 0),
+  // Native only, and stated at the call site rather than left to a default.
+  // Retention is a promise about what this system collected; imported
+  // `legacy_panel` history is an archive that is never removed by this action.
+  const rows = await run(env.ANALYTICS_DB)(deletePreviewQuery(cutoff, NATIVE_SOURCE));
+  return json({ before, cutoff, source: NATIVE_SOURCE, affected: Number(rows[0]?.value ?? 0),
                 oldest: rows[0]?.oldest ?? null, newest: rows[0]?.newest ?? null });
 };
 
@@ -144,9 +151,11 @@ const analyticsDeleteConfirm = async (request, env, identity) => {
     return problem('confirmation_required', 400);
   }
   const cutoff = localDayBounds(before).start;
-  const preview = await run(env.ANALYTICS_DB)(deletePreviewQuery(cutoff));
+  const preview = await run(env.ANALYTICS_DB)(deletePreviewQuery(cutoff, NATIVE_SOURCE));
   const affected = Number(preview[0]?.value ?? 0);
-  const query = deleteEventsQuery(cutoff);
+  // Same scope as the preview the operator just confirmed. If these two ever
+  // disagreed, the operator would be confirming one number and deleting another.
+  const query = deleteEventsQuery(cutoff, NATIVE_SOURCE);
   await env.ANALYTICS_DB.prepare(query.sql).bind(...query.params).run();
   await env.ANALYTICS_DB.prepare(
     `INSERT INTO analytics_deletion_log (id, ran_at, cutoff_at, rows_deleted, actor, request_id)
@@ -154,8 +163,8 @@ const analyticsDeleteConfirm = async (request, env, identity) => {
   ).bind(crypto.randomUUID(), Date.now(), cutoff, affected, identity.email,
          request.headers.get('CF-Ray')).run();
   await audit(env, identity, 'analytics.deleted', 'analytics-retention', before,
-              { affected, cutoff }, request.headers.get('CF-Ray'));
-  return json({ before, deleted: affected });
+              { affected, cutoff, source: NATIVE_SOURCE }, request.headers.get('CF-Ray'));
+  return json({ before, source: NATIVE_SOURCE, deleted: affected });
 };
 
 // --- Content ----------------------------------------------------------------
