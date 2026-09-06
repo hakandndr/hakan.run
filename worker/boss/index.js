@@ -15,6 +15,9 @@ import {
   eventStreamQuery,
   oldestEventQuery,
   totalEventsQuery,
+  eventsBySourceQuery,
+  LEGACY_SOURCE,
+  NATIVE_SOURCE,
 } from '../analytics/queries.js';
 import { localDay, localDayBounds, daysBetween, shiftDay } from '../lib/time.js';
 
@@ -193,11 +196,19 @@ const auditList = async (url, env) => {
 
 const system = async (env) => {
   const execute = run(env.ANALYTICS_DB);
-  const [oldestRow] = await execute(oldestEventQuery());
-  const [totalRow] = await execute(totalEventsQuery());
+  // Retention is scoped to native events. Imported legacy history is older than
+  // the policy window by definition — it is history — and letting it drive the
+  // overdue flag would report a promise as broken that was never made about it.
+  const [oldestRow] = await execute(oldestEventQuery(NATIVE_SOURCE));
+  const [totalRow] = await execute(totalEventsQuery(NATIVE_SOURCE));
+  const bySource = await execute(eventsBySourceQuery());
   const oldest = oldestRow?.oldest ?? null;
   const oldestDay = oldestRow?.oldest_day ?? null;
   const ageDays = oldestDay ? daysBetween(oldestDay, localDay(Date.now())) : 0;
+
+  const legacyRow = bySource.find((row) => row.source === LEGACY_SOURCE) ?? null;
+  const legacyOldest = legacyRow?.oldest ?? null;
+  const legacyOldestDay = legacyOldest ? localDay(legacyOldest) : null;
 
   return json({
     environment: env.ENVIRONMENT ?? 'unknown',
@@ -213,6 +224,19 @@ const system = async (env) => {
       retentionOverdue: ageDays > RETENTION_POLICY_DAYS,
       retainedEvents: Number(totalRow?.value ?? 0),
     },
+    // Imported history, reported on its own terms. It has no overdue state: the
+    // 90-day commitment governs what this system collects, and a deliberate
+    // archive of older history is not a breach of it. Deleting this is a
+    // separate decision from meeting the native retention promise, and the two
+    // are kept separate here so neither can be mistaken for the other.
+    legacyAnalytics: {
+      retainedEvents: Number(legacyRow?.value ?? 0),
+      oldestEventAt: legacyOldest,
+      oldestEventDay: legacyOldestDay,
+      oldestEventAgeDays: legacyOldestDay ? daysBetween(legacyOldestDay, localDay(Date.now())) : 0,
+      governedByRetentionPolicy: false,
+    },
+    eventSources: bySource.map((row) => ({ source: row.source, retainedEvents: Number(row.value) })),
     bindings: {
       appDb: Boolean(env.APP_DB),
       analyticsDb: Boolean(env.ANALYTICS_DB),

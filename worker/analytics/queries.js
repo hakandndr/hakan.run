@@ -269,18 +269,45 @@ export const dayOrdinalsQuery = (day, ids) => {
  * count: combining the two makes the planner scan a covering index, while this
  * form is an index seek and stays O(1) as retention grows.
  */
-export const oldestEventQuery = () => ({
+export const NATIVE_SOURCE = 'native';
+export const LEGACY_SOURCE = 'legacy_panel';
+
+/**
+ * Oldest retained raw event for one source.
+ *
+ * Scoped by source, and that is the point rather than a convenience. The
+ * 90-day retention commitment is about data this system collected; importing
+ * 163-day-old history from the legacy panel would otherwise make the native
+ * policy report itself breached on the day of the import, which would be a
+ * false alarm about a promise that was never broken. Legacy history is
+ * reported separately, on its own terms.
+ */
+export const oldestEventQuery = (source = NATIVE_SOURCE) => ({
   sql: `SELECT occurred_at AS oldest, date_local AS oldest_day FROM visitor_events
+        WHERE event_source = ?
         ORDER BY occurred_at ASC LIMIT 1`,
-  params: [],
+  params: [source],
 });
 
 /**
  * Total retained raw events. This is a full count and therefore scans; it is a
  * System-panel figure read on demand, not part of any hot path.
  */
-export const totalEventsQuery = () => ({
-  sql: `SELECT COUNT(*) AS value FROM visitor_events`,
+export const totalEventsQuery = (source = NATIVE_SOURCE) => ({
+  sql: `SELECT COUNT(*) AS value FROM visitor_events WHERE event_source = ?`,
+  params: [source],
+});
+
+/**
+ * Every source with retained rows, so a new one cannot go unreported.
+ *
+ * `oldest_day` is deliberately absent: MIN(date_local) alongside MIN(occurred_at)
+ * would be two aggregates over two possibly different rows. The day is derived
+ * from the instant by the caller, which cannot disagree with itself.
+ */
+export const eventsBySourceQuery = () => ({
+  sql: `SELECT event_source AS source, COUNT(*) AS value, MIN(occurred_at) AS oldest
+        FROM visitor_events GROUP BY event_source ORDER BY event_source`,
   params: [],
 });
 

@@ -3,23 +3,30 @@
 // plan proven here is the plan production emits.
 
 import { DatabaseSync } from 'node:sqlite';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-export const openAnalyticsDb = () => {
+/**
+ * Apply every migration in a directory, in filename order.
+ *
+ * Named rather than listed, so a new migration is exercised by the whole suite
+ * the moment it exists. Pinning `0001_init.sql` meant the tests described a
+ * schema the deployed database no longer had.
+ */
+const applyMigrations = (directory) => {
   const db = new DatabaseSync(':memory:');
-  db.exec(readFileSync(path.join(root, 'migrations/analytics/0001_init.sql'), 'utf8'));
+  const full = path.join(root, directory);
+  for (const file of readdirSync(full).filter((name) => name.endsWith('.sql')).sort()) {
+    db.exec(readFileSync(path.join(full, file), 'utf8'));
+  }
   return db;
 };
 
-export const openAppDb = () => {
-  const db = new DatabaseSync(':memory:');
-  db.exec(readFileSync(path.join(root, 'migrations/app/0001_init.sql'), 'utf8'));
-  return db;
-};
+export const openAnalyticsDb = () => applyMigrations('migrations/analytics');
+export const openAppDb = () => applyMigrations('migrations/app');
 
 /** A `run` implementation matching the Worker's D1 usage. */
 export const runner = (db) => async ({ sql, params }) => db.prepare(sql).all(...params);

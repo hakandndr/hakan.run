@@ -276,6 +276,44 @@ application and is unchanged.
 Two absences remain deliberate: the legacy `/control-room` analytics history has
 not been imported, and production is untouched and unprovisioned.
 
+### Legacy analytics import — implemented, awaiting a fresh export
+
+`migrations/analytics/0002_legacy_import.sql` adds an explicit `event_source`
+column to `visitor_events` (`NOT NULL DEFAULT 'native'`, so the ingestion path
+needs no change and every existing row is native), plus two tables:
+`legacy_analytics_records`, which holds every source line whether or not it
+became an event, and `legacy_import_snapshots`, which records the exact bytes
+each import read.
+
+`tools/legacy-analytics/` parses the log, maps it, and plans the import. It has
+not been run against staging.
+
+The source log is live: production keeps appending to it, so any export is a
+cutoff rather than a completion. The tool takes the file path as an argument and
+recomputes every figure from the supplied bytes on each run — nothing is
+compiled in, because a count that outlives the file it was measured from is a
+claim about data nobody has read. The plan reports the snapshot's SHA-256, the
+source-record total, the panel-visible total, the path-bearing total, the
+importable PAGE total, the archived total with a reason breakdown, the malformed
+count, duplicate and distinct source counts, and the first and last timestamps.
+
+The imported PAGE total will always be smaller than the old panel's total. The
+legacy tracker recorded no path for its first two generations, and a page view
+whose page is unknown is not a page view; those records are archived with
+`missing_path` rather than assigned a sentinel. That difference is permanent and
+explainable, which is why all three totals are reported together.
+
+Idempotency is structural: event ids derive from content plus an ordinal,
+archive rows are unique on `(import_source, source_line)`, and every insert is
+`INSERT OR IGNORE`. A later export of the same growing log adds only the lines
+appended since, through the same code path, recording a second snapshot so each
+row names the one that introduced it.
+
+Nothing is written to `analytics_coverage` or `analytics_daily`, and native
+retention is scoped to `event_source = 'native'` so imported history cannot make
+the 90-day commitment report itself breached. Boss System shows the two
+separately.
+
 The analytics target follows the proven Analytics V3 reference from the start:
 raw detail is never purged automatically, the 90-day maximum is a policy
 commitment surfaced in Boss System rather than a cron delete, aggregate reads are

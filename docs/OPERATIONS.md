@@ -465,6 +465,76 @@ declared for. The response is enumerated rather than passed through, so a new
 Worker variable cannot become public by accident, and a test asserts the secret
 key never appears in it.
 
+### Legacy analytics import — designed, not executed
+
+The legacy `/control-room` visitor log is imported into `ANALYTICS_DB` by
+`tools/legacy-analytics/`. The tool plans; it opens no connection and holds no
+credential. Executing the plan is a separate step across the DATABASE boundary
+and is separately authorized.
+
+**The source is a live file.** Production is still appending to
+`hakanrun_panel_log.txt`, so every export is a cutoff and never a completion.
+The export is production data, is never committed, and is matched by
+`.gitignore`. The tool therefore takes the path as an argument and recomputes
+every figure from the bytes it is given: no count is compiled in, and a count
+from an earlier export describes a file that no longer exists.
+
+Procedure:
+
+1. **Export immediately before importing.** The snapshot the owner supplies at
+   that moment is the authoritative one for that run.
+2. **Plan.** `node tools/legacy-analytics/plan-legacy-import.js <path>` prints
+   the snapshot fingerprint (SHA-256 of the exact bytes), the file size, and the
+   full reconciliation recomputed from that file: source records, panel-visible
+   records, path-bearing records, importable PAGE events, archived records,
+   malformed count, duplicate and distinct source counts, the format breakdown,
+   every archive reason, and the earliest and latest timestamps.
+3. **Review.** `--sql` adds the script; `--sql-only` writes SQL to stdout and all
+   human output to stderr; `--json` emits the plan as data.
+4. **Execute** against staging `ANALYTICS_DB` only, under separate authorization.
+5. **Verify** by reading the imported events through the ordinary Analytics V3
+   read path, and the archive through `legacy_analytics_records`.
+
+**Three destinations, and why the totals differ.** Source records go to
+`legacy_analytics_records`, always, whether or not they became events. Records
+that genuinely satisfy PAGE-event semantics also go to `visitor_events` with
+`event_source = 'legacy_panel'`. The snapshot itself is recorded in
+`legacy_import_snapshots`.
+
+The imported PAGE total is permanently smaller than the old panel's total, and
+the reason is not a defect: the legacy tracker did not record a path for its
+first two generations, and a page view whose page is unknown is not a page view.
+Those records are archived with `missing_path` rather than given a sentinel
+path, because inventing `/` would turn an unknown into a measurement.
+
+**Idempotency and the delta pass.** Event ids are derived from content plus an
+ordinal; archive rows are unique on `(import_source, source_line)`; every insert
+is `INSERT OR IGNORE`. Rerunning the same export writes nothing. Running a later
+export of the same still-growing log writes only the lines appended since —
+the same code path, no separate delta mode — and records the new snapshot
+alongside the first, so each row names the snapshot that introduced it.
+
+**Coverage.** Nothing is written to `analytics_coverage` or `analytics_daily`.
+Imported history is raw, uncovered history: the boundary days are partial by
+construction, and 38% of the source has no path to aggregate by. Uncovered days
+fall back to indexed raw events, which is correct (D-022).
+
+**Retention.** The native 90-day commitment is unchanged and is scoped to
+`event_source = 'native'`. Imported history is older than that window by
+definition, and letting it drive the overdue flag would report a promise as
+broken that was never made about it. Boss System reports the two separately:
+`analytics` for the native policy, `legacyAnalytics` for imported history with
+`governedByRetentionPolicy: false`, and `eventSources` listing every source with
+rows so a future third one cannot go unreported.
+
+**Privacy.** `referrer_raw` is never imported — it carried full URLs with
+third-party click identifiers — and query strings are stripped from paths before
+storage, which removes the same tokens from the other place they appeared. The
+archive records what was removed from each row in a `redactions` column, so a
+redacted record is visibly redacted rather than quietly different from the file.
+Full IP addresses are retained for valid legacy PAGE events, for historical
+unique-address fidelity, and no new raw-IP surface is added to Boss.
+
 ### Authorization reminder
 
 PROVIDER, ACCESS, SECRET, DATABASE, MIGRATE, DEPLOY, ACTIVATE, and DNS remain independently authorized. Specification of these procedures does not authorize performing any of them.

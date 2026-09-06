@@ -87,3 +87,41 @@ test('the legacy surfaces have no route in the target', async () => {
     assert.equal(response.status, 404, `${path} must not resolve`);
   }
 });
+
+// The System panel reports the two histories separately.
+//
+// Boss must show that imported history exists — hiding it would be its own kind
+// of dishonesty — while never letting it drive the native retention promise.
+test('Boss System reports native retention and legacy history as separate figures', async () => {
+  const { handleBossApi } = await import('../boss/index.js');
+  const rows = {
+    'SELECT occurred_at AS oldest': [{ oldest: Date.now() - 86_400_000, oldest_day: '2026-09-04' }],
+    'SELECT COUNT(*) AS value': [{ value: 12 }],
+    'SELECT event_source AS source': [
+      { source: 'legacy_panel', value: 3178, oldest: Date.UTC(2026, 4, 17) },
+      { source: 'native', value: 12, oldest: Date.now() - 86_400_000 },
+    ],
+  };
+  const pick = (sql) => Object.entries(rows).find(([prefix]) => sql.includes(prefix))?.[1] ?? [];
+  const analyticsDb = {
+    prepare: (sql) => ({
+      bind: (...params) => ({ all: async () => ({ results: pick(sql) }), first: async () => pick(sql)[0] ?? null }),
+      all: async () => ({ results: pick(sql) }),
+      first: async () => pick(sql)[0] ?? null,
+    }),
+  };
+
+  const response = await handleBossApi(
+    new Request('https://staging.hakan.run/api/boss/system'),
+    { ENVIRONMENT: 'staging', APP_DB: {}, ANALYTICS_DB: analyticsDb },
+    {},
+    { email: 'hakan@dndr.net' },
+  );
+  const body = await response.json();
+
+  assert.equal(body.analytics.retainedEvents, 12, 'the native figure counts native events only');
+  assert.equal(body.analytics.retentionOverdue, false, 'imported history must not breach the native promise');
+  assert.equal(body.legacyAnalytics.retainedEvents, 3178, 'and the imported history is still visible');
+  assert.equal(body.legacyAnalytics.governedByRetentionPolicy, false);
+  assert.ok(body.eventSources.some((entry) => entry.source === 'legacy_panel'));
+});

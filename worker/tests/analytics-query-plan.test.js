@@ -14,6 +14,7 @@ import {
   eventCountQuery,
   eventStreamQuery,
   oldestEventQuery,
+  totalEventsQuery,
   rawDailySeriesQuery,
   rawTotalsQuery,
 } from '../analytics/queries.js';
@@ -136,19 +137,27 @@ test('delete preview is bounded by the time index', () => {
   assertBoundedSearch(explain(db, deletePreviewQuery(range.start)), 'delete preview');
 });
 
-test('oldest-event age reads one row through the time index without sorting', () => {
+test('oldest-event age seeks one row through the source+time index without sorting', () => {
   const db = seeded();
   const plan = explain(db, oldestEventQuery());
-  // SQLite words an ordered index traversal as SCAN, but with LIMIT 1 it stops
-  // at the first row. What must never appear is a sort: that would mean the
-  // index order was unusable and the whole table had to be materialised.
+  // Scoping the query to one event source turned an ordered traversal into a
+  // SEARCH: (event_source, occurred_at) puts the source first, so the filter is
+  // a seek and the time order inside it is free. SQLite reads that index
+  // backwards for ASC, which is why there is still no sort — and a sort here
+  // would mean the index order was unusable and the table had to be
+  // materialised to answer a one-row question.
   assert.match(
     plan,
-    /visitor_events_occurred_idx/,
-    `oldest-event age must traverse the time index. Plan:\n${plan}`,
+    /SEARCH visitor_events USING (COVERING )?INDEX visitor_events_source_time_idx/,
+    `oldest-event age must seek the source+time index. Plan:\n${plan}`,
   );
   assert.ok(
     !/TEMP B-TREE|USE TEMP/.test(plan),
     `oldest-event age must not sort. Plan:\n${plan}`,
   );
+});
+
+test('the retained-event count is answered from the index, without touching the table', () => {
+  const plan = explain(seeded(), totalEventsQuery());
+  assert.match(plan, /COVERING INDEX visitor_events_source_time_idx/, plan);
 });

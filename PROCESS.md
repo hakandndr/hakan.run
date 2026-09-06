@@ -2114,3 +2114,121 @@ Decide the two remaining Phase 2C items: the legacy analytics history import,
 and the visual-parity and caching assertions of the smoke matrix. The zone-level
 Managed Content question in `docs/OPERATIONS.md` remains open and is independent
 of both.
+
+## Phase 2C — legacy analytics import, designed and not run
+
+The legacy `/control-room` visitor log can now be imported into `ANALYTICS_DB`.
+Nothing has been imported. This entry records the design and, more usefully, the
+three places where the obvious implementation would have been wrong.
+
+### The file is four formats, and one of them is invisible
+
+Three generations of the PHP tracker wrote to the same log, and the differences
+are not cosmetic — they change which fields exist. `ip - date - ua` has no
+country and no path; `ip | date | country | city | device` has no path and no
+referrer; a brief JSON variant carries counters that reset to 1; the current
+JSON format is the only one with a path.
+
+`run/get_log.php` accepts JSON lines and pipe lines with five or more fields and
+silently drops the rest, which is why the earliest records have never appeared
+in the panel. The parser accepts all four and records which format each line
+was, so the totals stay reconcilable rather than merely close.
+
+### Not inventing the missing 38%
+
+The largest decision was to import less. Two of the four formats never recorded
+a path, and `visitor_events` means "a public page was viewed, and we know which
+page". A sentinel `/` would have made the import look complete and the data
+wrong in a way nothing downstream could detect: every path-less record would
+have become a homepage view, and `/` is already the busiest path, so the lie
+would have hidden inside the number it inflated.
+
+They are archived with `missing_path` instead. `legacy_analytics_records` holds
+every source line — imported ones name the event they became, the rest name the
+reason they could not — so nothing is discarded and the difference between the
+old panel's total and the imported total is permanently explainable.
+
+That difference is not a defect to be minimised. It is the honest measurement of
+how much of the history was ever a page view.
+
+### The file is not a snapshot of a finished thing
+
+The first version of this treated the supplied export as the dataset. It is not:
+production is still appending to that log, so every export is a cutoff. The
+counts from one export describe a file that no longer exists.
+
+So the tool takes a path and recomputes everything from the bytes it is given.
+No count is compiled in, and the tests that assert counts assert them against a
+sanitized fixture rather than against production data nobody else can read. A
+snapshot is identified by a SHA-256 of its exact bytes, recorded in
+`legacy_import_snapshots` alongside its size, its totals and its newest event —
+so an imported row can be tied back to the file it came from long after that
+file is gone, and "what happened after the cutoff" has a recorded answer.
+
+The delta pass needed no separate code path, which is a consequence of the id
+design rather than a feature that was added. Archive rows are unique on
+`(import_source, source_line)` and the log is append-only, so line N means the
+same record in every export. Event ids come from content plus an ordinal. A
+later export re-run through the same tool inserts only what was appended.
+
+### Retention would have reported itself broken
+
+Importing 163-day-old history into a store with a 90-day retention commitment
+makes Boss System show `retentionOverdue: true` on the day of the import. That
+would be a false alarm about a promise that was never made about imported
+history: the commitment is about what this system collects.
+
+`oldestEventQuery` and `totalEventsQuery` are now scoped by source, defaulting
+to native. The scoping made the query plan better rather than worse — the
+`(event_source, occurred_at)` index turns an ordered traversal into a seek, and
+the count became covering — which is recorded here because the opposite is the
+usual outcome and the test now asserts the new plan rather than the old one.
+
+Legacy history is reported separately and is not hidden: `legacyAnalytics` with
+`governedByRetentionPolicy: false`, plus an `eventSources` list of every source
+with rows, so a future third source cannot go unreported by omission.
+
+### Two smaller things worth keeping
+
+The panel's `BOT-LIKE` and `REPEAT` labels are computed at read time from counts
+relative to `now`. They are a view, not a fact, and replaying them against
+history would produce a different answer on every run. Imported events are
+`actor_class = 'unknown'` with `classification_source = 'none'`, which is what
+the source actually knew.
+
+Twenty-five records are byte-identical double-writes. The old panel counted
+them, so collapsing them would silently restate history to make a number look
+tidier. They are preserved, counted, and reported as a source-fidelity figure;
+the ordinal in the event id distinguishes them without inventing a difference.
+
+### Changed
+
+- `migrations/analytics/0002_legacy_import.sql` — `event_source`,
+  `legacy_analytics_records`, `legacy_import_snapshots`.
+- `tools/legacy-analytics/` — `parse.js`, `map.js`, `statements.js`,
+  `snapshot.js`, `plan-legacy-import.js`, a sanitized fixture, and two test
+  files.
+- `worker/analytics/queries.js` — source-scoped retention queries and
+  `eventsBySourceQuery`.
+- `worker/boss/index.js` — System reports native and legacy separately.
+- `worker/tests/helpers.js` — applies every migration in a directory rather than
+  a named file, so a new migration is exercised by the whole suite at once.
+- `worker/tests/analytics-query-plan.test.js`, `boss-authorization.test.js`,
+  and new `legacy-retention.test.js`.
+- `package.json` — `test:tools` covers the new directory.
+- `HANDOFF.md`, `docs/CURRENT_STATE.md`, `docs/OPERATIONS.md`,
+  `docs/ROADMAP.md`, `PROCESS.md`.
+
+### Validation
+
+- `npm run check` — lint clean; worker 81 passed, web 83 passed, tools 123
+  passed, 0 failed.
+- The planner was run against the older development snapshot as an audit check
+  only. Those figures are recorded in the session report and deliberately not
+  here: they describe a file that production has already grown past.
+
+### Exact next action
+
+Export a fresh log from production immediately before importing, run the
+planner against it, and review. Execution against staging `ANALYTICS_DB` remains
+separately authorized.

@@ -10,7 +10,7 @@
     "test": "playwright test",
     "test:worker": "node --test \"worker/tests/*.test.js\"",
     "test:web": "node --test \"apps/web/tools/*.test.js\" \"apps/web/src/boss/*.test.js\" \"apps/web/src/head/*.test.js\" \"apps/web/src/content-source/*.test.js\"",
-    "test:tools": "node --test \"tools/*.test.js\"",
+    "test:tools": "node --test \"tools/*.test.js\" \"tools/legacy-analytics/*.test.js\"",
     "check": "npm run lint && npm run test:worker && npm run test:web && npm run test:tools"
   },
   "devDependencies": {
