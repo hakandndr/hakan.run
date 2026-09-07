@@ -133,3 +133,37 @@ export const bossQuery = (parameters = {}) => {
   const query = search.toString();
   return query ? `?${query}` : '';
 };
+
+/** JSON mutation for verified same-origin Boss endpoints. */
+export const mutateBoss = async (path, { method = 'POST', body, fetchImpl } = {}) => {
+  const request = fetchImpl ?? fetch;
+  let response;
+  try {
+    response = await request(path, {
+      method,
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    throw new BossApiError(`Could not reach the Boss API (${error?.message ?? 'network error'}).`,
+      { code: 'network_error', path });
+  }
+  const contentType = response.headers?.get?.('content-type') ?? '';
+  let payload = null;
+  if (isJson(contentType)) {
+    try { payload = await response.json(); }
+    catch { throw new BossApiError('The Boss API returned malformed JSON.',
+      { status: response.status, code: 'malformed_json', path }); }
+  }
+  const verdict = interpretResponse({
+    ok: response.ok, status: response.status, redirected: response.redirected, contentType, payload,
+  });
+  if (verdict.kind === 'error') {
+    throw new BossApiError(verdict.message, {
+      status: response.status, code: verdict.code, path,
+    });
+  }
+  return payload;
+};

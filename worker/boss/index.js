@@ -5,6 +5,7 @@
 // here. Every handler runs behind verifyAccess and receives the verified owner
 // identity; no handler re-derives authorization from the request.
 
+import { handleContentManagement } from './content-management.js';
 import { json, notFound, problem } from '../lib/response.js';
 import { buildSummary } from '../analytics/summary.js';
 import {
@@ -274,6 +275,7 @@ export const handleBossApi = async (request, env, context, identity) => {
   if (path === '/api/boss/analytics/delete-preview' && method === 'GET') return analyticsDeletePreview(url, env);
   if (path === '/api/boss/analytics/delete' && method === 'POST') return analyticsDeleteConfirm(request, env, identity);
   if (path === '/api/boss/content' && method === 'GET') return contentList(env);
+  if (path.startsWith('/api/boss/content/')) return handleContentManagement(request, env, identity, path);
   if (path === '/api/boss/submissions' && method === 'GET') return submissionList(url, env);
   if (path === '/api/boss/audit' && method === 'GET') return auditList(url, env);
   if (path === '/api/boss/system' && method === 'GET') return system(env);
