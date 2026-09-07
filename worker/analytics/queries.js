@@ -32,20 +32,31 @@ export const buildEventFilter = (filters = {}, range = null) => {
     conditions.push('occurred_at >= ?', 'occurred_at < ?');
     params.push(range.start, range.end);
   }
-  if (filters.actor === 'human') conditions.push(HUMAN_ACTORS);
-  else if (filters.actor === 'automated') conditions.push(AUTOMATED_ACTORS);
-  else if (filters.actorClass) {
+
+  if (filters.actor === 'human') {
+    conditions.push(HUMAN_ACTORS);
+  } else if (filters.actor === 'automated') {
+    conditions.push(AUTOMATED_ACTORS);
+  } else if (filters.actorClass) {
     conditions.push('actor_class = ?');
     params.push(filters.actorClass);
   }
+
   if (filters.country) {
     conditions.push('country = ?');
-    params.push(filters.country.toUpperCase());
+
+    // Country is stored as the display value in visitor_events, including
+    // imported legacy values such as "United States", "Taiwan", "Türkiye",
+    // "Turkey" and "The Netherlands". Preserve that stored contract exactly:
+    // trim operator input, but do not invent ISO-code normalization or aliases.
+    params.push(String(filters.country).trim());
   }
+
   if (filters.browser) {
     conditions.push('browser_family = ?');
     params.push(filters.browser);
   }
+
   if (filters.path) {
     if (filters.pathExact) {
       conditions.push('path = ?');
@@ -55,6 +66,7 @@ export const buildEventFilter = (filters = {}, range = null) => {
       params.push(`${escapePrefix(filters.path)}%`);
     }
   }
+
   if (filters.ip) {
     if (filters.ipExact) {
       conditions.push('ip_address = ?');
@@ -64,14 +76,17 @@ export const buildEventFilter = (filters = {}, range = null) => {
       params.push(`${escapePrefix(filters.ip)}%`);
     }
   }
+
   if (filters.city) {
     conditions.push("city LIKE ? ESCAPE '\\'");
     params.push(`${escapePrefix(filters.city)}%`);
   }
+
   if (filters.referrer) {
     conditions.push("referrer_origin LIKE ? ESCAPE '\\'");
     params.push(`${escapePrefix(filters.referrer)}%`);
   }
+
   // Exact, and deliberately not restricted to a known enumeration: the source
   // column is open-ended by design (`eventsBySourceQuery` reports whatever is
   // there), so a filter that only understood today's two values would hide a
@@ -92,9 +107,16 @@ export const buildEventFilter = (filters = {}, range = null) => {
 // ---------------------------------------------------------------------------
 
 /** The only query that may establish trusted aggregate coverage. */
-export const coveredDaysQuery = (from, to, version = AGGREGATE_VERSION) => ({
-  sql: `SELECT date_local AS day FROM analytics_coverage
-        WHERE aggregate_version = ? AND date_local >= ? AND date_local <= ?
+export const coveredDaysQuery = (
+  from,
+  to,
+  version = AGGREGATE_VERSION,
+) => ({
+  sql: `SELECT date_local AS day
+        FROM analytics_coverage
+        WHERE aggregate_version = ?
+          AND date_local >= ?
+          AND date_local <= ?
         ORDER BY date_local`,
   params: [version, from, to],
 });
@@ -105,24 +127,53 @@ export const coveredDaysQuery = (from, to, version = AGGREGATE_VERSION) => ({
 
 export const rawTotalsQuery = (range, filters = {}) => {
   const { where, params } = buildEventFilter(filters, range);
+
   return {
     sql: `SELECT COUNT(*) AS events,
-                 COALESCE(SUM(CASE WHEN ${HUMAN_ACTORS} THEN 1 ELSE 0 END), 0) AS human,
-                 COALESCE(SUM(CASE WHEN ${AUTOMATED_ACTORS} THEN 1 ELSE 0 END), 0) AS automated
+                COALESCE(
+                  SUM(CASE WHEN ${HUMAN_ACTORS} THEN 1 ELSE 0 END),
+                  0
+                ) AS human,
+                COALESCE(
+                  SUM(CASE WHEN ${AUTOMATED_ACTORS} THEN 1 ELSE 0 END),
+                  0
+                ) AS automated
           FROM visitor_events ${where}`,
     params,
   };
 };
 
-export const aggregateTotalsQuery = (days, version = AGGREGATE_VERSION) => {
+export const aggregateTotalsQuery = (
+  days,
+  version = AGGREGATE_VERSION,
+) => {
   if (days.length === 0) return null;
+
   const slots = days.map(() => '?').join(', ');
+
   return {
     sql: `SELECT COALESCE(SUM(event_count), 0) AS events,
-                 COALESCE(SUM(CASE WHEN ${HUMAN_ACTORS} THEN event_count ELSE 0 END), 0) AS human,
-                 COALESCE(SUM(CASE WHEN ${AUTOMATED_ACTORS} THEN event_count ELSE 0 END), 0) AS automated
+                COALESCE(
+                  SUM(
+                    CASE WHEN ${HUMAN_ACTORS}
+                    THEN event_count
+                    ELSE 0
+                    END
+                  ),
+                  0
+                ) AS human,
+                COALESCE(
+                  SUM(
+                    CASE WHEN ${AUTOMATED_ACTORS}
+                    THEN event_count
+                    ELSE 0
+                    END
+                  ),
+                  0
+                ) AS automated
           FROM analytics_daily
-          WHERE aggregate_version = ? AND date_local IN (${slots})`,
+          WHERE aggregate_version = ?
+            AND date_local IN (${slots})`,
     params: [version, ...days],
   };
 };
@@ -137,19 +188,30 @@ export const aggregateTotalsQuery = (days, version = AGGREGATE_VERSION) => {
 
 export const rawTopPagesQuery = (range, filters = {}) => {
   const { where, params } = buildEventFilter(filters, range);
+
   return {
-    sql: `SELECT path AS label, COUNT(*) AS value FROM visitor_events ${where}
+    sql: `SELECT path AS label,
+                 COUNT(*) AS value
+          FROM visitor_events ${where}
           GROUP BY path`,
     params,
   };
 };
 
-export const aggregateTopPagesQuery = (days, version = AGGREGATE_VERSION) => {
+export const aggregateTopPagesQuery = (
+  days,
+  version = AGGREGATE_VERSION,
+) => {
   if (days.length === 0) return null;
+
   const slots = days.map(() => '?').join(', ');
+
   return {
-    sql: `SELECT path AS label, SUM(event_count) AS value FROM analytics_daily
-          WHERE aggregate_version = ? AND date_local IN (${slots})
+    sql: `SELECT path AS label,
+                 SUM(event_count) AS value
+          FROM analytics_daily
+          WHERE aggregate_version = ?
+            AND date_local IN (${slots})
           GROUP BY path`,
     params: [version, ...days],
   };
@@ -157,19 +219,30 @@ export const aggregateTopPagesQuery = (days, version = AGGREGATE_VERSION) => {
 
 export const rawCountriesQuery = (range, filters = {}) => {
   const { where, params } = buildEventFilter(filters, range);
+
   return {
-    sql: `SELECT COALESCE(country, '') AS label, COUNT(*) AS value
-          FROM visitor_events ${where} GROUP BY COALESCE(country, '')`,
+    sql: `SELECT COALESCE(country, '') AS label,
+                 COUNT(*) AS value
+          FROM visitor_events ${where}
+          GROUP BY COALESCE(country, '')`,
     params,
   };
 };
 
-export const aggregateCountriesQuery = (days, version = AGGREGATE_VERSION) => {
+export const aggregateCountriesQuery = (
+  days,
+  version = AGGREGATE_VERSION,
+) => {
   if (days.length === 0) return null;
+
   const slots = days.map(() => '?').join(', ');
+
   return {
-    sql: `SELECT country AS label, SUM(event_count) AS value FROM analytics_daily
-          WHERE aggregate_version = ? AND date_local IN (${slots})
+    sql: `SELECT country AS label,
+                 SUM(event_count) AS value
+          FROM analytics_daily
+          WHERE aggregate_version = ?
+            AND date_local IN (${slots})
           GROUP BY country`,
     params: [version, ...days],
   };
@@ -181,19 +254,30 @@ export const aggregateCountriesQuery = (days, version = AGGREGATE_VERSION) => {
 
 export const rawDailySeriesQuery = (range, filters = {}) => {
   const { where, params } = buildEventFilter(filters, range);
+
   return {
-    sql: `SELECT date_local AS label, COUNT(*) AS value FROM visitor_events ${where}
+    sql: `SELECT date_local AS label,
+                 COUNT(*) AS value
+          FROM visitor_events ${where}
           GROUP BY date_local`,
     params,
   };
 };
 
-export const aggregateDailySeriesQuery = (days, version = AGGREGATE_VERSION) => {
+export const aggregateDailySeriesQuery = (
+  days,
+  version = AGGREGATE_VERSION,
+) => {
   if (days.length === 0) return null;
+
   const slots = days.map(() => '?').join(', ');
+
   return {
-    sql: `SELECT date_local AS label, SUM(event_count) AS value FROM analytics_daily
-          WHERE aggregate_version = ? AND date_local IN (${slots})
+    sql: `SELECT date_local AS label,
+                 SUM(event_count) AS value
+          FROM analytics_daily
+          WHERE aggregate_version = ?
+            AND date_local IN (${slots})
           GROUP BY date_local`,
     params: [version, ...days],
   };
@@ -209,8 +293,10 @@ export const aggregateDailySeriesQuery = (days, version = AGGREGATE_VERSION) => 
 
 export const uniqueAddressesQuery = (range, filters = {}) => {
   const { where, params } = buildEventFilter(filters, range);
+
   return {
-    sql: `SELECT COUNT(DISTINCT ip_address) AS value FROM visitor_events ${where}`,
+    sql: `SELECT COUNT(DISTINCT ip_address) AS value
+          FROM visitor_events ${where}`,
     params,
   };
 };
@@ -219,12 +305,32 @@ export const uniqueAddressesQuery = (range, filters = {}) => {
 // Raw event stream
 // ---------------------------------------------------------------------------
 
-export const eventStreamQuery = (filters, limit, offset, range = null) => {
+export const eventStreamQuery = (
+  filters,
+  limit,
+  offset,
+  range = null,
+) => {
   const { where, params } = buildEventFilter(filters, range);
+
   return {
-    sql: `SELECT id, occurred_at, date_local, ip_address, country, region, city, colo,
-                 path, referrer_origin, user_agent, browser_family, device_class,
-                 actor_class, classification_source, session_id, request_id,
+    sql: `SELECT id,
+                 occurred_at,
+                 date_local,
+                 ip_address,
+                 country,
+                 region,
+                 city,
+                 colo,
+                 path,
+                 referrer_origin,
+                 user_agent,
+                 browser_family,
+                 device_class,
+                 actor_class,
+                 classification_source,
+                 session_id,
+                 request_id,
                  event_source
           FROM visitor_events ${where}
           ORDER BY occurred_at DESC, id DESC
@@ -239,7 +345,12 @@ export const eventStreamQuery = (filters, limit, offset, range = null) => {
  */
 export const eventCountQuery = (filters, range = null) => {
   const { where, params } = buildEventFilter(filters, range);
-  return { sql: `SELECT COUNT(*) AS value FROM visitor_events ${where}`, params };
+
+  return {
+    sql: `SELECT COUNT(*) AS value
+          FROM visitor_events ${where}`,
+    params,
+  };
 };
 
 // ---------------------------------------------------------------------------
@@ -256,13 +367,22 @@ export const eventCountQuery = (filters, range = null) => {
 
 export const dayOrdinalsQuery = (day, ids) => {
   if (ids.length === 0) return null;
+
   const slots = ids.map(() => '?').join(', ');
+
   return {
     sql: `WITH numbered AS (
-            SELECT id, ROW_NUMBER() OVER (ORDER BY occurred_at ASC, id ASC) AS ordinal
-            FROM visitor_events WHERE date_local = ?
+            SELECT id,
+                   ROW_NUMBER() OVER (
+                     ORDER BY occurred_at ASC, id ASC
+                   ) AS ordinal
+            FROM visitor_events
+            WHERE date_local = ?
           )
-          SELECT id, ordinal FROM numbered WHERE id IN (${slots})`,
+          SELECT id,
+                 ordinal
+          FROM numbered
+          WHERE id IN (${slots})`,
     params: [day, ...ids],
   };
 };
@@ -271,75 +391,80 @@ export const dayOrdinalsQuery = (day, ids) => {
 // System and retention visibility
 // ---------------------------------------------------------------------------
 
-/**
- * Oldest retained raw event, for the System retention panel.
- *
- * Expressed as an ordered single-row read rather than `MIN(...)` alongside a
- * count: combining the two makes the planner scan a covering index, while this
- * form is an index seek and stays O(1) as retention grows.
- */
 export const NATIVE_SOURCE = 'native';
 export const LEGACY_SOURCE = 'legacy_panel';
 
 /**
  * Oldest retained raw event for one source.
  *
- * Scoped by source, and that is the point rather than a convenience. The
- * 90-day retention commitment is about data this system collected; importing
- * 163-day-old history from the legacy panel would otherwise make the native
- * policy report itself breached on the day of the import, which would be a
- * false alarm about a promise that was never broken. Legacy history is
- * reported separately, on its own terms.
+ * Scoped by source so imported legacy history cannot make the native retention
+ * policy appear overdue.
  */
-export const oldestEventQuery = (source = NATIVE_SOURCE) => ({
-  sql: `SELECT occurred_at AS oldest, date_local AS oldest_day FROM visitor_events
+export const oldestEventQuery = (
+  source = NATIVE_SOURCE,
+) => ({
+  sql: `SELECT occurred_at AS oldest,
+               date_local AS oldest_day
+        FROM visitor_events
         WHERE event_source = ?
-        ORDER BY occurred_at ASC LIMIT 1`,
+        ORDER BY occurred_at ASC
+        LIMIT 1`,
   params: [source],
 });
 
 /**
- * Total retained raw events. This is a full count and therefore scans; it is a
- * System-panel figure read on demand, not part of any hot path.
+ * Total retained raw events for one source.
  */
-export const totalEventsQuery = (source = NATIVE_SOURCE) => ({
-  sql: `SELECT COUNT(*) AS value FROM visitor_events WHERE event_source = ?`,
+export const totalEventsQuery = (
+  source = NATIVE_SOURCE,
+) => ({
+  sql: `SELECT COUNT(*) AS value
+        FROM visitor_events
+        WHERE event_source = ?`,
   params: [source],
 });
 
 /**
- * Every source with retained rows, so a new one cannot go unreported.
- *
- * `oldest_day` is deliberately absent: MIN(date_local) alongside MIN(occurred_at)
- * would be two aggregates over two possibly different rows. The day is derived
- * from the instant by the caller, which cannot disagree with itself.
+ * Every source with retained rows, so a future source cannot go unreported.
  */
 export const eventsBySourceQuery = () => ({
-  sql: `SELECT event_source AS source, COUNT(*) AS value, MIN(occurred_at) AS oldest
-        FROM visitor_events GROUP BY event_source ORDER BY event_source`,
+  sql: `SELECT event_source AS source,
+               COUNT(*) AS value,
+               MIN(occurred_at) AS oldest
+        FROM visitor_events
+        GROUP BY event_source
+        ORDER BY event_source`,
   params: [],
 });
 
 /**
  * Preview of an operator deletion. Never deletes.
  *
- * Scoped to one source, and native by default, for the same reason the
- * retention figures are: the 90-day commitment is a promise about data this
- * system collected. Imported `legacy_panel` history is a deliberate archive
- * that predates the window by definition, so an unscoped cutoff would have
- * swept all of it away the first time the operator met the native promise —
- * silently, and with the preview reporting the larger number as if that were
- * intended. Preview and delete take the same scope so the count the operator
- * confirms is the count the delete removes.
+ * Preview and confirmed deletion use the same source scope so imported legacy
+ * history is not swept by the native retention operation.
  */
-export const deletePreviewQuery = (cutoff, source = NATIVE_SOURCE) => ({
-  sql: `SELECT COUNT(*) AS value, MIN(occurred_at) AS oldest, MAX(occurred_at) AS newest
-        FROM visitor_events WHERE occurred_at < ? AND event_source = ?`,
+export const deletePreviewQuery = (
+  cutoff,
+  source = NATIVE_SOURCE,
+) => ({
+  sql: `SELECT COUNT(*) AS value,
+               MIN(occurred_at) AS oldest,
+               MAX(occurred_at) AS newest
+        FROM visitor_events
+        WHERE occurred_at < ?
+          AND event_source = ?`,
   params: [cutoff, source],
 });
 
-/** The confirmed deletion itself. Only ever reached after preview + confirm. */
-export const deleteEventsQuery = (cutoff, source = NATIVE_SOURCE) => ({
-  sql: `DELETE FROM visitor_events WHERE occurred_at < ? AND event_source = ?`,
+/**
+ * The confirmed deletion itself. Only reached after preview + confirm.
+ */
+export const deleteEventsQuery = (
+  cutoff,
+  source = NATIVE_SOURCE,
+) => ({
+  sql: `DELETE FROM visitor_events
+        WHERE occurred_at < ?
+          AND event_source = ?`,
   params: [cutoff, source],
 });

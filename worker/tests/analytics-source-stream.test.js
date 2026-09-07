@@ -59,14 +59,28 @@ test('no source filter means every source, so imported history stays visible', (
 
 test('the source filter composes with the other filters and the range', () => {
   const { where, params } = buildEventFilter(
-    { source: NATIVE_SOURCE, country: 'us', path: '/projects' },
+    { source: NATIVE_SOURCE, country: 'United States', path: '/projects' },
     { start: 10, end: 20 },
   );
   assert.match(where, /event_source = \?/);
   assert.match(where, /country = \?/);
   // Range first, then filters in declaration order: the params must line up
   // with the placeholders or the whole query silently means something else.
-  assert.deepEqual(params, [10, 20, 'US', '/projects%', NATIVE_SOURCE]);
+  // Country values are stored as display names and are preserved exactly.
+  assert.deepEqual(
+    params,
+    [10, 20, 'United States', '/projects%', NATIVE_SOURCE],
+  );
+});
+
+test('a full country name is preserved instead of being forced to uppercase', () => {
+  const { where, params } = buildEventFilter(
+    { country: 'Taiwan' },
+    { start: 10, end: 20 },
+  );
+
+  assert.match(where, /country = \?/);
+  assert.deepEqual(params, [10, 20, 'Taiwan']);
 });
 
 test('the stream returns only the requested source', () => {

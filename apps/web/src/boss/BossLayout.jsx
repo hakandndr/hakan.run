@@ -11,6 +11,10 @@ import { useRobotsDirective } from '@/head/useRobotsDirective';
 // marketing navigation. Cloudflare Access plus the Worker's own verification
 // are the security boundary; nothing here authenticates or authorises, and
 // there is no second login.
+//
+// Most Boss sections use the regular reading width. Analytics is intentionally
+// wider because its raw event stream is an operational data surface with many
+// columns and benefits from using the available desktop viewport.
 
 const NavigationItem = ({ section }) => (
   <NavLink
@@ -28,7 +32,9 @@ const NavigationItem = ({ section }) => (
   >
     {({ isActive }) => (
       <>
-        <span className={isActive ? 'text-accent-purple select-none' : 'text-gray-700 select-none'}>&#10095;</span>
+        <span className={isActive ? 'text-accent-purple select-none' : 'text-gray-700 select-none'}>
+          &#10095;
+        </span>
         <span className="truncate">{section.label}</span>
       </>
     )}
@@ -39,6 +45,9 @@ const BossLayout = () => {
   const location = useLocation();
   const section = sectionForPath(location.pathname);
   const title = section ? `${section.label} — Boss` : 'Boss';
+
+  const isWide = section?.id === 'analytics';
+  const shellWidth = isWide ? 'max-w-[1920px]' : 'max-w-7xl';
 
   // The private surface is never indexable, in any environment. This rewrites
   // the document's single robots directive rather than adding a second one.
@@ -51,13 +60,16 @@ const BossLayout = () => {
       </Helmet>
 
       <header className="border-b border-white/10 bg-[#0c0c0c]">
-        <div className="mx-auto max-w-7xl px-5 py-4 flex flex-wrap items-center justify-between gap-3">
+        <div
+          className={`mx-auto w-full ${shellWidth} px-5 py-4 flex flex-wrap items-center justify-between gap-3`}
+        >
           <div className="flex items-baseline gap-3">
             <span className="font-mono text-lg text-white">
               &lt;h<span className="text-accent-purple">/</span>&gt;
             </span>
             <span className="font-mono text-sm text-gray-500">boss</span>
           </div>
+
           <p className="font-mono text-xs text-gray-600" data-boss-breadcrumb>
             <span className="text-accent-purple select-none">&#10095;</span>{' '}
             {location.pathname}
@@ -65,7 +77,9 @@ const BossLayout = () => {
         </div>
       </header>
 
-      <div className="mx-auto max-w-7xl px-5 py-6 flex flex-col lg:flex-row gap-6">
+      <div
+        className={`mx-auto w-full ${shellWidth} px-5 py-6 flex flex-col lg:flex-row gap-6`}
+      >
         <nav aria-label="Boss sections" className="lg:w-56 shrink-0">
           <ul className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible scrollbar-hide">
             {BOSS_SECTIONS.map((item) => (
@@ -87,6 +101,7 @@ const BossLayout = () => {
               </p>
             </div>
           ) : null}
+
           <Outlet />
         </main>
       </div>
