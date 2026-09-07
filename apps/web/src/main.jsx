@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from '@/App';
 import ScrollToTop from '@/components/ScrollToTop';
+import PageTracker from '@/components/PageTracker';
 import { ContentProvider } from '@/contexts/ContentContext';
 import '@/index.css';
 
@@ -12,6 +13,7 @@ const app = (
   <BrowserRouter>
     <ContentProvider>
       <ScrollToTop />
+      <PageTracker />
       <App />
     </ContentProvider>
   </BrowserRouter>
