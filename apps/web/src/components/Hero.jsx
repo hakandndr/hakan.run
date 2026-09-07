@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
@@ -5,10 +6,23 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
 
+const DEFAULT_PROFILE = {
+  name: 'Hakan Dundar',
+  role: 'Software Developer',
+  image: '/media/HakanDundar.webp',
+  imageAlt: 'Hakan Dundar',
+  location: 'Orange County, CA',
+  topLabel: 'Years in Tech',
+  topValue: '15+',
+  bottomLabel: 'Software · Cloud',
+  bottomValue: 'Automation',
+};
+
 const Hero = () => {
   const navigate = useNavigate();
   const { content } = useContent();
   const h = content.hero;
+  const profile = { ...DEFAULT_PROFILE, ...(h.profile || {}) };
   const socialLinks = content.contact?.socialLinks || [];
 
   const handlePrimaryClick = () => {
@@ -29,8 +43,6 @@ const Hero = () => {
     else navigate(href);
   };
 
-  const BIO = "I'm Hakan Dundar. I spent 15 years in Turkey working across IT infrastructure, education technology, and large-scale technical operations. After moving to the United States with a Green Card, I shifted my focus into software development, QA automation, and cloud-ready web applications. Based in Irvine, California, I combine systems thinking, clean code, and automation-first engineering to build reliable products that actually run in production.";
-
   return (
     <section
       className="relative min-h-screen flex items-center overflow-hidden pt-20 border-b border-white/[0.06]"
@@ -50,7 +62,7 @@ const Hero = () => {
               {/* Badge – terminal style */}
               <div className="inline-flex items-center gap-0 px-3 py-1.5 mb-8 border border-[#2a3a50] rounded-md bg-[#0d1117] max-w-full">
                 <span className="font-mono text-xs text-[#57B8FF]/60 shrink-0 select-none mr-2">&gt;_ $</span>
-                <span className="font-mono text-xs text-[#57B8FF] tracking-wide truncate">Software Developer</span>
+                <span className="font-mono text-xs text-[#57B8FF] tracking-wide truncate">{h.badge}</span>
                 <span className="font-mono text-xs text-[#57B8FF] ml-1 shrink-0 animate-[terminalCursorSlow_1.4s_ease-in-out_infinite]">█</span>
               </div>
               <style>{`@keyframes terminalCursorSlow{0%,100%{opacity:1}50%{opacity:0.28}}`}</style>
@@ -64,7 +76,7 @@ const Hero = () => {
               {/* Bio */}
               <div className="mb-10 max-w-lg">
                 <p className="text-[17px] text-[#A1A1AA] leading-[1.75]">
-                  {BIO}
+                  {h.paragraph}
                 </p>
               </div>
 
@@ -118,14 +130,14 @@ const Hero = () => {
               <div className="relative w-full max-w-[300px] lg:max-w-[320px] xl:max-w-[340px]">
                 {/* Badge A — top-left */}
                 <div className="absolute top-6 -left-5 z-20 bg-[#181818] border border-white/[0.12] rounded-xl px-3 py-2.5 shadow-xl">
-                  <p className="font-mono text-[22px] font-bold text-white leading-tight">15+</p>
-                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap mt-0.5">Years in Tech</p>
+                  <p className="font-mono text-[22px] font-bold text-white leading-tight">{profile.topValue}</p>
+                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap mt-0.5">{profile.topLabel}</p>
                 </div>
 
                 {/* Badge B — bottom-right */}
                 <div className="absolute bottom-6 -right-3 z-20 bg-[#181818] border border-white/[0.12] rounded-xl px-3 py-2.5 shadow-xl text-right">
-                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap">US Software</p>
-                  <p className="font-mono text-sm font-bold text-white whitespace-nowrap mt-0.5">QA Automation</p>
+                  <p className="text-[11px] text-[#9CA3AF] tracking-wide whitespace-nowrap">{profile.bottomLabel}</p>
+                  <p className="font-mono text-sm font-bold text-white whitespace-nowrap mt-0.5">{profile.bottomValue}</p>
                 </div>
 
                 {/* Ambient glow */}
@@ -142,15 +154,15 @@ const Hero = () => {
                   style={{ backgroundColor: '#111112' }}
                 >
                   <img
-                    src="/media/HakanDundar.webp"
-                    alt="Hakan Dundar"
+                    src={profile.image}
+                    alt={profile.imageAlt}
                     className="w-full object-cover object-top block"
                     style={{ aspectRatio: '4/5' }}
                   />
                   {/* Name overlay */}
                   <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-gradient-to-t from-black/75 via-black/30 to-transparent">
-                    <p className="font-mono text-xs font-bold text-white/80 uppercase tracking-widest">Hakan Dundar</p>
-                    <p className="font-mono text-[10px] text-white/40 mt-0.5">Software Developer · Irvine, CA</p>
+                    <p className="font-mono text-xs font-bold text-white/80 uppercase tracking-widest">{profile.name}</p>
+                    <p className="font-mono text-[10px] text-white/40 mt-0.5">{profile.role} · {profile.location}</p>
                   </div>
                 </div>
               </div>
