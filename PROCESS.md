@@ -2612,3 +2612,46 @@ browser acceptance, DNS changes, deployment, commit or push occurred. Final diff
 hygiene checks apply to this checkpoint. Sole owner identity remains Hakan Dundar
 <hakan@dndr.net>. Next action is owner review; fresh exports and verified target or
 prior-import evidence will be supplied at migration time, not requested now.
+
+### Isolated production provisioning — 2026-09-09
+
+Started clean at `b748f444515cf2259b7652905e07eb6d01f0a463` on
+`develop/hakan-run-v2`, with owner authorization for production PROVIDER, DATABASE,
+MIGRATE, DEPLOY-without-targets, ACCESS and the available Turnstile SECRET only.
+Created isolated production D1 databases `hakan-run-app-production`
+(`1b9504fb-7d3d-4435-aba7-46b41126ebb5`) and
+`hakan-run-analytics-production` (`a8f42365-dff2-4098-8eeb-785a34ed4a3b`). Applied
+application `0001_init.sql` and analytics `0001_init.sql` plus
+`0002_legacy_import.sql`; direct schema, ledger and count queries confirmed the
+expected objects and zero application/import rows.
+
+Built the production artifact and created `hakan-run-web-production`. The final
+version is `3f4b0820-0d2e-48f4-b9b0-f06715c501c2`; upload readback listed the two
+production D1 bindings, complete Access/Turnstile public configuration and all three
+enablement flags as `false`. Wrangler reported no deployment targets, and a zone API
+read returned zero routes for this Worker.
+
+Created managed Turnstile widget `hakan-run-production`, scoped only to `hakan.run`,
+site key `0x4AAAAAAEuX8mAZVNXXGL29`. The first secret-binding attempt combined an
+explicit Worker name with the named environment, resolving to a duplicated target
+name and failing before any write; the secret was not printed or persisted. After
+explicit owner confirmation, the widget secret was retrieved through the approved
+external Wrangler, metadata-checked, validated against Siteverify and piped directly
+to the configuration-resolved production Worker. Secret-list readback confirmed only
+the binding name `TURNSTILE_SECRET_KEY`.
+
+Created Access application `hakan-run-boss-production`
+(`9ec10a49-50b2-4b21-b26b-51e3563e40be`) with destinations `hakan.run/boss`,
+`hakan.run/boss/*` and `hakan.run/api/boss/*`, session duration 24 hours, and audience
+`a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71`. Policy
+`owner-only` (`2d71c88e-1bf8-48f6-9881-de21572ce1b9`) is Allow with one Emails rule
+for `hakan@dndr.net`; all values were read back from the provider UI.
+
+Changed `wrangler.jsonc`, `HANDOFF.md`, `docs/CURRENT_STATE.md`,
+`docs/ENVIRONMENTS.md`, `docs/SECURITY.md`, `docs/OPERATIONS.md` and this append-only
+journal. No staging mutation, content/analytics import, DNS/custom-domain or legacy
+origin change occurred. `CMS_PRODUCTION_WRITES_ENABLED`, `ANALYTICS_ENABLED` and
+`NOTIFICATIONS_ENABLED` remain `false`; cron/routes remain empty and
+`RESEND_API_KEY` remains unset. No commit or push occurred. Sole future commit
+identity is Hakan Dundar <hakan@dndr.net>. Exact next action is owner review of this
+diff, followed by separate authorization and fresh checked inputs before any import.

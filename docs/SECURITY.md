@@ -1,5 +1,20 @@
 # Security
 
+## Provisioned production trust boundary — 2026-09-09
+
+The production private surface now has a distinct Cloudflare Access application
+for `hakan.run/boss`, `hakan.run/boss/*` and `hakan.run/api/boss/*`. Its only Allow
+policy contains one Emails rule for `hakan@dndr.net`; the Worker independently
+requires the provider-assigned audience and the verified team issuer. The runtime
+therefore has complete Access configuration, while no Worker traffic route is
+active.
+
+The production Turnstile widget is isolated from staging and accepts only
+`hakan.run`. Its secret was validated without being printed or persisted locally,
+then stored as the production Worker's `TURNSTILE_SECRET_KEY` secret binding. The
+secret value is absent from source, documentation and logs. `RESEND_API_KEY` remains
+absent. CMS writes, analytics collection and notification dispatch remain disabled.
+
 ## Production mutation boundary — local, 2026-09-09
 
 The production CMS mutation path is default-deny: it requires both

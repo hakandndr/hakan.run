@@ -1,5 +1,36 @@
 # Current State
 
+## Isolated production provisioning — 2026-09-09
+
+Production infrastructure now exists without public activation. The isolated D1
+databases are `hakan-run-app-production`
+(`1b9504fb-7d3d-4435-aba7-46b41126ebb5`) and
+`hakan-run-analytics-production` (`a8f42365-dff2-4098-8eeb-785a34ed4a3b`).
+Application migration `0001_init.sql` and analytics migrations `0001_init.sql` and
+`0002_legacy_import.sql` are applied and present in their D1 migration ledgers.
+Direct schema and count reads confirmed every expected table/index and zero rows in
+all application, native analytics and legacy-import data tables.
+
+Worker `hakan-run-web-production` exists at version
+`3f4b0820-0d2e-48f4-b9b0-f06715c501c2` with the two production D1 bindings,
+production environment values and `TURNSTILE_SECRET_KEY`. It has no workers.dev,
+preview URL, custom domain, zone route or other traffic target. The production
+Turnstile widget `hakan-run-production` is managed, scoped only to `hakan.run`, and
+has site key `0x4AAAAAAEuX8mAZVNXXGL29`.
+
+Access application `hakan-run-boss-production`
+(`9ec10a49-50b2-4b21-b26b-51e3563e40be`) protects `hakan.run/boss`,
+`hakan.run/boss/*` and `hakan.run/api/boss/*`. Policy `owner-only`
+(`2d71c88e-1bf8-48f6-9881-de21572ce1b9`) is Allow with one Emails rule for
+`hakan@dndr.net`; the application session is 24 hours. Its audience is
+`a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71` and the team
+domain remains `dndrnet.cloudflareaccess.com`.
+
+`CMS_PRODUCTION_WRITES_ENABLED`, `ANALYTICS_ENABLED` and
+`NOTIFICATIONS_ENABLED` remain `false`; cron triggers and routes remain empty.
+`RESEND_API_KEY` is not configured. No content or analytics was imported, DNS and
+the legacy origin were unchanged, and no commit or push occurred.
+
 ## Safe migration inputs — local, 2026-09-09
 
 Based on pushed checkpoint 6565412, uncommitted offline planner changes require an

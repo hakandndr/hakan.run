@@ -1,5 +1,32 @@
 # Operations
 
+## Production provisioning checkpoint — 2026-09-09
+
+The isolated production resources required before import now exist. The production
+Worker has no traffic target, and all activation switches remain off. Provider
+readback confirmed:
+
+- `APP_DB`: `hakan-run-app-production` / `1b9504fb-7d3d-4435-aba7-46b41126ebb5`;
+- `ANALYTICS_DB`: `hakan-run-analytics-production` / `a8f42365-dff2-4098-8eeb-785a34ed4a3b`;
+- Worker: `hakan-run-web-production`, version
+  `3f4b0820-0d2e-48f4-b9b0-f06715c501c2`, zero zone routes or deployment targets;
+- Turnstile: `hakan-run-production`, site key `0x4AAAAAAEuX8mAZVNXXGL29`, managed,
+  `hakan.run` only, with `TURNSTILE_SECRET_KEY` bound;
+- Access: application `9ec10a49-50b2-4b21-b26b-51e3563e40be`, policy
+  `2d71c88e-1bf8-48f6-9881-de21572ce1b9`, audience
+  `a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71`.
+
+Application migration `0001_init.sql` and analytics migrations `0001_init.sql` and
+`0002_legacy_import.sql` were applied remotely. Direct schema, ledger and count
+queries passed; every application and analytics data table is empty. No content or
+legacy analytics import was performed.
+
+Before import, review and commit the current non-secret configuration and
+documentation under separate authorization. Then obtain fresh production content
+and legacy-log inputs plus the checked target evidence required by the contracts
+below. Import, enabling CMS writes, enabling analytics, notification setup and
+public cutover each remain separately authorized operations.
+
 ## Production migration input contracts — local, 2026-09-09
 
 These offline planners generate reviewable output only. They do not connect to a

@@ -1,5 +1,29 @@
 # Environment and Resource Map
 
+## Production provisioning — observed 2026-09-09
+
+The production environment is provisioned but not activated. All resources are
+distinct from staging, and the Worker has no public traffic target.
+
+| Resource | State | Identifier or value |
+| --- | --- | --- |
+| `hakan-run-app-production` (D1) | **CREATED / VERIFIED**, `0001_init.sql` applied, empty | `1b9504fb-7d3d-4435-aba7-46b41126ebb5` |
+| `hakan-run-analytics-production` (D1) | **CREATED / VERIFIED**, `0001_init.sql` and `0002_legacy_import.sql` applied, empty | `a8f42365-dff2-4098-8eeb-785a34ed4a3b` |
+| `hakan-run-web-production` (Worker) | **CREATED / VERIFIED**, no traffic targets | version `3f4b0820-0d2e-48f4-b9b0-f06715c501c2` |
+| `hakan-run-production` (Turnstile) | **CREATED / VERIFIED**, managed, `hakan.run` only | `0x4AAAAAAEuX8mAZVNXXGL29` |
+| `TURNSTILE_SECRET_KEY` | **SET / VERIFIED BY BINDING NAME** | value never recorded |
+| `hakan-run-boss-production` (Access) | **CREATED / VERIFIED** | app `9ec10a49-50b2-4b21-b26b-51e3563e40be` |
+| `owner-only` (Access policy) | **CREATED / VERIFIED**, Allow `hakan@dndr.net` | policy `2d71c88e-1bf8-48f6-9881-de21572ce1b9` |
+| Production Access audience | **READ BACK / CONFIGURED** | `a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71` |
+| `RESEND_API_KEY` | NOT SET | notifications remain disabled |
+
+The Access destinations are exactly `hakan.run/boss`, `hakan.run/boss/*` and
+`hakan.run/api/boss/*`; session duration is 24 hours. `wrangler.jsonc` retains
+empty production routes and cron triggers, `workers_dev: false` and
+`preview_urls: false`. `CMS_PRODUCTION_WRITES_ENABLED`, `ANALYTICS_ENABLED` and
+`NOTIFICATIONS_ENABLED` are all `false`. No DNS/custom-domain change or import was
+performed. The older inactive contract below records the starting state.
+
 ## Inactive production configuration contract — 2026-09-09
 
 `env.production` now exists locally in `wrangler.jsonc`. Its Worker name

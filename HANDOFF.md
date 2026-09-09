@@ -1,5 +1,28 @@
 # hakan.run Modernization Handoff
 
+## Production provisioning checkpoint — local/provider, 2026-09-09
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `b748f444515cf2259b7652905e07eb6d01f0a463` |
+| Current phase | Isolated production infrastructure provisioned; imports and cutover remain pending |
+| Completed | Production D1 databases and approved migrations, inactive Worker target, Turnstile widget/secret, and owner-only Access application |
+| Exact next action | Review this uncommitted configuration/documentation diff, then obtain separate authorization and fresh verified inputs before content or analytics import |
+| Prohibited actions | Content or analytics import, CMS/analytics/notification enablement, public route or DNS activation, legacy-origin change, commit and push |
+| Push state | No commit or push; remote checkpoint remains `b748f444515cf2259b7652905e07eb6d01f0a463` |
+| Deploy state | Production Worker version `3f4b0820-0d2e-48f4-b9b0-f06715c501c2` exists with zero traffic targets |
+| Infrastructure state | Production D1, Worker, Turnstile and Access resources are isolated and verified; databases are migrated and empty; `RESEND_API_KEY` remains unset |
+
+Production `APP_DB` is `hakan-run-app-production`
+(`1b9504fb-7d3d-4435-aba7-46b41126ebb5`) and production `ANALYTICS_DB` is
+`hakan-run-analytics-production` (`a8f42365-dff2-4098-8eeb-785a34ed4a3b`).
+The Access application is `hakan-run-boss-production`
+(`9ec10a49-50b2-4b21-b26b-51e3563e40be`) with audience
+`a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71`.
+The production Turnstile site key is `0x4AAAAAAEuX8mAZVNXXGL29`; its secret value
+exists only in the Worker secret binding. Older checkpoints below remain historical.
+
 ## Migration input checkpoint — local, 2026-09-09
 
 | Field | Current value |

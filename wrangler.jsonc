@@ -70,14 +70,26 @@
         "ANALYTICS_ENABLED": "false",
         "NOTIFICATIONS_ENABLED": "false",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
-        // Empty values deny Access and leave Turnstile unavailable until provisioned.
-        "ACCESS_TEAM_DOMAIN": "",
-        "ACCESS_AUD_BOSS": "",
-        "TURNSTILE_SITE_KEY": ""
+        // Account team domain and production application audience were read back
+        // from Cloudflare after the isolated Access application was created.
+        "ACCESS_TEAM_DOMAIN": "dndrnet.cloudflareaccess.com",
+        "ACCESS_AUD_BOSS": "a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71",
+        "TURNSTILE_SITE_KEY": "0x4AAAAAAEuX8mAZVNXXGL29"
       },
-      // Required later: isolated APP_DB and ANALYTICS_DB with verified IDs.
-      // Do not substitute staging IDs or fabricate placeholder identifiers.
-      "d1_databases": [],
+      "d1_databases": [
+        {
+          "binding": "APP_DB",
+          "database_name": "hakan-run-app-production",
+          "database_id": "1b9504fb-7d3d-4435-aba7-46b41126ebb5",
+          "migrations_dir": "migrations/app"
+        },
+        {
+          "binding": "ANALYTICS_DB",
+          "database_name": "hakan-run-analytics-production",
+          "database_id": "a8f42365-dff2-4098-8eeb-785a34ed4a3b",
+          "migrations_dir": "migrations/analytics"
+        }
+      ],
       "triggers": { "crons": [] },
       "workers_dev": false,
       "preview_urls": false,
