@@ -1,5 +1,30 @@
 # CMS V2 — field editing and private preview
 
+## CMS V2 staging acceptance closed — 2026-09-09
+
+Code commit `19abe9a8250930d81d55fe14b13d3554ad97c1bd` was pushed to
+`develop/hakan-run-v2`. Staging Worker version
+`50c1f160-80d2-45b9-af14-8439cd6dfc28` was verified active at 100 percent;
+the deployed index and five JS/CSS assets matched the verified build exactly.
+
+Authenticated live acceptance passed: twelve field editors, six Boss modules,
+saved and unsaved private preview, and real draft/publish/restore. A temporary
+Hero badge was published as revision 4, then approved revision 3 was restored
+exactly as revision 5. No Hero draft remains. Header revision 2 retains Services,
+Portfolio, About. Eleven other content rows and earlier revisions were unchanged;
+new audit events use hakan@dndr.net. Before/after acceptance backups were retained
+outside Git in the Windows temporary directory.
+
+Public draft isolation, Access denial, disabled preview contact submission and
+staging noindex were checked. Header desktop/mobile order and relevant Hero,
+Portfolio, About and Footer content parity were checked. The full historical
+pixel comparison was not run. Automated origin/CSP/network tests are prior
+validation evidence; the live smoke did not independently capture every header
+or outbound request. Production and production databases were not changed.
+
+This documentation closure reruns no browser suite or build. Only targeted Git,
+diff and documentation checks apply. Earlier entries below are historical.
+
 ## Approved Header reconciliation and CMS V2 checkpoint — 2026-09-09
 
 The owner approved preserving the live Header order exactly: Services, Portfolio,

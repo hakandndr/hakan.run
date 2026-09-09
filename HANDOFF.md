@@ -1,23 +1,23 @@
 # hakan.run Modernization Handoff
 
-## Current continuation state — 2026-09-08
+## Current continuation state — 2026-09-09
 
 | Field | Verified value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | `7d3ca4d58091eadfdaeba907e76e77964d9818d6`; CMS V2 is an uncommitted local change set |
-| Current phase | CMS V2 final review; owner local fixture acceptance completed |
-| Completed | Twelve field editors, explicit schema, memory-only unsaved preview, saved snapshot preview, security/concurrency tests and staging build |
-| Exact next action | Complete the authorized CMS V2 checkpoint and normal push, deploy the freshly verified artifact to the existing staging Worker, then perform read-only live acceptance |
-| Prohibited actions | Production changes, further content mutations, bootstrap/reset/cleanup and DNS. Only the approved Header order reconciliation was authorized and is complete |
-| Push state | Remote branch verified at HEAD during initial inspection; this local work is not pushed |
-| Deploy state | No new deployment. Wrangler 4.130.0 authenticated and independently confirmed active staging version `ad75634f-4c07-4f52-9d17-3bf73c00c652`; bindings match configuration |
-| Infrastructure state | Existing resources retained. Header order reconciled through Boss at revision 2; eleven other content rows unchanged, including Hero revision 3 and its approved badge |
+| HEAD | Documentation closure follows code commit `19abe9a8250930d81d55fe14b13d3554ad97c1bd`; read actual HEAD from Git |
+| Current phase | CMS V2 staging acceptance complete; production-readiness planning only |
+| Completed | Twelve editors, six Boss modules, saved/unsaved preview, live draft/publish/restore and content integrity checks |
+| Exact next action | Read-only production-readiness audit and cutover/rollback plan; obtain approval before execution |
+| Prohibited actions | Production/staging content writes, production deployment, DNS, bootstrap, imports, new resources and unrelated feature work |
+| Push state | Code checkpoint verified on remote; this documentation-only closure is authorized for normal push |
+| Deploy state | Active staging version `50c1f160-80d2-45b9-af14-8439cd6dfc28` at 100 percent; served artifact identity verified during acceptance |
+| Infrastructure state | Existing isolated staging bindings retained. Hero revision 5 restores approved content without a draft; Header revision 2 preserves live order |
 
-Owner reported the interactive local fixture test passed: **1 passed (2.9m)**. This review reran the four targeted regression files: **40 passed, 0 failed**. No source correction was needed; required Header/Footer `href` and its regression test were already complete. Static localhost fallback content is not approved live content. See [CMS V2](docs/CONTENT-CMS-V2.md) for the authority distinction, evidence and exact 32-file checkpoint list.
-The older sections below are historical checkpoints; their HEAD, next-action,
-provider-state and implementation claims do not override this entry or current code.
+See [CMS V2](docs/CONTENT-CMS-V2.md) for accepted behavior and evidence limits.
+Full historical pixel comparison was not performed. Production was not changed.
+Older sections below are historical and do not override this state.
 
 ## Authoritative status
 

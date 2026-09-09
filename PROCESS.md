@@ -2527,3 +2527,20 @@ CMS V2 scope is unchanged. No source edits, package changes, migrations, product
 mutations or DNS changes were made. The owner authorized commit and normal push
 on develop/hakan-run-v2 followed by deployment to the existing staging Worker.
 The actual deployment result will be recorded separately after verification.
+
+### CMS V2 acceptance documentation closure — 2026-09-09
+
+Started clean on develop/hakan-run-v2 at 19abe9a8250930d81d55fe14b13d3554ad97c1bd;
+a fresh remote query matched. Owner authorized only necessary checkpoint documents,
+a documentation commit/push, and a read-only production-readiness audit. Updated
+HANDOFF.md, docs/CURRENT_STATE.md and docs/CONTENT-CMS-V2.md plus this append-only
+entry. Recorded the completed staging deployment and live acceptance: twelve editors,
+six modules, isolated preview, Hero revision 4 test restored as revision 5, preserved
+Header revision 2 and other content, audit identity and indexing. Full historical
+pixel comparison remains unperformed. No browser suite or build was repeated.
+
+Targeted diff and documentation checks apply to this documentation-only change.
+Author and committer must remain Hakan Dundar <hakan@dndr.net>. No new deployment,
+content write, import, resource, DNS or production operation is authorized here.
+Next action: read-only production authority/export/configuration audit, then present
+required launch gates and a rollback plan for separate cutover approval.
