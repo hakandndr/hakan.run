@@ -1,5 +1,122 @@
 # Operations
 
+## Production migration input contracts — local, 2026-09-09
+
+These offline planners generate reviewable output only. They do not connect to a
+provider, authenticate evidence, execute SQL or authorize an import. The commands
+below supersede older fixed-snapshot and implicit-initial examples in this document.
+Keep production exports and target evidence outside Git. Do not copy staging
+content state, drafts, revisions, audit records or native/test analytics.
+
+### Fresh content and checked target
+
+Obtain a fresh owner-supplied `section,data` CSV or JSON export (an array of
+`{section,data}` rows or an object keyed by section). Extra CSV columns and row-level
+state fields are rejected. All ten ordinary sections must be present. Only missing
+`typography` and `visibility` are promoted from the approved bundled values.
+
+Before planning, independently verify the production APP_DB identity and collect a
+read-only schema/count inspection. Print the inspection SQL without executing it:
+
+```sh
+node tools/plan-content-bootstrap.js --target-query
+```
+
+Use its complete `sqlite_master` objects and counts to assemble a target evidence
+file with this contract (placeholders below are not usable evidence):
+
+```json
+{
+  "contract": 1,
+  "environment": "production",
+  "databaseId": "<verified-production-app-database-id>",
+  "checkedAt": "<UTC ISO timestamp of the actual read-only inspection>",
+  "schema": [{ "name": "<object name>", "type": "table", "sql": "<exact sqlite_master SQL>" }],
+  "counts": {
+    "content_sections": 0, "content_revisions": 0, "submissions": 0,
+    "audit_events": 0, "settings": 0, "og_card": 0
+  }
+}
+```
+
+`schema` must include all application tables and indexes, with definitions matching
+`migrations/app/0001_init.sql`. Internal database objects and the migration ledger
+are excluded by the inspection query. Extra application objects, changed definitions,
+nonzero/missing counts, a wrong environment/ID and evidence older than 24 hours are
+refused. The explicit command ID must match the inspected database; known staging
+IDs are refused. Evidence is operator-supplied, not proof of provider authentication.
+Do not fabricate inspection results or merely relabel an old/staging export.
+
+```sh
+node tools/plan-content-bootstrap.js --input "<fresh-content.json>" --target-state "<checked-production-target.json>" --target-database-id "<verified-id>" --json
+node tools/plan-content-bootstrap.js --input "<fresh-content.json>" --target-state "<checked-production-target.json>" --target-database-id "<verified-id>" --sql-only
+```
+
+All validation completes before stdout receives SQL. The current CMS schema and
+local image availability are checked. Unknown safe fields are retained. Hero copy,
+Portfolio IDs/slugs/URLs and other content come from the fresh export, never the old
+snapshot or staging. Review the field-level reconciliation before any import.
+The only deliberate changes are the approved Header destination order
+`/#services`, `/#portfolio`, `/#about`; normalization of the known About image URL;
+removal of `contact.formEndpoint`; and the two allowed fallback promotions.
+Unexpected Header destinations or image transformations require review rather than
+inference. Source bytes and target evidence fingerprints are reported.
+
+Generated SQL is first-publication only: an empty-target assertion precedes 12 new
+sections, 12 revision-1 records and 12 bootstrap audit records. There is no upsert or
+update. A populated target is refused, including reruns after a successful seed.
+A separately authorized executor must verify the target identity and schema again,
+keep CMS writes disabled, and execute the assertion and statements atomically with
+stop-on-error behavior. The planner does not implement that executor; a SQL text
+file by itself does not guarantee atomic execution or the correct target binding.
+Never execute isolated statements after a failed assertion.
+
+### Full legacy log and verified prefix
+
+The first production import uses a fresh complete log and a separately verified
+empty legacy target in the isolated production ANALYTICS_DB. `--initial` is explicit;
+it is not a way to bypass conflicting history in an existing target.
+
+```sh
+node tools/legacy-analytics/plan-legacy-import.js "<fresh-full-log.txt>" --initial --json
+node tools/legacy-analytics/plan-legacy-import.js "<fresh-full-log.txt>" --initial --sql-only
+```
+
+After an authorized import and readback, retain the verified snapshot evidence.
+The planner accepts its `--json` output with a `snapshot` property, or the snapshot
+object itself. Required fields are `importSource` (`hakanrun_panel_log`), `byteSize`,
+`fingerprint` (lowercase SHA-256), `sourceRecords`, `importedEvents`, `archivedRecords`.
+These correspond to `import_source`, `byte_size`, `fingerprint`, `source_records`,
+`imported_events`, `archived_records` in the legacy snapshot ledger. Do not treat a
+planned snapshot as imported: the existing importer records its ledger row before
+all records, so that row alone is not completion evidence. Confirm actual archive
+and legacy event counts/identities before using it as the continuation checkpoint.
+
+The final cutover export follows exactly the same full-log path:
+
+```sh
+node tools/legacy-analytics/plan-legacy-import.js "<final-full-log.txt>" --previous-snapshot "<verified-production-snapshot.json>" --json
+node tools/legacy-analytics/plan-legacy-import.js "<final-full-log.txt>" --previous-snapshot "<verified-production-snapshot.json>" --sql-only
+```
+
+The new file must contain the old bytes unchanged at the beginning. Shorter files,
+rotation, edits, encoding/line-ending normalization, wrong source identity, invalid
+metadata and inconsistent previous totals fail before any SQL is printed. Growth
+must begin at a complete source-line boundary; do not capture an incomplete write.
+Supply a full file, never an extracted tail. Subsequent final exports use the latest
+successfully imported and verified snapshot evidence through this same interface.
+
+The report includes old/new byte sizes and hashes, old/full source and importable
+counts, archive counts and deltas. `archivedOnly` is the count excluded from PAGE
+import; `archiveRows` includes provenance for every source record, including PAGEs.
+Delta counts describe source growth, not actual database writes. Deterministic event
+IDs, physical source-line and duplicate ordinals, and `INSERT OR IGNORE` remain
+unchanged. Repeating identical bytes produces zero source delta; replaying the full
+SQL can safely fill an interrupted import without collapsing duplicate source rows.
+No native event is imported, updated or deleted. Never initialize production from
+staging databases. September 5 counts/cutoff remain historical reconciliation facts,
+not final production totals or the final export source.
+
 ## Current local CMS V2 acceptance
 
 CMS V2 is not deployed. Owner local fixture acceptance is complete by owner report: 1 passed (2.9m); do not repeat it as a prerequisite. The [local fixture acceptance procedure](CONTENT-CMS-V2.md#local-acceptance) remains a reproducible reference. The fixture uses no D1 and supports draft saves only. Local validation is not authorization to commit, push, deploy or publish content. Older deployment checkpoints below are historical.

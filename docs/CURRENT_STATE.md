@@ -1,5 +1,22 @@
 # Current State
 
+## Safe migration inputs — local, 2026-09-09
+
+Based on pushed checkpoint 6565412, uncommitted offline planner changes require an
+explicit fresh content export and current production target evidence before SQL
+output. Only an empty, compatible APP_DB is accepted; no staging history is copied.
+Known Header/About/contact normalization and Typography/Visibility promotion are
+applied without rewriting other content. The old fixed snapshot is no longer a
+CLI default.
+
+Legacy analytics planning requires explicit initial mode or a prior verified
+snapshot. Full-log prefix bytes and counts are checked before SQL; truncation,
+changes or record-boundary conflicts stop planning. Existing IDs, duplicates and
+idempotent inserts are preserved, with explicit source delta reporting.
+118 focused migration tests and tool lint passed; no build/browser suite was needed.
+Provider state, databases and deployment were not changed. See OPERATIONS.md for
+input contracts, evidence limits and final-cutover usage.
+
 ## Local production boundary checkpoint — 2026-09-09
 
 Uncommitted changes based on ff0d5a2 add an inactive production configuration.

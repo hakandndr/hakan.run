@@ -1,5 +1,24 @@
 # hakan.run Modernization Handoff
 
+## Migration input checkpoint — local, 2026-09-09
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `656541264d60e4bc74e26fca9e66569b51770f85` |
+| Current phase | Safe migration inputs implemented locally, awaiting owner review |
+| Completed | Explicit fresh content and checked empty-target contract; full-log prefix verification and delta reporting |
+| Exact next action | Review the uncommitted migration-tool checkpoint; no commit/push without approval |
+| Prohibited actions | Provider provisioning, imports, database writes, deployment, secrets and DNS changes |
+| Push state | Existing 6565412 checkpoint was pushed; this migration work is uncommitted |
+| Deploy state | Unchanged; last verified staging version 50c1f160-80d2-45b9-af14-8439cd6dfc28 |
+| Infrastructure state | Production resources remain unprovisioned in the last verified inventory; no provider query in this task |
+
+118 targeted migration tests and focused tool lint passed. Contracts and final-cutover
+commands are at the top of docs/OPERATIONS.md. Fresh production exports, independently
+verified target evidence, and an authorized atomic content executor are still required
+at migration time. No real import was performed. Older entries retain their dated scope.
+
 ## Production boundary checkpoint — local, 2026-09-09
 
 | Field | Current value |

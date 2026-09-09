@@ -52,3 +52,22 @@ export const describeSnapshot = ({ contents, fileName = null, mapped, capturedAt
     capturedAt,
   };
 };
+
+/** Validate exact source bytes before parsing or producing any SQL. */
+export const verifyPrefix = (contents, evidence) => {
+  if (!evidence || evidence.importSource !== IMPORT_SOURCE
+    || !Number.isSafeInteger(evidence.byteSize) || evidence.byteSize <= 0
+    || !/^[0-9a-f]{64}$/.test(evidence.fingerprint ?? ''))
+    throw new Error('Invalid previous snapshot length, fingerprint or import source');
+  const bytes = Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
+  if (bytes.length < evidence.byteSize) throw new Error('Full log is shorter than the previously imported prefix');
+  const prefix = bytes.subarray(0, evidence.byteSize);
+  const actual = fingerprintOf(prefix);
+  if (actual.fingerprint !== evidence.fingerprint)
+    throw new Error(`Source prefix mismatch: expected ${evidence.fingerprint}, received ${actual.fingerprint}`);
+  // A prefix ending inside a record would change its old source-line identity.
+  if (bytes.length > prefix.length && prefix.at(-1) !== 10 && bytes[prefix.length] !== 10
+    && !(bytes[prefix.length] === 13 && bytes[prefix.length + 1] === 10))
+    throw new Error('Append must start at a complete source-line boundary');
+  return prefix;
+};

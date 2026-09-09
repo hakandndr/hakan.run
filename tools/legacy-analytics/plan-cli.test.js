@@ -17,7 +17,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const script = path.join(here, 'plan-legacy-import.js');
 const fixturePath = path.join(here, 'fixtures/sample-panel-log.txt');
 
-const run = (args) => spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
+const run = (args) => spawnSync(process.execPath, [script, ...args, '--initial'], { encoding: 'utf8' });
 
 const tempExport = (contents) => {
   const dir = mkdtempSync(path.join(os.tmpdir(), 'legacy-export-'));

@@ -2581,3 +2581,34 @@ production/staging data and deployed code remain unchanged. Sole commit identity
 later authorized, is Hakan Dundar <hakan@dndr.net>. Next action is owner review;
 production provisioning, migration input safety and production analytics enablement
 remain separately scoped work.
+
+### Safe production migration inputs — 2026-09-09
+
+Started clean at 656541264d60e4bc74e26fca9e66569b51770f85 on develop/hakan-run-v2.
+Owner authorized local migration-tool implementation and focused validation only.
+Updated tools/plan-content-bootstrap.js and tools/plan-cli.test.js; added
+ tools/production-content-plan.js. Updated legacy-analytics/plan-legacy-import.js,
+ snapshot.js and plan-cli.test.js; added plan.js and prefix.test.js in that directory.
+Updated HANDOFF.md, CURRENT_STATE.md, OPERATIONS.md and this append-only journal.
+
+Content requires explicit fresh input and recent production identity/schema/empty
+state evidence. SQL is insert-only with an empty-target assertion. An independently
+verified target and separately authorized atomic executor remain required. Analytics
+requires explicit initial mode or byte-exact verified prefix evidence; full-log IDs,
+source-line ordinals, duplicates and existing insert semantics remain unchanged.
+No content source, runtime code, migration, package or lockfile was changed.
+
+Validation: `node --test --test-reporter=spec tools/plan-cli.test.js tools/content-bootstrap.test.js tools/legacy-analytics/plan-cli.test.js tools/legacy-analytics/prefix.test.js tools/legacy-analytics/legacy-import.test.js`
+passed 118/118 tests. Only temporary fixtures and in-memory SQLite were used.
+The first run passed 117/118: one test incorrectly assumed stderr contained only
+JSON, but Node emitted a module warning there. Corrected the diagnostic assertion;
+the next focused run passed. Focused ESLint on the eight changed/new tool JS files
+passed with node/es2022, module parsing, no-unused-vars and no-undef rules. The first
+lint command assumed an app-local executable; resolving the existing installed
+package found the correct executable without installing anything.
+
+No provider queries, real exports, imports, database writes, provisioning, builds,
+browser acceptance, DNS changes, deployment, commit or push occurred. Final diff and
+hygiene checks apply to this checkpoint. Sole owner identity remains Hakan Dundar
+<hakan@dndr.net>. Next action is owner review; fresh exports and verified target or
+prior-import evidence will be supplied at migration time, not requested now.
