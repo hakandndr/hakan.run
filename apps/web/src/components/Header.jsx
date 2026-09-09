@@ -9,7 +9,7 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
-  const { content, preview } = useContent();
+  const { content } = useContent();
 
   const navLinks = content.header.navLinks;
 
@@ -17,20 +17,8 @@ const Header = () => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
 
-    const logVisitor = async () => {
-      try {
-        const params = new URLSearchParams({
-          path: window.location.pathname + window.location.search,
-          referrer: document.referrer || '',
-        });
-        await fetch(`/run/log_hakanrun.php?${params.toString()}`, { cache: 'no-store' });
-      } catch (_) {
-      }
-    };
-    if (!preview) logVisitor();
-
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [preview]);
+  }, []);
 
   const handleSmoothScroll = e => {
     e.preventDefault();

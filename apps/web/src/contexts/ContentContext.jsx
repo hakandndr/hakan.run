@@ -20,13 +20,8 @@
 //   "there is no content". Those are different facts and `source` keeps them
 //   apart.
 //
-// Precedence, in order of application: `siteContent`, then the `localStorage`
-// overlay left by the legacy Admin surface, then the API. The API is applied
-// last and therefore wins for every section it publishes. The localStorage
-// overlay is a legacy authority that contradicts D-014 and survives only until
-// the legacy Admin surface is removed under D-019; it is left in place here
-// rather than removed as a side effect of this change, and its precedence is
-// pinned by a test so the removal is a decision rather than a discovery.
+// Published API sections override the built-in fallback. Browser storage is
+// never a content source; mutations belong to the authenticated Boss API.
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { siteContent } from '@/content';
@@ -64,14 +59,7 @@ const applyTypography = (typography) => {
 };
 
 export const ContentProvider = ({ children }) => {
-  const [content, setContent] = useState(() => {
-    try {
-      const stored = localStorage.getItem('siteContent');
-      return stored ? { ...siteContent, ...JSON.parse(stored) } : siteContent;
-    } catch {
-      return siteContent;
-    }
-  });
+  const [content, setContent] = useState(siteContent);
 
   const [source, setSource] = useState({ state: CONTENT_STATE.loading, reason: null, count: 0 });
 
@@ -104,22 +92,8 @@ export const ContentProvider = ({ children }) => {
     return () => { cancelled = true; };
   }, []);
 
-  // Legacy Admin write path. It writes to browser storage only: the Supabase
-  // upsert that used to follow it is gone with the read, so this no longer
-  // reaches any shared authority. It is a local preview, and it is labelled as
-  // one rather than left looking like publishing. Real publishing belongs to
-  // Boss Content against APP_DB, and removing this surface belongs to D-019.
-  const updateContent = async (section, value) => {
-    setContent(prev => {
-      const next = { ...prev, [section]: value };
-      try { localStorage.setItem('siteContent', JSON.stringify(next)); } catch (_) {}
-      return next;
-    });
-    console.warn('[Admin] Local preview only — this does not publish. Content authority is APP_DB.');
-  };
-
   return (
-    <ContentContext.Provider value={{ content, updateContent, source }}>
+    <ContentContext.Provider value={{ content, source }}>
       {children}
     </ContentContext.Provider>
   );

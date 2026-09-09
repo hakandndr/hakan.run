@@ -1,5 +1,23 @@
 # Current State
 
+## Local production boundary checkpoint — 2026-09-09
+
+Uncommitted changes based on ff0d5a2 add an inactive production configuration.
+CMS mutations require `ENVIRONMENT=production` and the exact string
+`CMS_PRODUCTION_WRITES_ENABLED=true`; the checked-in flag is `false`.
+Staging behavior and resource bindings are unchanged. Access verification,
+same-origin enforcement, concurrency, revision/audit and atomic batches remain intact.
+
+The legacy Control Room route and authentication modules, browser `siteContent`
+storage authority and Header PHP tracker are removed locally. Published API sections
+still override the built-in fallback; old browser storage is ignored, not deleted.
+Public content, navigation and native staging analytics are unchanged. Package and
+lockfiles are unchanged; the unused legacy client dependency is not bundled.
+
+Targeted Node tests, eight local Chromium content/removal tests, lint, production and
+staging builds/indexing checks, and production Worker dry run passed. No live tests,
+provider changes, imports, deployments, commits or pushes occurred in this checkpoint.
+
 ## CMS V2 staging acceptance closed — 2026-09-09
 
 Code commit `19abe9a8250930d81d55fe14b13d3554ad97c1bd` was pushed to

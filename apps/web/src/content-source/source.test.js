@@ -187,12 +187,8 @@ test('nothing on the public content path can reach Supabase', async () => {
     .map((file) => path.relative(srcRoot, file).split(path.sep).join('/'))
     .sort();
 
-  // Two files, and only two: the client module itself and the legacy Admin
-  // surface that authenticates against it. Neither is on the public content
-  // path. Removing them belongs to the legacy `/control-room` removal (D-019);
-  // until then this list is the boundary, and a third entry means the content
-  // path — or something new — has reacquired a production dependency.
-  assert.deepEqual(importers, ['lib/supabase.js', 'pages/Admin.jsx']);
+  // No runtime authentication or content path may retain the retired client.
+  assert.deepEqual(importers, []);
 });
 
 test('the content context reads the API and nothing else', async () => {
@@ -204,4 +200,14 @@ test('the content context reads the API and nothing else', async () => {
   const context = readFileSync(path.join(here, '../contexts/ContentContext.jsx'), 'utf8');
   assert.ok(context.includes("from '@/content-source/source'"), 'the context must load content through the source module');
   assert.ok(!/from\s+['"][^'"]*supabase/.test(context), 'the context must not import a Supabase client');
+});
+
+test('legacy routes, storage authority and Header telemetry are absent', async () => {
+  const { readFileSync, existsSync } = await import('node:fs');
+  const read = (name) => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');
+  assert.equal(existsSync(new URL('../pages/Admin.jsx', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../lib/supabase.js', import.meta.url)), false);
+  assert.doesNotMatch(read('App.jsx'), /control-room|pages\/Admin/);
+  assert.doesNotMatch(read('contexts/ContentContext.jsx'), /localStorage|updateContent/);
+  assert.doesNotMatch(read('components/Header.jsx'), /log_hakanrun|logVisitor|fetch\(/);
 });

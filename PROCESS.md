@@ -2544,3 +2544,40 @@ Author and committer must remain Hakan Dundar <hakan@dndr.net>. No new deploymen
 content write, import, resource, DNS or production operation is authorized here.
 Next action: read-only production authority/export/configuration audit, then present
 required launch gates and a rollback plan for separate cutover approval.
+
+### Production CMS boundary and legacy removal — 2026-09-09
+
+Started clean at ff0d5a22d8949ac6eed7c9dd04fbfc75533c78f9 on develop/hakan-run-v2.
+Owner authorized only local implementation, focused validation and checkpoint
+preparation. Added inactive production configuration and the exact-string production
+CMS write opt-in. Removed App's Control Room route, Admin.jsx, lib/supabase.js,
+ContentContext's browser content authority and Header's PHP tracker. Updated focused
+content, authorization and configuration tests plus HANDOFF.md, CURRENT_STATE.md,
+ENVIRONMENTS.md, SECURITY.md and this journal. Package/lockfiles and content values
+were preserved. No migration-tool implementation was performed.
+
+Validation:
+
+- `node --test --test-reporter=dot worker/tests/content-management.test.js worker/tests/boss-authorization.test.js worker/tests/routing-boundary.test.js worker/tests/content-preview.test.js worker/tests/public-content.test.js apps/web/src/content-source/source.test.js`: passed.
+- `node --test --test-reporter=spec apps/web/src/content-source/analytics.test.js`: 3 passed.
+- `npm run lint --prefix apps/web`: passed.
+- The focused Playwright content run built production successfully but the default
+  preview server could not bind IPv6 port 3000 (EACCES). The first temporary IPv4
+  configuration used the wrong working directory; correcting it to apps/web resolved
+  the artifact path. An external temporary configuration serving the same production
+  artifact on 127.0.0.1:4179 then ran only tests/content.spec.ts: 8 Chromium tests passed.
+  No project server configuration was changed and no browser tour was performed.
+- `npm run verify:artifact --prefix apps/web`: production indexing policy passed.
+- `npm run build:staging --prefix apps/web -- --out-dir ../../dist/staging-boundary-check`:
+  build and staging indexing policy passed in a separate local output directory.
+- `npx --offline --no-install --package wrangler@4.130.0 wrangler deploy --env production --dry-run`:
+  configuration and Worker bundle passed; no upload or deployment occurred.
+- Parsed staging configuration and shared asset routing match HEAD exactly. Both
+  bundles exclude the retired PHP tracker and legacy authentication configuration.
+
+No full historical suite or visual comparison was run. No new resources, secrets,
+DNS changes, database writes, imports, deployment, commit or push occurred. Existing
+production/staging data and deployed code remain unchanged. Sole commit identity, if
+later authorized, is Hakan Dundar <hakan@dndr.net>. Next action is owner review;
+production provisioning, migration input safety and production analytics enablement
+remain separately scoped work.

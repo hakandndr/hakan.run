@@ -4,7 +4,6 @@ import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import Contact from '@/pages/Contact';
 import Project from '@/pages/Project';
-import Admin from '@/pages/Admin';
 import NotFound from '@/pages/NotFound';
 import BossLayout from '@/boss/BossLayout';
 import BossDashboard from '@/boss/pages/Dashboard';
@@ -61,7 +60,6 @@ function App() {
                 <Route path="system" element={<BossSystem />} />
                 <Route path="*" element={<Navigate to="/boss" replace />} />
               </Route>
-              <Route path="/control-room" element={<Admin />} />
               <Route path="/admin" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>

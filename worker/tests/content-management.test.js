@@ -1,5 +1,5 @@
 import { siteContent } from '../../apps/web/src/content.js';
-import test from 'node:test';
+import test, { describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { handleContentManagement, validateContent } from '../boss/content-management.js';
@@ -55,7 +55,7 @@ const adapter = () => {
     },
   };
 };
-const setup = () => {
+const createSetup = (environment) => {
   const db = adapter();
   db.sqlite.prepare(`INSERT INTO content_sections
     (section, published_data, published_revision, published_at, updated_at)
@@ -63,7 +63,7 @@ const setup = () => {
   db.sqlite.prepare(`INSERT INTO content_revisions
     (section, revision, data, created_at, actor, note) VALUES ('hero', 1, ?, 100, 'bootstrap', '')`)
     .run(JSON.stringify({ ...siteContent.hero, headingLine1: 'Original' }));
-  return { APP_DB: db, ENVIRONMENT: 'staging' };
+  return { APP_DB: db, ENVIRONMENT: environment, CMS_PRODUCTION_WRITES_ENABLED: environment === 'production' ? 'true' : undefined };
 };
 const request = (method, path, payload, origin = 'https://staging.hakan.run') =>
   new Request(`https://staging.hakan.run/api/boss/content/${path}`, {
@@ -73,12 +73,20 @@ const request = (method, path, payload, origin = 'https://staging.hakan.run') =>
   });
 const call = async (env, method, path, payload) => {
   if (payload?.data) payload = { ...payload, data: { ...siteContent.hero, ...payload.data } };
-  const req = request(method, path, payload);
+  const base = request(method, path, payload);
+  const req = env.ENVIRONMENT === 'production'
+    ? new Request(base.url.replace('staging.hakan.run', 'hakan.run'), {
+      method, headers: { 'content-type': 'application/json', origin: 'https://hakan.run' },
+      ...(['GET', 'HEAD'].includes(method) ? {} : { body: JSON.stringify(payload) }),
+    }) : base;
   const response = await handleContentManagement(req, env, { email: 'hakan@dndr.net' }, new URL(req.url).pathname);
   return { status: response.status, data: await response.json() };
 };
 const expected = (row) => ({ expectedVersion: row.updatedAt, expectedRevision: row.publishedRevision ?? 0 });
 const detail = async (env) => (await call(env, 'GET', 'hero')).data;
+
+for (const environment of ['staging', 'production']) describe(environment, () => {
+const setup = () => createSetup(environment);
 
 test('draft save does not change public content, and publish creates one revision and audit', async () => {
   const env = setup();
@@ -161,6 +169,7 @@ test('validation, origin, and environment gates reject unsafe writes', async () 
   const wrong = request('PUT', 'hero/draft', { ...expected(row), data: { headingLine1: 'x' } }, 'https://evil.example');
   assert.equal((await handleContentManagement(wrong, env, { email: 'hakan@dndr.net' }, new URL(wrong.url).pathname)).status, 403);
   env.ENVIRONMENT = 'production';
+  delete env.CMS_PRODUCTION_WRITES_ENABLED;
   assert.equal((await call(env, 'PUT', 'hero/draft', { ...expected(row), data: { headingLine1: 'x' } })).status, 403);
   assert.equal(env.APP_DB.sqlite.prepare('SELECT COUNT(*) AS n FROM audit_events').get().n, 0);
 });
@@ -202,4 +211,32 @@ test('restore refuses to replace an outstanding draft', async () => {
   const result = await call(env, 'POST', 'hero/revisions/1', expected(row));
   assert.equal(result.status, 409);
   assert.equal((await detail(env)).draft.headingLine1, 'Unsaved publication');
+});
+
+});
+
+test('production opt-in is exact and cannot enable unknown environments', async () => {
+  for (const environment of ['production', 'development', undefined]) {
+    for (const flag of [undefined, false, true, 'false', 'TRUE', '1', 'true']) {
+      if (environment === 'production' && flag === 'true') continue;
+      const env = { ...createSetup(environment), CMS_PRODUCTION_WRITES_ENABLED: flag };
+      for (const [method, path] of [['PUT', 'hero/draft'], ['DELETE', 'hero/draft'], ['POST', 'hero/publish'], ['POST', 'hero/revisions/1']]) {
+        assert.equal((await call(env, method, path, { expectedVersion: 100, expectedRevision: 1 })).status, 403);
+      }
+      assert.equal(env.APP_DB.sqlite.prepare('SELECT COUNT(*) AS n FROM audit_events').get().n, 0);
+      env.APP_DB.sqlite.close();
+    }
+  }
+});
+
+test('enabled production denies absent, null and cross-origin mutations', async () => {
+  const env = createSetup('production');
+  for (const origin of [undefined, 'null', 'https://staging.hakan.run']) {
+    const req = new Request('https://hakan.run/api/boss/content/hero/draft', {
+      method: 'PUT', headers: origin === undefined ? {} : { origin },
+      body: JSON.stringify({ expectedVersion: 100, expectedRevision: 1, data: siteContent.hero }),
+    });
+    assert.equal((await handleContentManagement(req, env, { email: 'hakan@dndr.net' }, new URL(req.url).pathname)).status, 403);
+  }
+  assert.equal(env.APP_DB.sqlite.prepare('SELECT COUNT(*) AS n FROM audit_events').get().n, 0);
 });

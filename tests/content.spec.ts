@@ -120,10 +120,8 @@ test.describe('public content source', () => {
     await expect.poll(() => errors.filter((line) => line.includes('malformed')).length).toBeGreaterThan(0);
   });
 
-  test('the API overrides the legacy localStorage overlay', async ({ page }) => {
-    // Precedence is fallback, then the legacy Admin localStorage blob, then the
-    // API. Pinned here so removing the legacy surface is a decision rather than
-    // something discovered when a stale browser blob outranks published content.
+  test('published content ignores legacy localStorage', async ({ page }) => {
+    // Old browser content must never become a runtime authority again.
     await page.addInitScript(() => {
       window.localStorage.setItem(
         'siteContent',
@@ -141,7 +139,7 @@ test.describe('public content source', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText(PUBLISHED_HEADING);
   });
 
-  test('the legacy localStorage overlay still wins over the built-in fallback when nothing is published', async ({ page }) => {
+  test('the fallback ignores legacy localStorage when nothing is published', async ({ page }) => {
     await page.addInitScript(() => {
       window.localStorage.setItem(
         'siteContent',
@@ -151,6 +149,17 @@ test.describe('public content source', () => {
     await stubContent(page, json({ contract: 1, count: 0, publishedAt: null, sections: [] }));
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('STALE LOCAL COPY.');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(FALLBACK_HEADING);
   });
+});
+
+test('the removed Control Room renders the existing not-found page without legacy requests', async ({ page }) => {
+  const legacyRequests: string[] = [];
+  page.on('request', request => {
+    if (/\/run\/|supabase\.co/.test(request.url())) legacyRequests.push(request.url());
+  });
+  await stubContent(page, json({ contract: 1, count: 0, publishedAt: null, sections: [] }));
+  await page.goto('/control-room');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('404');
+  expect(legacyRequests).toEqual([]);
 });

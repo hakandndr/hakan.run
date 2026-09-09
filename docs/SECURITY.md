@@ -1,5 +1,22 @@
 # Security
 
+## Production mutation boundary — local, 2026-09-09
+
+The production CMS mutation path is default-deny: it requires both
+`ENVIRONMENT=production` and the exact string `CMS_PRODUCTION_WRITES_ENABLED=true`.
+The inactive production configuration supplies `false` and empty Access values.
+Staging retains its existing write behavior; unknown environments cannot opt in.
+The Worker still verifies the signed owner identity before routing to CMS, then
+requires a same-origin request. The existing optimistic concurrency, immutable
+revisions, audit attribution and atomic transaction code is unchanged.
+
+Regression coverage exercises the mutation workflow, races and transaction rollback
+in both staging and enabled production, invalid opt-ins, absent/cross origins and
+signed non-owner, wrong-audience, expired and wrong-issuer assertions. The legacy
+Control Room authentication and browser content authority are removed. Private
+preview remains memory-only and independent of production write enablement.
+No deployed security configuration changed in this checkpoint.
+
 ## Implemented CMS V2 boundary — local, not deployed
 
 The preview shell and snapshot API both pass existing Access signature, audience, issuer, expiry and owner checks in the Worker. Preview responses are non-cacheable. The shell removes public trackers and enforces restrictive CSP, no-referrer and same-origin framing. Only validated messages from the exact parent/origin are accepted. Unsaved data stays in memory; preview disables network connections, forms, external images and outbound interactions. Browser tests verify blocked requests; signed-token tests verify both allowed and denied identities. There is no new development authentication bypass in the runtime.

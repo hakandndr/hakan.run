@@ -53,3 +53,18 @@ test('Worker-first routing carries no broader wildcard and no unrelated route', 
     );
   }
 });
+
+test('production configuration stays inactive and contains no invented bindings', () => {
+  const config = JSON.parse(readFileSync(CONFIG_URL, 'utf8').replace(/^\s*\/\/.*$/gm, ''));
+  const production = config.env.production;
+  assert.equal(production.vars.ENVIRONMENT, 'production');
+  assert.equal(production.vars.CMS_PRODUCTION_WRITES_ENABLED, 'false');
+  assert.equal(production.vars.ACCESS_AUD_BOSS, '');
+  assert.equal(production.vars.ACCESS_TEAM_DOMAIN, '');
+  assert.equal(production.vars.TURNSTILE_SITE_KEY, '');
+  assert.equal(production.workers_dev, false);
+  assert.equal(production.preview_urls, false);
+  assert.deepEqual(production.routes, []);
+  assert.deepEqual(production.d1_databases, []);
+  assert.deepEqual(production.triggers.crons, []);
+});

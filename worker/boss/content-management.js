@@ -177,7 +177,10 @@ export const handleContentManagement = async (request, env, identity, path) => {
     }
     return notFound();
   }
-  if (env.ENVIRONMENT !== 'staging') return fail('production_writes_not_enabled', 403);
+  // Production requires an explicit string opt-in; unknown environments deny.
+  const writesEnabled = env.ENVIRONMENT === 'staging'
+    || (env.ENVIRONMENT === 'production' && env.CMS_PRODUCTION_WRITES_ENABLED === 'true');
+  if (!writesEnabled) return fail('production_writes_not_enabled', 403);
   const origin = request.headers.get('origin');
   if (!origin || origin !== new URL(request.url).origin) return fail('origin_required', 403);
   try {

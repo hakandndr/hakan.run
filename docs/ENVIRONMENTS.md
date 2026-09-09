@@ -1,5 +1,39 @@
 # Environment and Resource Map
 
+## Inactive production configuration contract — 2026-09-09
+
+`env.production` now exists locally in `wrangler.jsonc`. Its Worker name
+`hakan-run-web-production` is proposed, not a provider identifier or an existing
+resource. Routes, database bindings and cron triggers are empty. `workers_dev` and
+`preview_urls` are false. No production routing is activated by this checkpoint.
+Staging configuration is unchanged. The contract is not ready for deployment.
+
+Before a separately authorized production deployment:
+
+- Supply verified, isolated `APP_DB` and `ANALYTICS_DB` bindings and their actual IDs;
+  use the existing `migrations/app` and `migrations/analytics` directories. Never copy
+  staging IDs or databases. No new migration is introduced here.
+- Supply the verified production `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD_BOSS`; both
+  are deliberately empty now. Retain `BOSS_OWNER_EMAIL=hakan@dndr.net`. Protect
+  `/boss`, `/boss/*` and `/api/boss/*` with the owner policy before routing traffic.
+- Supply a production-host Turnstile site key and secret binding
+  `TURNSTILE_SECRET_KEY`. No secret value belongs in configuration or browser code.
+- Keep notifications disabled unless the existing delivery configuration is ready:
+  `RESEND_API_KEY`, `NOTIFICATION_SENDER` and `NOTIFICATION_RECIPIENT`.
+- Review routing, cron and analytics activation separately. The native browser
+  tracker still accepts only the staging hostname; this checkpoint does not enable
+  production tracking. Production `ANALYTICS_ENABLED` remains `false`.
+
+CMS writes default to denied. Only the exact string
+`CMS_PRODUCTION_WRITES_ENABLED=true` with `ENVIRONMENT=production` enables the
+existing mutation path. It does not bypass Access, origin checks or concurrency.
+Unknown environments stay denied even with the flag. Disabling the flag blocks
+mutations without deleting drafts, publications, revisions or audit history.
+Production must never identify itself as staging. Actual provisioning, secrets,
+routing, activation and deployment each require separate authorization.
+
+Historical provisioning observations below remain dated evidence.
+
 ## Status
 
 Phase 2B staging is **provisioned**. Every staging resource in this document now exists and has been verified against the provider: both D1 databases with their schemas applied, the Worker with its bindings and cron trigger, the `staging.hakan.run` hostname, the Access application, the Turnstile widget, and the Turnstile secret binding. The per-resource state table below is authoritative and is updated only from an observed provider response, never from an assumption.

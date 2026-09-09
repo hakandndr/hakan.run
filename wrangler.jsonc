@@ -18,8 +18,8 @@
   },
   "observability": { "enabled": true },
 
-  // Staging is the only configured environment. Production resources do not
-  // exist yet and are added at cutover, never by copying this block.
+  // Production is an inactive configuration contract, not a provisioned target.
+  // See docs/ENVIRONMENTS.md before supplying any production bindings.
   "env": {
     "staging": {
       "name": "hakan-run-web-staging",
@@ -61,6 +61,27 @@
       "routes": [
         { "pattern": "staging.hakan.run", "custom_domain": true }
       ]
+    },
+    "production": {
+      "name": "hakan-run-web-production",
+      "vars": {
+        "ENVIRONMENT": "production",
+        "CMS_PRODUCTION_WRITES_ENABLED": "false",
+        "ANALYTICS_ENABLED": "false",
+        "NOTIFICATIONS_ENABLED": "false",
+        "BOSS_OWNER_EMAIL": "hakan@dndr.net",
+        // Empty values deny Access and leave Turnstile unavailable until provisioned.
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD_BOSS": "",
+        "TURNSTILE_SITE_KEY": ""
+      },
+      // Required later: isolated APP_DB and ANALYTICS_DB with verified IDs.
+      // Do not substitute staging IDs or fabricate placeholder identifiers.
+      "d1_databases": [],
+      "triggers": { "crons": [] },
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": []
     }
   }
 }

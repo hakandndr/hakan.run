@@ -1,5 +1,25 @@
 # hakan.run Modernization Handoff
 
+## Production boundary checkpoint — local, 2026-09-09
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `ff0d5a22d8949ac6eed7c9dd04fbfc75533c78f9` |
+| Current phase | Production CMS boundary and approved legacy removal, awaiting owner review |
+| Completed | Inactive production configuration, explicit CMS write opt-in, removal of Control Room authentication, browser content storage and PHP tracker |
+| Exact next action | Owner review of this uncommitted checkpoint; commit and push require authorization |
+| Prohibited actions | Provisioning, secrets, DNS, deployment, database writes, imports and migration-tool changes |
+| Push state | No new commit or push; remote checkpoint remains ff0d5a2 |
+| Deploy state | Unchanged; last verified staging version 50c1f160-80d2-45b9-af14-8439cd6dfc28 |
+| Infrastructure state | Staging configuration unchanged; production resource bindings are deliberately absent |
+
+Focused security/content tests, eight local Chromium regressions, lint, both build
+indexing policies and production Worker dry run passed. See PROCESS.md for commands
+and local test-server limitations. Production analytics remains staging-host gated;
+production provisioning and migration inputs remain separate work. Older entries
+below describe their own checkpoints and do not override this local state.
+
 ## Current continuation state — 2026-09-09
 
 | Field | Verified value |

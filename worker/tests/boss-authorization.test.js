@@ -125,3 +125,37 @@ test('Boss System reports native retention and legacy history as separate figure
   assert.equal(body.legacyAnalytics.governedByRetentionPolicy, false);
   assert.ok(body.eventSources.some((entry) => entry.source === 'legacy_panel'));
 });
+
+test('production opt-in never bypasses signed owner Access verification', async (t) => {
+  const keys = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048,
+    publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
+  const jwk = { ...await crypto.subtle.exportKey('jwk', keys.publicKey), kid: 'production-test' };
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ keys: [jwk] }));
+  const env = { ...configuredEnv, ENVIRONMENT: 'production', CMS_PRODUCTION_WRITES_ENABLED: 'true',
+    ACCESS_TEAM_DOMAIN: 'production-test.cloudflareaccess.com',
+    APP_DB: { prepare() { throw new Error('unauthorized database access'); } } };
+  const sign = async (claims) => {
+    const encode = (v) => Buffer.from(JSON.stringify(v)).toString('base64url');
+    const unsigned = `${encode({ alg: 'RS256', kid: jwk.kid })}.${encode(claims)}`;
+    const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, new TextEncoder().encode(unsigned));
+    return `${unsigned}.${Buffer.from(signature).toString('base64url')}`;
+  };
+  const claims = { iss: `https://${env.ACCESS_TEAM_DOMAIN}`, aud: env.ACCESS_AUD_BOSS,
+    exp: Math.floor(Date.now() / 1000) + 600, sub: 'owner', email: env.BOSS_OWNER_EMAIL };
+  const ownerToken = await sign(claims);
+  for (const token of [null, 'invalid', await sign({ ...claims, email: 'other@example.com' }),
+    await sign({ ...claims, aud: 'staging-audience' }), await sign({ ...claims, exp: 0 }),
+    await sign({ ...claims, iss: 'https://other.example' })]) {
+    const req = new Request('https://hakan.run/api/boss/content/hero/draft', {
+      method: 'PUT', headers: { origin: 'https://hakan.run', ...(token ? { 'cf-access-jwt-assertion': token } : {}) }, body: '{}',
+    });
+    assert.equal((await worker.fetch(req, env, {})).status, 403);
+  }
+  // A valid owner reaches the mutation boundary, which still rejects another origin.
+  const req = new Request('https://hakan.run/api/boss/content/hero/draft', {
+    method: 'PUT', headers: { origin: 'https://other.example', 'cf-access-jwt-assertion': ownerToken }, body: '{}',
+  });
+  const response = await worker.fetch(req, env, {});
+  assert.equal(response.status, 403);
+  assert.equal((await response.json()).error, 'origin_required');
+});
