@@ -8,7 +8,11 @@ Live site: [hakan.run](https://hakan.run)
 
 For the implemented site, start with the [documentation index](./docs/README.md). Modernization work is governed by [AGENTS.md](./AGENTS.md), continued from [HANDOFF.md](./HANDOFF.md), and tracked through [current state](./docs/CURRENT_STATE.md) and the [roadmap](./docs/ROADMAP.md).
 
-## Technology
+## Modernization status
+
+The modernization branch uses APP_DB-backed public content and the private Boss interface. [CMS V2](./docs/CONTENT-CMS-V2.md) adds twelve field editors and isolated saved/unsaved preview; it is locally tested and not deployed. See that document for local acceptance and preserved legacy boundaries.
+
+## Legacy technology reference
 
 | Area | Implementation |
 | --- | --- |
@@ -30,7 +34,7 @@ tests/          Playwright browser tests
 docs/           Architecture, security, content, CI, and operations documentation
 ```
 
-## Content model
+## Legacy content model reference
 
 `apps/web/src/content.js` is the fallback content source. `ContentContext.jsx` optionally merges browser `localStorage` state and rows from Supabase `public.site_content` by top-level section.
 

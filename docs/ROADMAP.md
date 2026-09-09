@@ -130,7 +130,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Split authority, draft leakage, schema drift, unsafe fallback behavior.
 - Acceptance gates: Authority map, schema validation, draft/publish behavior, rollback, public-consumer verification.
 - Authorization boundaries: DATABASE, MIGRATE, DEPLOY, and content activation are separate.
-- Status: Planned.
+- Status: CMS V2 implemented and validated locally across twelve sections, including private saved/unsaved preview. Owner local fixture acceptance passed by owner report (1 passed, 2.9m). Separately authorized staging deployment and real Access/APP_DB acceptance remain pending. See [CMS V2](CONTENT-CMS-V2.md).
 
 ## Phase 8 — Public content and positioning refinement
 

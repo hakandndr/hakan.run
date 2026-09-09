@@ -1,10 +1,10 @@
 // Private content management. All routes are reached only after verified Access.
 // The environment gate prevents accidental production writes during development.
-import { json, notFound, problem } from '../lib/response.js';
+import { json, notFound } from '../lib/response.js';
 import { isCanonicalSection } from '../lib/content-sections.js';
+import { validateSection } from '../../apps/web/src/content-source/schema.js';
 
 const MAX_BYTES = 131072;
-const MAX_DEPTH = 24;
 const headers = { 'cache-control': 'no-store' };
 const reply = (body, status = 200) => json(body, status, headers);
 const fail = (code, status = 400) => reply({ error: code }, status);
@@ -23,51 +23,10 @@ export class ContentValidationError extends Error {
 }
 const invalid = (code) => { throw new ContentValidationError(code); };
 
-const validateTree = (value, depth = 0, key = '') => {
-  if (depth > MAX_DEPTH) invalid('content_too_deep');
-  if (typeof value === 'string') {
-    if (value.length > 60000) invalid('field_too_long');
-    if (/^(href|url|externalUrl|primaryButtonHref|secondaryButtonHref|buttonHref|image|imgSrc|formEndpoint)$/i.test(key)) {
-      if (/^\s*(javascript|data|vbscript|file):/i.test(value)) invalid('unsafe_url');
-    }
-    return;
-  }
-  if (typeof value === 'number' && !Number.isFinite(value)) invalid('invalid_number');
-  if (value === null || typeof value === 'boolean' || typeof value === 'number') return;
-  if (Array.isArray(value)) {
-    if (value.length > 1000) invalid('array_too_large');
-    value.forEach((item) => validateTree(item, depth + 1));
-    return;
-  }
-  if (!object(value)) invalid('invalid_value');
-  for (const [name, item] of Object.entries(value)) {
-    if (['__proto__', 'constructor', 'prototype'].includes(name)) invalid('unsafe_key');
-    validateTree(item, depth + 1, name);
-  }
-};
-const sameKind = (a, b) => Array.isArray(a) ? Array.isArray(b) :
-  object(a) ? object(b) : a === null ? b === null : typeof a === typeof b;
-const validateShape = (value, reference, path = '') => {
-  if (!sameKind(reference, value)) invalid(`invalid_type:${path || 'root'}`);
-  if (Array.isArray(reference)) {
-    const sample = reference[0];
-    if (sample !== undefined) value.forEach((item, i) => validateShape(item, sample, `${path}[${i}]`));
-  } else if (object(reference)) {
-    for (const [key, sample] of Object.entries(reference)) {
-      if (!Object.hasOwn(value, key)) invalid(`missing_field:${path ? path + '.' : ''}${key}`);
-      validateShape(value[key], sample, path ? `${path}.${key}` : key);
-    }
-  }
-};
-export const validateContent = (section, data, published = null) => {
-  if (!isCanonicalSection(section)) invalid('unknown_section');
-  if (!object(data)) invalid('section_must_be_object');
-  validateTree(data);
-  if (published) validateShape(data, published);
-  const text = canonical(data);
-  if (new TextEncoder().encode(text).length > MAX_BYTES) invalid('content_too_large');
-  if (/formspree\.io|supabase\.co/i.test(text)) invalid('retired_integration');
-  return text;
+export const validateContent = (section, data) => {
+  const errors = validateSection(section, data);
+  if (errors.length) { const error = new ContentValidationError('content_invalid'); error.fields = errors; throw error; }
+  return canonical(data);
 };
 
 const read = async (db, section) =>
@@ -231,7 +190,7 @@ export const handleContentManagement = async (request, env, identity, path) => {
     if (operation === 'revisions' && number && method === 'POST')
       return await write(request, env, identity, section, 'restore', Number(number));
   } catch (error) {
-    if (error instanceof ContentValidationError) return fail(error.message, 400);
+    if (error instanceof ContentValidationError) return reply({ error: error.message, fields: error.fields ?? [] }, 400);
     throw error;
   }
   return notFound();

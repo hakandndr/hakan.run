@@ -1,5 +1,12 @@
 # Security
 
+## Implemented CMS V2 boundary — local, not deployed
+
+The preview shell and snapshot API both pass existing Access signature, audience, issuer, expiry and owner checks in the Worker. Preview responses are non-cacheable. The shell removes public trackers and enforces restrictive CSP, no-referrer and same-origin framing. Only validated messages from the exact parent/origin are accepted. Unsaved data stays in memory; preview disables network connections, forms, external images and outbound interactions. Browser tests verify blocked requests; signed-token tests verify both allowed and denied identities. There is no new development authentication bypass in the runtime.
+
+See [CMS V2](CONTENT-CMS-V2.md) for contracts, evidence, limitations and acceptance.
+Earlier sections below retain historical context and must not be read as newer current-state claims.
+
 ## Verified current security state
 
 This section describes checked-in behavior at the legacy baseline. Live policies, identities, provider dashboards, server modules, and hosted files were not inspected in Phase 1A.

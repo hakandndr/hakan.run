@@ -1,5 +1,41 @@
 # Current State
 
+## Approved Header reconciliation and CMS V2 checkpoint — 2026-09-09
+
+The owner approved preserving the live Header order exactly: Services, Portfolio,
+About. A read-only staging backup captured all content rows plus Header revisions
+and audit history before mutation. Header had revision 1, version 1788600343660,
+and no saved draft. Through the existing verified Boss session, only navLinks order
+was changed, saved and published using the normal V1 transaction model.
+
+Readback confirmed Header revision 2, no remaining draft, all other Header values
+unchanged, the old revision preserved, and all eleven other content rows byte-for-byte
+unchanged. Draft and publish audit actors are hakan@dndr.net. Local recovery files
+are outside the repository in the Windows temporary directory:
+hakan-run-header-before-20260909.json and hakan-run-header-after-20260909.json.
+The before-backup SHA-256 is
+D4952BBE6464CCB868BA5DC98B0073515F803AB738C85BA8FEF9F30BA40C439C.
+Recovery, if separately required, uses normal restore of Header revision 1 after
+checking the current version and absence of a draft; do not overwrite the database
+from the backup. Revision 1 has the old stored order, so restoring it would reverse
+the approved reconciliation and requires an explicit decision.
+
+Fresh checks: 40 targeted tests passed, web lint passed, staging build and artifact
+indexing verification passed, and the Worker staging dry run passed. The 32-file
+CMS V2 scope is unchanged. No source edits, package changes, migrations, production
+mutations or DNS changes were made. The owner authorized commit and normal push
+on develop/hakan-run-v2 followed by deployment to the existing staging Worker.
+The actual deployment result will be recorded separately after verification.
+
+## Current implementation — CMS V2, 2026-09-08
+
+CMS V2 is implemented and locally validated on top of `7d3ca4d`, without commit or deployment. All twelve sections have field controls and shared explicit validation. Saved and unsaved private previews reuse public components; drafts remain isolated from the public API. APP_DB, optimistic concurrency, revisions and audit remain authoritative. Public staging reads confirmed twelve sections, all compatible with the schema, and Hero revision 3. No D1 write or infrastructure change occurred. The owner-reported deployed Worker version was not independently reverified.
+
+Owner local fixture acceptance is complete by owner report: **1 passed (2.9m)**. The final review independently reran 40 targeted tests, all passing. No source edits were required. Live Access/APP_DB acceptance and deployment remain pending explicit authorization. Local fixture values and the old built-in Hero biography are not approved live content; staging remains authoritative with its shorter biography and `Software · Cloud · Automation` badge at revision 3, based on the earlier read and owner confirmation, not a new live read in this review.
+
+See [CMS V2](CONTENT-CMS-V2.md) for contracts, evidence, limitations and acceptance.
+Earlier sections below retain historical context and must not be read as newer current-state claims.
+
 ## Verified current state
 
 This document records repository-backed truth for the modernization working copy. It does not prove uninspected live provider state.

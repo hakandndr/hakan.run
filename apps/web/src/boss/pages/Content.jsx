@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import ContentFields from '../components/ContentFields.jsx';
+import PrivatePreview from '../components/PrivatePreview.jsx';
+import { validateSection, SECTION_SCHEMAS } from '../../content-source/schema.js';
 import { fetchBoss, mutateBoss } from '../api.js';
 import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateBlock.jsx';
@@ -7,33 +10,23 @@ import { Panel, DataTable } from '../components/Panel.jsx';
 const instant = (value) =>
   value ? new Date(Number(value)).toISOString().replace('T', ' ').slice(0, 16) : '—';
 const pretty = (value) => JSON.stringify(value, null, 2);
-const empty = { section: '', draft: null, published: null, publishedRevision: null, updatedAt: 0 };
 const button = 'rounded border border-white/15 px-3 py-2 text-xs font-mono hover:border-[#57B8FF]/50 disabled:opacity-40';
 const title = 'font-mono text-sm font-semibold text-white';
-
-const Preview = ({ data }) => (
-  <div className="space-y-3">
-    <p className="text-xs text-gray-400">Structured content preview. This is not a rendered public-page preview.</p>
-    {Object.entries(data).map(([key, value]) => (
-      <div key={key} className="rounded border border-white/10 p-3">
-        <div className="font-mono text-xs text-[#57B8FF] mb-1">{key}</div>
-        {typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
-          ? <p className="text-sm whitespace-pre-wrap break-words">{String(value)}</p>
-          : <pre className="text-xs whitespace-pre-wrap break-words text-gray-400">{pretty(value)}</pre>}
-      </div>
-    ))}
-  </div>
-);
 
 const Content = () => {
   const list = useBossResource('/api/boss/content');
   const [selected, setSelected] = useState('');
+  const [showSections, setShowSections] = useState(false);
   const [record, setRecord] = useState(null);
   const [text, setText] = useState('');
   const [detailState, setDetailState] = useState('idle');
   const [revisions, setRevisions] = useState([]);
   const [history, setHistory] = useState(null);
   const [previewData, setPreviewData] = useState(null);
+  const [advanced, setAdvanced] = useState(false);
+  let editorData = null;
+  try { editorData = JSON.parse(text); } catch {}
+  const fieldErrors = editorData ? validateSection(selected, editorData) : [];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -75,9 +68,17 @@ const Content = () => {
     return () => controller.abort();
   }, [selected, editorKey]);
 
+  useEffect(() => {
+    const warn = e => { if (dirty) { e.preventDefault(); e.returnValue = ''; } };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
   const open = (section) => {
-    if (section === selected) return;
+    if (busy || section === selected) return;
     if (dirty && !window.confirm('Discard unsaved editor changes and open another section?')) return;
+    setRecord(null);
+    setText('');
     setSelected(section);
   };
   const refresh = () => {
@@ -114,7 +115,7 @@ const Content = () => {
     }
   };
   const save = async () => {
-    try { await perform('draft', { data: parsed() }, 'PUT', 'draft'); }
+    try { const data = parsed(); const issues = validateSection(selected, data); if (issues.length) throw new Error(issues.map(e => `${e.path}: ${e.message}`).join('; ')); await perform('draft', { data }, 'PUT', 'draft'); }
     catch (err) { setError(err.message); }
   };
   const loadHistory = async () => {
@@ -139,11 +140,13 @@ const Content = () => {
   if (list.status === 'loading') return <LoadingState label="reading /api/boss/content" />;
   if (list.status === 'error') return <ErrorState error={list.error} onRetry={list.reload} />;
 
-  const sections = list.data?.sections ?? [];
+  const priority = Object.keys(SECTION_SCHEMAS);
+  const sections = [...(list.data?.sections ?? [])].sort((a,b) => priority.indexOf(a.section) - priority.indexOf(b.section));
   return (
     <div className="space-y-5">
       <Panel title="Content sections" hint="APP_DB is the content authority for this environment">
-        {sections.length === 0 ? <EmptyState message="No published content sections." /> : (
+        {sections.length > 0 && <div className="flex flex-wrap gap-3 mb-3"><label>Section <select aria-label="Content section" disabled={busy} className="rounded bg-[#151515] px-3 py-2 text-white" value={selected} onChange={e => open(e.target.value)}><option value="" disabled>Choose a section</option>{sections.map(s => <option key={s.section} value={s.section}>{SECTION_SCHEMAS[s.section]?.label ?? s.section}</option>)}</select></label>{selected && <button className={button} onClick={() => setShowSections(!showSections)}>{showSections ? 'Hide section overview' : 'Show section overview'}</button>}</div>}
+        {(!selected || showSections) && (sections.length === 0 ? <EmptyState message="No published content sections." /> : (
           <DataTable
             columns={[
               { key: 'section', label: 'Section', render: (row) => (
@@ -156,48 +159,45 @@ const Content = () => {
             rows={sections}
             rowKey={(row) => row.section}
           />
-        )}
+        ))}
       </Panel>
       {selected && (
-        <Panel title={`Edit ${selected}`} hint="Staging JSON editor — changes are not public until Publish">
+        <Panel title={`Edit ${selected}`} hint="Staging field editor — changes are not public until Publish">
           {detailState === 'loading' ? <LoadingState label="reading section" /> : (
             <div className="space-y-4">
               {error && <div role="alert" className="rounded border border-red-500/30 p-3 text-sm text-red-300">{error}</div>}
               {notice && <div role="status" className="rounded border border-green-500/30 p-3 text-sm text-green-300">{notice}</div>}
-              {record && (
+              {record?.section === selected && (
                 <>
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
                     <span>Published revision: {record.publishedRevision ?? '—'} · Version: {record.updatedAt}</span>
                     <span>{record.draft ? 'Saved draft exists' : 'No saved draft'}{dirty ? ' · Unsaved edits' : ''}</span>
                   </div>
-                  <label className="block space-y-2">
+                  <button disabled={busy} className={button} onClick={() => setAdvanced(!advanced)}>{advanced ? 'Field editor' : 'Advanced JSON'}</button>
+                  {['colors','typography'].includes(selected) && <p className="text-xs text-gray-400">These controls affect existing theme variables and typography settings. Fixed component styling remains part of the public design.</p>}
+                  {!advanced && editorData && <ContentFields section={selected} data={editorData} errors={fieldErrors} disabled={busy} onChange={data => { setText(pretty(data)); setPreviewData(null); }} />}
+                  {!advanced && !editorData && <p role="alert">Invalid JSON. Open Advanced JSON to repair it.</p>}
+                  {advanced && <label className="block space-y-2">
                     <span className={title}>Section JSON</span>
                     <textarea
                       className="w-full min-h-[320px] rounded border border-white/15 bg-black/20 p-3 font-mono text-xs text-gray-200 focus:border-[#57B8FF] focus:outline-none"
-                      spellCheck={false} value={text} onChange={(event) => { setText(event.target.value); setPreviewData(null); }}
+                      disabled={busy} spellCheck={false} value={text} onChange={(event) => { setText(event.target.value); setPreviewData(null); }}
                     />
-                  </label>
+                  </label>}
                   <div className="flex flex-wrap gap-2">
                     <button className={button} disabled={busy} onClick={() => {
-                      try { parsed(); setError(''); setNotice('JSON syntax is valid. Server validation runs when saving.'); }
+                      try { const issues = validateSection(selected, parsed()); if (issues.length) throw new Error(issues.map(e => `${e.path}: ${e.message}`).join('; ')); setError(''); setNotice('Content fields are valid.'); }
                       catch (err) { setError(err.message); }
-                    }}>Validate JSON</button>
+                    }}>Validate content</button>
                     <button className={button} disabled={busy} onClick={() => {
-                      try { const value = parsed(); setError(''); setPreviewData(value); }
+                      try { const value = parsed(); const issues = validateSection(selected, value); if (issues.length) throw new Error('Resolve field validation errors before previewing.'); setError(''); setPreviewData({ section: selected, data: value, unsaved: !!dirty, expected }); }
                       catch (err) { setError(err.message); }
-                    }}>Preview values</button>
-                    <button className={button} disabled={busy || !dirty} onClick={save}>Save draft</button>
+                    }}>Preview current edits</button>
+                    <button className={button} disabled={busy} onClick={() => setPreviewData({ section: selected })}>Preview saved drafts</button>
+                    <button className={button} disabled={busy || !dirty || fieldErrors.length > 0 || !editorData} onClick={save}>Save draft</button>
                     <button className={button} disabled={busy} onClick={refresh}>Reload</button>
                   </div>
-                  {previewData && (
-                    <div className="rounded border border-white/10 p-4 space-y-3">
-                      <div className="flex justify-between gap-2">
-                        <span className={title}>Unsaved editor preview</span>
-                        <button className={button} onClick={() => setPreviewData(null)}>Close</button>
-                      </div>
-                      <Preview data={previewData} />
-                    </div>
-                  )}
+                  {previewData && <PrivatePreview request={previewData} onClose={() => setPreviewData(null)} />}
                   <div className="border-t border-white/10 pt-4 space-y-3">
                     <h3 className={title}>Publication</h3>
                     <p className="text-xs text-gray-400">Save the draft first. Publishing creates a new immutable revision and makes the saved draft public.</p>

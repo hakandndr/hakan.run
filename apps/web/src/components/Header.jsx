@@ -1,3 +1,4 @@
+import { useContent } from '@/contexts/ContentContext';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
@@ -8,12 +9,9 @@ const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
+  const { content, preview } = useContent();
 
-  const navLinks = [
-    { name: 'Services', href: '/#services' },
-    { name: 'Portfolio', href: '/#portfolio' },
-    { name: 'About',    href: '/#about'    },
-  ];
+  const navLinks = content.header.navLinks;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -29,14 +27,15 @@ const Header = () => {
       } catch (_) {
       }
     };
-    logVisitor();
+    if (!preview) logVisitor();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [preview]);
 
   const handleSmoothScroll = e => {
     e.preventDefault();
     const href = e.currentTarget.getAttribute('href');
+    if (/^https?:/.test(href)) { window.open(href, '_blank', 'noopener,noreferrer'); setIsOpen(false); return; }
     const [path, id] = href.split('#');
     if (path === '/' && id) {
       navigate(path);
@@ -108,7 +107,7 @@ const Header = () => {
                 ~/portfolio
               </div>
               <div className="text-sm font-bold text-white font-mono tracking-[0.2em] uppercase leading-none">
-                HAKAN DUNDAR
+                {content.header.siteName}
               </div>
             </div>
           </Link>
@@ -136,7 +135,7 @@ const Header = () => {
               onClick={handleCTA}
             >
               <span className="opacity-50 mr-1.5 text-xs select-none">$</span>
-              Let's Run
+              {content.header.ctaButton}
               <ArrowRight className="ml-2 h-3.5 w-3.5 transform transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </div>
@@ -178,7 +177,7 @@ const Header = () => {
                       <span className="text-gray-600"> /&gt;</span>
                     </div>
                     <div className="text-sm font-bold text-white font-mono tracking-[0.2em] uppercase leading-none">
-                      HAKAN DUNDAR
+                      {content.header.siteName}
                     </div>
                   </div>
                 </Link>
@@ -213,7 +212,7 @@ const Header = () => {
                   onClick={handleCTA}
                 >
                   <span className="opacity-50 mr-2 text-sm select-none">$</span>
-                  Let's Run
+                  {content.header.ctaButton}
                   <ArrowRight className="ml-2 h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </div>

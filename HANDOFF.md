@@ -1,5 +1,24 @@
 # hakan.run Modernization Handoff
 
+## Current continuation state — 2026-09-08
+
+| Field | Verified value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch | `develop/hakan-run-v2` |
+| HEAD | `7d3ca4d58091eadfdaeba907e76e77964d9818d6`; CMS V2 is an uncommitted local change set |
+| Current phase | CMS V2 final review; owner local fixture acceptance completed |
+| Completed | Twelve field editors, explicit schema, memory-only unsaved preview, saved snapshot preview, security/concurrency tests and staging build |
+| Exact next action | Complete the authorized CMS V2 checkpoint and normal push, deploy the freshly verified artifact to the existing staging Worker, then perform read-only live acceptance |
+| Prohibited actions | Production changes, further content mutations, bootstrap/reset/cleanup and DNS. Only the approved Header order reconciliation was authorized and is complete |
+| Push state | Remote branch verified at HEAD during initial inspection; this local work is not pushed |
+| Deploy state | No new deployment. Wrangler 4.130.0 authenticated and independently confirmed active staging version `ad75634f-4c07-4f52-9d17-3bf73c00c652`; bindings match configuration |
+| Infrastructure state | Existing resources retained. Header order reconciled through Boss at revision 2; eleven other content rows unchanged, including Hero revision 3 and its approved badge |
+
+Owner reported the interactive local fixture test passed: **1 passed (2.9m)**. This review reran the four targeted regression files: **40 passed, 0 failed**. No source correction was needed; required Header/Footer `href` and its regression test were already complete. Static localhost fallback content is not approved live content. See [CMS V2](docs/CONTENT-CMS-V2.md) for the authority distinction, evidence and exact 32-file checkpoint list.
+The older sections below are historical checkpoints; their HEAD, next-action,
+provider-state and implementation claims do not override this entry or current code.
+
 ## Authoritative status
 
 | Field | Current value |

@@ -217,3 +217,12 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Rationale: A greenfield table can be kept clean by construction. Validating once on write is cheaper and more reliable than filtering on every read forever.
 - Consequences: Adding a public route means updating the canonical route list. Events for an unknown path are refused rather than silently stored, which is visible and testable.
 - Status: Approved and implemented.
+
+## D-025 — Field CMS and memory-only private preview
+
+- Decision: All twelve canonical sections use explicit shared field schemas with safe unknown-field preservation. Existing APP_DB transactions remain the publishing authority. A separately protected iframe renders saved snapshots and optionally unsaved selected-section edits from memory.
+- Context: CMS V1 required raw JSON and its structured preview did not render public components.
+- Alternatives: A second content store, public preview tokens, localStorage drafts, or duplicating public component markup.
+- Rationale: Reuse visual components while keeping drafts behind the existing verified identity boundary and preventing preview side effects.
+- Consequences: Remote preview images and outbound interactions are disabled; incomplete snapshots fail closed. Project-detail editing stays separate; only existing internal slugs are accepted, while new cards can use external URLs. Unknown safe fields remain available in Advanced JSON.
+- Status: Approved by owner; implemented and tested locally, not committed or deployed. See CONTENT-CMS-V2.md.

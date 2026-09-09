@@ -13,11 +13,11 @@ const pageVariants = {
 const pageTransition = { type: 'tween', ease: 'anticipate', duration: 0.5 };
 
 const Contact = () => {
-  const { content } = useContent();
+  const { content, preview } = useContent();
   const ct = content.contact;
   const [status, setStatus] = useState('');
   const challengeRef = useRef(null);
-  const challenge = useTurnstile(challengeRef);
+  const challenge = useTurnstile(challengeRef, !preview);
 
   const fail = (message) => {
     setStatus(message);
@@ -26,6 +26,7 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (preview) return;
     const form = e.target;
     const data = new FormData(form);
 
@@ -234,7 +235,7 @@ const Contact = () => {
 
                   <button
                     type="submit"
-                    disabled={isSending}
+                    disabled={isSending || preview}
                     className={`w-full font-mono font-bold py-4 rounded transition-all duration-300 flex items-center justify-center gap-2 text-sm ${
                       isSending
                         ? 'bg-gray-800 cursor-not-allowed text-gray-500'

@@ -7,6 +7,7 @@
 // There is no /run/ compatibility route, no third-party form endpoint and no
 // /control-room: those legacy surfaces are replaced, not proxied.
 
+import { PREVIEW_PATH, previewShell } from './boss/content-preview.js';
 import { json, methodNotAllowed, notFound, problem } from './lib/response.js';
 import { verifyAccess } from './lib/access.js';
 import { handleBossApi } from './boss/index.js';
@@ -33,6 +34,10 @@ export default {
     if (isBossPath(path) || isBossApi(path)) {
       const verification = await verifyAccess(request, env);
       if (!verification.ok) return denied(verification.reason);
+      if (path === PREVIEW_PATH) {
+        if (request.method !== 'GET') return methodNotAllowed('GET');
+        return previewShell(request, env);
+      }
       if (isBossApi(path)) {
         return handleBossApi(request, env, context, verification.identity);
       }

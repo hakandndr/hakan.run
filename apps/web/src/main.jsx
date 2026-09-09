@@ -1,27 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
-import App from '@/App';
-import ScrollToTop from '@/components/ScrollToTop';
-import PageTracker from '@/components/PageTracker';
-import { ContentProvider } from '@/contexts/ContentContext';
 import '@/index.css';
-
-const rootElement = document.getElementById('root');
-
-const app = (
-  <BrowserRouter>
-    <ContentProvider>
-      <ScrollToTop />
-      <PageTracker />
-      <App />
-    </ContentProvider>
-  </BrowserRouter>
-);
-
-// Hydrate existing root markup when present; otherwise mount the client app.
-if (rootElement.hasChildNodes()) {
-  ReactDOM.hydrateRoot(rootElement, app);
-} else {
-  ReactDOM.createRoot(rootElement).render(app);
-}
+// Load the private renderer without mounting public providers or trackers.
+const preview = window.location.pathname === '/boss/content/preview';
+const load = preview ? import('./boss/PreviewPage.jsx') : import('./Application.jsx');
+load.then(({ default: Component }) => {
+  const root = document.getElementById('root');
+  if (root.hasChildNodes()) ReactDOM.hydrateRoot(root, <Component />);
+  else ReactDOM.createRoot(root).render(<Component />);
+});

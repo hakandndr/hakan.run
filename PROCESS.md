@@ -2363,3 +2363,167 @@ Production build succeeds and still satisfies the indexing policy.
 
 Deploy to staging and smoke the stream: unfiltered first page, `source=native`,
 `source=legacy_panel`, a page-size change, page two, and Reset.
+
+
+## 2026-09-08 — CMS V2 local implementation
+
+### Objective and starting state
+
+Implement owner-approved field editing for all twelve sections, prioritizing
+Hero, Services, Portfolio and About, with saved and unsaved private rendered
+preview. The modernization working copy started clean on `develop/hakan-run-v2`
+at `7d3ca4d58091eadfdaeba907e76e77964d9818d6`; GitHub and local tracking matched.
+Repository identity is `Hakan Dundar <hakan@dndr.net>`. No commit was created.
+
+### Scope and implementation
+
+Shared explicit schemas, unknown-field-preserving editors, stable Portfolio IDs,
+existing internal slugs, advanced JSON, private snapshot and isolated renderer.
+APP_DB, Access identity, transactional drafts/publication/revisions/audit and
+optimistic concurrency remain the authority. No migration or provider was added.
+The change map and trust boundaries are in `docs/CONTENT-CMS-V2.md`.
+
+### Validation and corrections
+
+`npm run check`: lint clean; Worker 111, web 116, tools 123 passed, zero failed.
+Staging build and its indexing verifier passed. The broader local browser
+selection passed 55 with 1 desktop-only assertion skipped on mobile. Focused
+final CMS acceptance passed 8 across desktop/mobile. Public staging content was
+read only: all twelve sections passed the schema without transformation. Hero
+remained revision 3 with the original badge.
+
+An initial Windows text-encoding error interrupted integration; affected lines
+were corrected and the resulting diff checked. The old form-endpoint scanner
+mistook the schema's rejected host names for an active integration; an explicit
+schema-only exclusion plus executable rejection tests resolves it. Browser tests
+found a transient previous-record/new-schema mismatch during section switching
+and iframe controls clipped by the outer viewport. Record clearing and controls
+in the parent resolve both. A compact section selector improves mobile editing.
+Desktop/mobile editor and preview screenshots were inspected; historical public
+snapshots were not regenerated or automatically approved.
+
+### Deliberate non-actions and remaining work
+
+No commit, push, deploy, D1 write, production operation, database copy/reset,
+bootstrap, DNS or provider mutation. No unexpected third-party working-tree
+change was observed. Test fixtures and transaction tests use local memory only.
+The running Worker version could not be independently checked because Wrangler
+was unavailable; the owner-reported version remains a qualified checkpoint.
+Live Access/D1 acceptance and full production cutover remain separate.
+
+Exact next action: owner reviews the local change set and performs the documented
+fixture acceptance, then decides separately whether to authorize commit or
+staging deployment. All unrelated Boss modules and legacy analytics history
+remain outside the mutation scope.
+
+
+### CMS V2 final acceptance review — 2026-09-08
+
+Continuation started with the same 21 modified and 11 untracked files on
+`develop/hakan-run-v2` at `7d3ca4d58091eadfdaeba907e76e77964d9818d6`; nothing
+was staged. The previously identified `href` fix had not been applied.
+The missing navigation destination passed validation but failed Footer's
+`startsWith` consumer. Made only Header/Footer navigation `href` required and
+added regression coverage for both client and Worker validation and item defaults.
+Existing content values were preserved. The four relevant test files passed
+40 tests with zero failures. The full suite, browser suite and build were not
+rerun; the existing artifact predates this correction and must be rebuilt for
+local acceptance. Updated the CMS V2 report with the finding and exact file list.
+
+Review confirmed the unchanged V1 mutation transaction body, content data,
+Portfolio source, public content handler, migration, provider configuration and
+dependencies. Added technical text is English without secondary attribution.
+Preview isolation remains in place; live acceptance and full historical visual
+comparison remain unverified. No commit, push, deployment, D1 write, DNS change,
+production access or new phase occurred. Next action: owner local acceptance;
+any further phase requires separate approval.
+
+
+### CMS V2 owner acceptance and checkpoint review — 2026-09-08
+
+Started at `7d3ca4d58091eadfdaeba907e76e77964d9818d6` on
+`develop/hakan-run-v2`, with 21 modified and 11 new files, none staged.
+The navigation `href` fix and regression test were already complete; no source
+correction was needed. Owner reported interactive fixture acceptance: 1 passed
+(2.9m), using the documented `all twelve` headed test. This is not live D1 evidence.
+
+Reran only `node --test apps/web/src/content-source/schema.test.js worker/tests/content-management.test.js worker/tests/content-preview.test.js worker/tests/public-content.test.js`: 40 passed, 0 failed.
+The full suite, browser suite and build were not repeated. Source comparison
+confirmed unchanged V1 mutation transactions, content values, Portfolio/project
+components, public content handler, migration, dependencies and configuration.
+The targeted text review found no new non-English technical text or secondary
+attribution. Git identity remains `Hakan Dundar <hakan@dndr.net>`; local tracking
+is 0/0, without a fresh remote query. No unexpected working-tree changes appeared.
+
+Updated HANDOFF.md, docs/CURRENT_STATE.md, docs/CONTENT-CMS-V2.md,
+docs/OPERATIONS.md and docs/ROADMAP.md, plus this append-only entry, to record
+owner acceptance and distinguish fixtures/fallback from approved APP_DB content.
+The static localhost fallback is not an approved Hero baseline or bootstrap source.
+No commit, stage, push, deploy, D1 write, DNS or production action occurred.
+Live Access/APP_DB acceptance and public visual parity remain pending; the current
+build and deployed Worker version were not reverified. Exact next action: owner
+reviews the checkpoint and separately authorizes further operations.
+
+
+### Staging checkpoint preparation — 2026-09-08
+
+The owner authorized the CMS V2 commit, normal push and isolated staging deployment,
+but not content mutations. HEAD and the freshly queried remote branch both remain
+`7d3ca4d58091eadfdaeba907e76e77964d9818d6`. The pending scope is still 21 modified
+and 11 new files, with nothing staged. No source edits were needed in this review.
+
+Fresh validation: 40 targeted schema/transaction/preview/public-content tests passed;
+web lint and diff checks passed. A fresh `npm run build:staging --prefix apps/web`
+completed and verified noindex/nofollow, crawler denial and an empty sitemap.
+The full historical suite and owner manual acceptance were not repeated.
+
+Wrangler 4.130.0 was downloaded to the npm cache with explicit owner approval;
+package manifests and lockfiles were unchanged. Authentication verified
+`hakan@dndr.net`. The active staging Worker version was independently confirmed as
+`ad75634f-4c07-4f52-9d17-3bf73c00c652` at 100 percent. Its APP_DB
+`71a28b10-861f-4554-9e14-5464c7116394`, ANALYTICS_DB
+`4998c398-4f42-4472-a008-24e737359a03`, staging environment and Access audience/team
+match local configuration. Provider Access policy rules were not inspected.
+
+Fresh public staging reads returned 12 schema-compatible sections and Hero revision
+3 with the approved badge and shorter biography. Read-only browser checks confirmed
+the same Hero copy on production and staging; writes and tracking requests were
+blocked. The six Boss module paths and preview shell/API redirect unauthenticated
+requests to Access. Authenticated module behavior and private preview remain untested
+against the new implementation because it is not deployed.
+
+A deployment gate remains: production and existing staging render Header links as
+Services, Portfolio, About; APP_DB Header revision 1 stores Services, About,
+Portfolio. CMS V2 would expose the stored order. The owner was asked to choose whether
+to approve that visible order or preserve the live order through separately approved
+content reconciliation. No content was reconciled. Do not commit or deploy while
+this decision is pending. No push, deployment, D1 write, DNS or production mutation
+occurred; no claim is made that unrelated database activity stopped. Full responsive
+visual parity remains unverified. Next action: resolve the Header order decision.
+
+### Approved Header reconciliation and CMS V2 checkpoint — 2026-09-09
+
+The owner approved preserving the live Header order exactly: Services, Portfolio,
+About. A read-only staging backup captured all content rows plus Header revisions
+and audit history before mutation. Header had revision 1, version 1788600343660,
+and no saved draft. Through the existing verified Boss session, only navLinks order
+was changed, saved and published using the normal V1 transaction model.
+
+Readback confirmed Header revision 2, no remaining draft, all other Header values
+unchanged, the old revision preserved, and all eleven other content rows byte-for-byte
+unchanged. Draft and publish audit actors are hakan@dndr.net. Local recovery files
+are outside the repository in the Windows temporary directory:
+hakan-run-header-before-20260909.json and hakan-run-header-after-20260909.json.
+The before-backup SHA-256 is
+D4952BBE6464CCB868BA5DC98B0073515F803AB738C85BA8FEF9F30BA40C439C.
+Recovery, if separately required, uses normal restore of Header revision 1 after
+checking the current version and absence of a draft; do not overwrite the database
+from the backup. Revision 1 has the old stored order, so restoring it would reverse
+the approved reconciliation and requires an explicit decision.
+
+Fresh checks: 40 targeted tests passed, web lint passed, staging build and artifact
+indexing verification passed, and the Worker staging dry run passed. The 32-file
+CMS V2 scope is unchanged. No source edits, package changes, migrations, production
+mutations or DNS changes were made. The owner authorized commit and normal push
+on develop/hakan-run-v2 followed by deployment to the existing staging Worker.
+The actual deployment result will be recorded separately after verification.

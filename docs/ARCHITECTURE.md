@@ -1,5 +1,12 @@
 # Architecture
 
+## Implemented CMS V2 — local, not deployed
+
+The editor and Worker share the explicit section schema. Full objects are retained while known paths are edited. Existing APP_DB draft/publish/revision/audit transactions are unchanged. The owner-only preview snapshot endpoint reads all saved sections once; the parent overlays optional unsaved editor data in memory and sends it to a separately protected iframe. A controlled provider renders the existing public components in that document. Preview never reads the public content API or browser storage. Project-detail CMS remains a later phase.
+
+See [CMS V2](CONTENT-CMS-V2.md) for contracts, evidence, limitations and acceptance.
+Earlier sections below retain historical context and must not be read as newer current-state claims.
+
 ## Verified current architecture
 
 This section describes the implementation inherited from legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb`. It does not prove live provider configuration.

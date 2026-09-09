@@ -126,3 +126,10 @@ export const ContentProvider = ({ children }) => {
 };
 
 export const useContent = () => useContext(ContentContext);
+
+// A controlled, memory-only provider for the private renderer. It never reads
+// browser storage or public APIs, and CSS changes stay in the iframe document.
+export const PreviewContentProvider = ({ content, children }) => {
+  useEffect(() => { applyColors(content.colors); applyTypography(content.typography); }, [content]);
+  return <ContentContext.Provider value={{ content, preview: true }}>{children}</ContentContext.Provider>;
+};

@@ -46,13 +46,14 @@ const loadScript = () =>
  * from; `reason` explains an `unavailable` so a misconfigured environment is
  * diagnosable from the page rather than only from the Worker's logs.
  */
-export const useTurnstile = (containerRef) => {
+export const useTurnstile = (containerRef, enabled = true) => {
   const [state, setState] = useState(TURNSTILE_STATE.loading);
   const [token, setToken] = useState(null);
   const [reason, setReason] = useState(null);
   const widgetId = useRef(null);
 
   useEffect(() => {
+    if (!enabled) return undefined;
     let cancelled = false;
 
     (async () => {
@@ -93,7 +94,7 @@ export const useTurnstile = (containerRef) => {
     })();
 
     return () => { cancelled = true; };
-  }, [containerRef]);
+  }, [containerRef, enabled]);
 
   // After a submission the token is spent; Turnstile issues one per solve.
   const reset = () => {

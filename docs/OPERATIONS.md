@@ -1,5 +1,9 @@
 # Operations
 
+## Current local CMS V2 acceptance
+
+CMS V2 is not deployed. Owner local fixture acceptance is complete by owner report: 1 passed (2.9m); do not repeat it as a prerequisite. The [local fixture acceptance procedure](CONTENT-CMS-V2.md#local-acceptance) remains a reproducible reference. The fixture uses no D1 and supports draft saves only. Local validation is not authorization to commit, push, deploy or publish content. Older deployment checkpoints below are historical.
+
 ## Repository topology
 
 - Legacy/reference: `D:\IT\hakan\hakan-run`, branch `main`, read-only for modernization.
