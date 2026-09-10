@@ -1,5 +1,25 @@
 # hakan.run Modernization Handoff
 
+## Scroll restoration regression fix — local, 2026-09-09
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `8de849a00d60912afa6aa4c09377b608e3f08d4b` |
+| Current phase | Staging scroll restoration regression fixed locally; owner review pending |
+| Completed | Initial-load scroll reset removed while preserving top reset for client-side route changes; focused Chromium regression coverage added |
+| Exact next action | Review the six-file local diff, then separately authorize checkpoint commit/push and staging-only deployment |
+| Prohibited actions | Commit, push, deploy, production import or activation, DNS, Access, Turnstile, database or provider changes |
+| Push state | No commit or push; remote checkpoint remains `8de849a00d60912afa6aa4c09377b608e3f08d4b` |
+| Deploy state | Unchanged; staging still runs the pre-fix artifact and production remains on the legacy site |
+| Infrastructure state | Unchanged; no provider or database operation was performed |
+
+The regression came from `ScrollToTop` calling `window.scrollTo(0, 0)` on its first
+effect, overriding browser-native refresh restoration on staging. The live reference
+checkout already contains the proven fix: skip the initial effect and reset only on
+subsequent pathname changes. That behavior is now restored locally. Two focused
+Chromium tests and the production build pass; changed-source lint also passes.
+
 ## Production provisioning checkpoint — local/provider, 2026-09-09
 
 | Field | Current value |

@@ -1,5 +1,20 @@
 # Operations
 
+## Scroll restoration staging-fix verification — 2026-09-09
+
+Before a staging-only deployment, run the focused Chromium regression in
+`tests/scroll-restoration.spec.ts` against a production web build. It verifies that
+refresh leaves initial scroll restoration to the browser and that client-side route
+changes still reset to the top. The repository preview command binds IPv6 port 3000;
+when that port is unavailable in a restricted Windows environment, serve the same
+built artifact temporarily on `127.0.0.1:4173` and point a temporary, untracked
+Playwright configuration at that origin. Do not retain temporary configuration,
+reports or test artifacts.
+
+The local checkpoint passed both focused Chromium cases, the production build and
+focused lint for `ScrollToTop.jsx`. These checks do not authorize commit, push or
+staging deployment, and they do not change production provisioning or traffic.
+
 ## Production provisioning checkpoint — 2026-09-09
 
 The isolated production resources required before import now exist. The production

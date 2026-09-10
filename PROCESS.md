@@ -2655,3 +2655,38 @@ origin change occurred. `CMS_PRODUCTION_WRITES_ENABLED`, `ANALYTICS_ENABLED` and
 `RESEND_API_KEY` remains unset. No commit or push occurred. Sole future commit
 identity is Hakan Dundar <hakan@dndr.net>. Exact next action is owner review of this
 diff, followed by separate authorization and fresh checked inputs before any import.
+
+### Scroll restoration regression fix — 2026-09-09
+
+Started clean at `8de849a00d60912afa6aa4c09377b608e3f08d4b` on
+`develop/hakan-run-v2`. Investigation was limited to application bootstrap, routing,
+layout and scroll-related code plus the corresponding live reference implementation
+and relevant Git history. The modernization `ScrollToTop` called
+`window.scrollTo(0, 0)` on its initial effect. On staging that call races with and
+overrides browser-native hard-refresh restoration.
+
+History identified `ee5ba2e` as an earlier explicit restoration workaround and
+`648c609` as its simplification to the current proven production behavior. Neither
+commit is an ancestor of the modernization branch. The latter behavior was restored:
+skip the first effect and reset to top only after a pathname change. Added
+`tests/scroll-restoration.spec.ts` to cover refresh restoration and normal in-app
+navigation independently.
+
+Validation:
+
+- The first default Playwright attempts could not bind IPv6 port 3000 (`EACCES`).
+  A temporary untracked configuration served the same production artifact on
+  `127.0.0.1:4173`; it and generated reports were removed afterward.
+- The strengthened pre-fix run failed the refresh case because application top-reset
+  calls were observed; the route-change case passed.
+- `npm run build --prefix apps/web`: passed, 1,713 modules transformed and production
+  indexing policy verified.
+- Focused Chromium run after the fix: 2/2 passed in 1.6 seconds.
+- Focused ESLint for `src/components/ScrollToTop.jsx`: passed.
+
+Changed `apps/web/src/components/ScrollToTop.jsx`, added the focused regression test,
+and updated HANDOFF.md, CURRENT_STATE.md, OPERATIONS.md and this append-only journal.
+No full suite, visual tour, provider action, database operation, content or analytics
+import, production/staging deployment, DNS change, commit or push occurred. Exact next
+action is owner review, followed by separately authorized checkpointing and a
+staging-only deployment.

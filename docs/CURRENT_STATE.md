@@ -1,5 +1,22 @@
 # Current State
 
+## Local scroll restoration regression fix — 2026-09-09
+
+Based on pushed checkpoint `8de849a00d60912afa6aa4c09377b608e3f08d4b`, the
+homepage refresh regression is fixed locally. `ScrollToTop` previously called
+`window.scrollTo(0, 0)` during its initial effect, which could override the browser's
+native restoration after a hard refresh. The current production reference checkout
+contains the earlier proven behavior: the first effect is skipped and only later
+pathname changes reset to the top. The modernization component now matches that
+behavior.
+
+Focused Chromium coverage verifies both sides of the contract: a homepage refresh
+does not issue an application top reset and restores the prior scroll position, while
+an in-app navigation to Contact starts at the top. Both tests pass. The production
+build and focused source lint also pass. No content, design, CMS, analytics,
+configuration, infrastructure or deployed environment changed. The fix remains
+uncommitted and undeployed pending owner review.
+
 ## Isolated production provisioning — 2026-09-09
 
 Production infrastructure now exists without public activation. The isolated D1
