@@ -1,25 +1,38 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { PreviewContentProvider } from '../contexts/ContentContext.jsx';
-import { siteContent } from '../content.js';
-import { mergeSections } from '../content-source/source.js';
+import { applyPublishedVisualTokens, PreviewContentProvider } from '../contexts/ContentContext.jsx';
+import { createPublishedSiteSnapshot } from '../content-source/published-site.js';
 import { acceptPreview, previewImages } from './preview-contract.js';
-import { validateSection, SECTION_SCHEMAS } from '../content-source/schema.js';
-import Home from '../pages/Home.jsx';
-import Contact from '../pages/Contact.jsx';
-import Header from '../components/Header.jsx';
-import Footer from '../components/Footer.jsx';
+import { PublicPreviewRenderer } from '../public/PublicRenderer.jsx';
 export default function PreviewPage() {
   const surface = useRef(null);
-  const [content,setContent] = useState(null), [page,setPage] = useState('home');
+  const [snapshot,setSnapshot] = useState(null), [page,setPage] = useState('home');
+  const [error,setError] = useState(false);
   useEffect(() => {
     if (window.parent === window) return undefined;
     const receive = e => {
       if (!acceptPreview(e,window.parent,window.location.origin)) return;
-      const rows = e.data.payload.sections;
-      if (rows.length !== 12 || new Set(rows.map(r => r.id)).size !== 12 || rows.some(r => !SECTION_SCHEMAS[r.id] || validateSection(r.id,r.data).length)) return;
-      setPage(e.data.payload.page === 'contact' ? 'contact' : 'home');
-      setContent(previewImages(mergeSections(siteContent,rows)));
+      try {
+        const rows = e.data.payload.sections.map((row) => ({
+          ...row,
+          publishedAt: row.updatedAt,
+          data: previewImages(row.data),
+        }));
+        const publishedAt = Math.max(...rows.map((row) => row.publishedAt));
+        const next = createPublishedSiteSnapshot({
+          contract: 1,
+          count: rows.length,
+          publishedAt,
+          sections: rows,
+        });
+        applyPublishedVisualTokens(next.content);
+        setPage(e.data.payload.page === 'contact' ? 'contact' : 'home');
+        setSnapshot(next);
+        setError(false);
+      } catch {
+        setSnapshot(null);
+        setError(true);
+      }
     };
     window.addEventListener('message',receive);
     window.parent.postMessage({ type: 'cms-preview-ready' },window.location.origin);
@@ -32,12 +45,13 @@ export default function PreviewPage() {
       for (const attribute of ['href','target','ping','download']) link.removeAttribute(attribute);
       link.setAttribute('aria-disabled','true');
     });
-  }, [content, page]);
-  if (!content) return <p>Open preview from Boss Content. Waiting for a private snapshot.</p>;
+  }, [snapshot, page]);
+  if (error) return <p>Preview unavailable: the private snapshot is incomplete or invalid.</p>;
+  if (!snapshot) return <p>Open preview from Boss Content. Waiting for a private snapshot.</p>;
   const stop = e => { e.preventDefault(); e.stopPropagation(); };
-  return <MemoryRouter><PreviewContentProvider content={content}>
+  return <MemoryRouter><PreviewContentProvider snapshot={snapshot}>
     <div ref={surface} onContextMenuCapture={stop} onDragStartCapture={stop} onClickCapture={stop} onAuxClickCapture={stop} onSubmitCapture={stop} onKeyDownCapture={e => { if (e.key === 'Enter' || e.key === ' ') stop(e); }}>
-      <Header />{page === 'home' ? <Home /> : <Contact />}<Footer />
+      <PublicPreviewRenderer page={page} />
     </div>
   </PreviewContentProvider></MemoryRouter>;
 }

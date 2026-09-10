@@ -46,7 +46,7 @@ const Stats = ({ customStats }) => {
 
         {!isProjectPage && (
           <div className="mb-14">
-            <span className="font-mono text-xs text-[#57B8FF]/60 uppercase tracking-widest">By The Numbers</span>
+            <span className="font-mono text-xs text-[#57B8FF]/60 uppercase tracking-widest">{st.heading} {st.headingAccent}</span>
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white uppercase font-mono tracking-tight mt-2">
               {st.heading} <span className="text-[#57B8FF]">{st.headingAccent}</span>
             </h2>

@@ -1,23 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useContent } from '@/contexts/ContentContext';
-const aboutChipDefaults = [
-  'Remote & Hybrid Ready',
-  'Software Development',
-  'QA Automation',
-  'Orange County, CA',
-];
-
 const vp = { once: true, amount: 0.15 };
 const tr = { duration: 0.65, ease: 'easeOut' };
-
-const PERIODS = ['2009 — 2024', '2025 — PRESENT'];
 
 const About = () => {
   const { content } = useContent();
   const block = content.about.block1;
   const block2 = content.about.block2;
-  const chips = content.about.chips || aboutChipDefaults;
+  const chips = content.about.chips;
   const block2Visible = block2.visible !== false;
 
   return (
@@ -48,9 +39,9 @@ const About = () => {
         >
           {block.sections.map((section, index) => (
             <div key={`${section.title}-${index}`} className="relative pl-6 border-l-2 border-[#57B8FF]/20">
-              {PERIODS[index] && (
+              {section.period && (
                 <span className="font-mono text-[10px] text-[#57B8FF]/50 uppercase tracking-widest block mb-1">
-                  {PERIODS[index]}
+                  {section.period}
                 </span>
               )}
               <h3 className="font-mono text-sm font-bold text-[#F4F4F5] mb-3">{section.title}</h3>

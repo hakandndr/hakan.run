@@ -10,7 +10,18 @@ For the implemented site, start with the [documentation index](./docs/README.md)
 
 ## Modernization status
 
-The modernization branch uses APP_DB-backed public content and the private Boss interface. [CMS V2](./docs/CONTENT-CMS-V2.md) adds twelve field editors and isolated saved/unsaved preview; it is locally tested and not deployed. See that document for local acceptance and preserved legacy boundaries.
+The modernization branch now has a locally implemented clean public-runtime boundary.
+Public paths render only after one complete, validated, immutable twelve-section
+snapshot has been read from `GET /api/content` and therefore from `APP_DB`. Loading
+shows a neutral dark shell; any authority or contract failure shows an explicit
+error and never source-bundled copy. Public, Boss and preview have separate entry
+trees. This Phase 1 work is uncommitted and not deployed.
+
+[CMS V2](./docs/CONTENT-CMS-V2.md) provides the private twelve-section editor and
+saved/unsaved preview. The authorized Phase 1.5 publication completed the missing
+canonical fields in staging APP_DB, and a fresh public API readback passes the strict
+snapshot contract. Production content was not changed; commit, push and staging code
+deployment remain separate authorization gates.
 
 ## Legacy technology reference
 
@@ -28,28 +39,36 @@ The modernization branch uses APP_DB-backed public content and the private Boss 
 
 ```text
 apps/web/       React application, public assets, and web build configuration
-supabase/       Baseline migration and one-time seed utility
-run/            PHP visitor-log writer and authenticated log reader
+worker/         Cloudflare Worker routes, public API, and private Boss API
+migrations/     Forward-only APP_DB and ANALYTICS_DB migrations
+tools/          Reviewed bootstrap, import, and verification utilities
 tests/          Playwright browser tests
 docs/           Architecture, security, content, CI, and operations documentation
 ```
 
-## Legacy content model reference
+## Public content model
 
-`apps/web/src/content.js` is the fallback content source. `ContentContext.jsx` optionally merges browser `localStorage` state and rows from Supabase `public.site_content` by top-level section.
+`GET /api/content` is the only public runtime content source. A response must contain
+exactly `colors`, `typography`, `visibility`, `header`, `hero`, `services`, `about`,
+`portfolio`, `stats`, `cta`, `contact`, and `footer`. The frontend validates the
+whole response before mounting, applies the validated visual tokens, then passes one
+explicit `PublishedSiteSnapshot` to the renderer.
 
-CMS coverage is partial, not universal. Services, portfolio cards, stats, CTA, contact data, footer data, section visibility, typography, and selected hero fields consume the content model. The public About component, header navigation and identity, hero biography and badges, project detail pages, many labels, and many literal colors remain hardcoded in source. See [docs/CONTENT-CMS.md](./docs/CONTENT-CMS.md).
+`apps/web/src/content.js` remains temporarily as historical/bootstrap reference for
+later disposal work. Neither the public entry nor Boss preview imports it, and no
+merge or fallback path reaches the public production bundle. The historical
+source-backed project detail page is also unreachable from the public router;
+Portfolio cards require published external destinations.
 
 ## Security boundary
 
-- Supabase Auth provides email/password sessions and optional TOTP MFA for `/control-room`.
-- The checked-in migration allows public reads and permits all authenticated users to write `site_content`; it does not enforce owner-only writes.
-- The frontend does not enforce a specific owner email or user ID.
-- `run/get_log.php` validates a bearer token with Supabase, but accepts any valid Supabase user token and does not require owner UID or AAL2.
-- `run/log_hakanrun.php` masks IP addresses, limits stored field lengths, rate-limits by masked IP, caps the log file, and performs an external geolocation lookup.
-- Live Supabase policies, accounts, hosting files, and provider settings are outside Git and must be verified separately.
+- Public content is validated atomically and fails closed; partial or legacy-bearing data is never rendered.
+- `/boss`, `/boss/*`, and `/api/boss/*` remain protected by Cloudflare Access plus independent Worker verification and owner identity checks.
+- Production CMS writes, first-party analytics, and notifications remain disabled in source-controlled production configuration.
+- APP_DB and ANALYTICS_DB resources are isolated between staging and production.
+- Contact persistence remains authoritative before any optional notification attempt.
 
-See [docs/BACKEND-SECURITY.md](./docs/BACKEND-SECURITY.md) for the source-backed boundary.
+See [docs/SECURITY.md](./docs/SECURITY.md) for implemented and planned boundaries.
 
 ## Local development
 
@@ -57,11 +76,13 @@ The repository recommends Node `20.19.1` through `.nvmrc`. The GitHub Actions wo
 
 ```bash
 npm ci
-cp apps/web/.env.example apps/web/.env
 npm run dev
 ```
 
-The web application can render fallback content without Supabase environment variables. Supabase-backed content and Control Room functionality require `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+The public application intentionally shows ERROR when `/api/content` is unavailable;
+it has no local fallback mode. Use the Worker-backed local topology or the focused
+test stubs documented in [Operations](./docs/OPERATIONS.md). No Supabase browser
+environment variables are part of the modernization public runtime.
 
 ## Validation
 
@@ -70,7 +91,10 @@ npm run lint
 npm test
 ```
 
-Playwright builds the application, starts a Vite preview server, and runs desktop Chrome and Pixel 5 profiles using the Chromium engine. The current suite checks the home page, desktop navigation order, contact form structure, one project route, the designed 404 page, and basic SEO metadata. It does not test live Supabase, RLS, Control Room authentication or saving, PHP endpoints, Formspree submission, hosting, or deployment.
+The Phase 1 acceptance uses the focused snapshot/schema/preview contracts, the
+focused Chromium content lifecycle suite, lint, and production/staging builds. The
+historical full visual suite is deliberately outside this phase. See
+[Operations](./docs/OPERATIONS.md) for the exact commands and results.
 
 ## Build and deployment boundary
 
@@ -78,7 +102,10 @@ Playwright builds the application, starts a Vite preview server, and runs deskto
 npm run build
 ```
 
-The frontend artifact is written to `dist/apps/web/`. The repository contains no automated production deployment. Operational documentation describes a manual upload model for the frontend artifact and a separate `/run/` PHP deployment, but the current live hosting state cannot be proven from Git alone. See [docs/DEPLOYMENT-OPERATIONS.md](./docs/DEPLOYMENT-OPERATIONS.md).
+The frontend artifact is written to `dist/apps/web/` and is delivered with the
+Cloudflare Worker/static-assets configuration. A successful build does not authorize
+a commit, push, migration, deployment, activation, DNS or provider change. See
+[docs/OPERATIONS.md](./docs/OPERATIONS.md).
 
 ---
 

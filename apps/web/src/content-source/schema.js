@@ -6,23 +6,25 @@ const url = (label, kind = 'link') => optional(text(label, { format: kind, max: 
 const object = (label, fields, extra = {}) => ({ type: 'object', label, fields, ...extra });
 const list = (label, item) => ({ type: 'array', label, item, max: 1000 });
 const bool = (label) => ({ type: 'boolean', label });
+const requiredUrl = (label, kind = 'link') => ({ ...url(label, kind), optional: false });
 // Navigation consumers require href to be present, even when other URLs are optional.
-const link = object('Link', { name: text('Label'), href: { ...url('Destination'), optional: false } });
+const link = object('Link', { name: text('Label'), href: requiredUrl('Destination') });
 const social = object('Social link', { name: text('Name'), url: url('URL', 'external') });
-const story = object('Story', { title: text('Title'), body: area('Body') });
-const block = (label) => object(label, {
+const story = object('Story', { title: text('Title'), body: area('Body'), period: optional(text('Period')) });
+const datedStory = object('Story', { title: text('Title'), body: area('Body'), period: text('Period') });
+const block = (label, item = story) => object(label, {
   heading: text('Heading'), headingAccent: text('Highlighted heading'),
   image: url('Image reference', 'image'), imageAlt: text('Image description'),
-  sections: list('Stories', story), visible: optional(bool('Visible')),
+  sections: list('Stories', item), visible: optional(bool('Visible')),
 });
 export const INTERNAL_PROJECT_SLUGS = ['full-stack-development', 'ai-and-automation', 'it-infrastructure'];
 export const SECTION_SCHEMAS = {
   hero: object('Hero', {
     badge: text('Badge'), headingLine1: text('First heading line'), headingLine2: text('Second heading line'),
     paragraph: area('Introduction'), paragraphs: optional(list('Legacy paragraphs (not rendered)', area('Paragraph'))),
-    primaryButton: text('Primary button label'), primaryButtonHref: url('Primary button destination'),
-    secondaryButton: text('Secondary button label'), secondaryButtonHref: url('Secondary button destination'),
-    profile: optional(object('Profile', {})),
+    primaryButton: text('Primary button label'), primaryButtonHref: requiredUrl('Primary button destination'),
+    secondaryButton: text('Secondary button label'), secondaryButtonHref: requiredUrl('Secondary button destination'),
+    profile: object('Profile', {}),
   }),
   services: object('Services', { heading: text('Heading'), headingAccent: text('Highlighted heading'), subtitle: area('Introduction'),
     filterTags: list('Tags', text('Tag')), items: list('Services', object('Service', { title: text('Title'), description: area('Description') })) }),
@@ -30,20 +32,20 @@ export const SECTION_SCHEMAS = {
     subtitle: optional(area('Legacy subtitle (not rendered)')), cards: list('Projects', object('Project', {
       id: { type: 'id', label: 'Stable ID', readonly: true }, slug: text('Slug', { format: 'slug' }),
       title: text('Title'), description: area('Description'), imgSrc: url('Image reference', 'image'),
-      externalUrl: url('External URL', 'external'), technology: optional(text('Technology')),
+      externalUrl: requiredUrl('External URL', 'external'), technology: text('Technology'),
     })) }),
-  about: object('About', { block1: block('First block'), block2: block('Second block'), chips: optional(list('Tags', text('Tag'))) }),
+  about: object('About', { block1: block('First block', datedStory), block2: block('Second block'), chips: list('Tags', text('Tag')) }),
   header: object('Header', { siteName: text('Site name'), ctaButton: text('Contact button label'), navLinks: list('Navigation', link) }),
   footer: object('Footer', { logoText: text('Logo text'), siteName: text('Site name'), tagline: area('Tagline'),
-    copyright: optional(text('Legacy copyright (not rendered)')), bottomSignature: optional(text('Bottom signature')), bottomLocation: optional(text('Bottom location')),
+    copyright: optional(text('Legacy copyright (not rendered)')), bottomSignature: text('Bottom signature'), bottomLocation: text('Bottom location'),
     sections: list('Link groups', object('Group', { title: text('Title'), links: list('Links', link) })), socialLinks: list('Social links', social) }),
   cta: object('CTA', { heading: text('Heading'), headingAccent: text('Highlighted heading'), headingSuffix: text('Heading suffix'),
-    paragraph: area('Introduction'), button: text('Button label'), buttonHref: url('Button destination', 'internal') }),
+    paragraph: area('Introduction'), button: text('Button label'), buttonHref: requiredUrl('Button destination', 'internal') }),
   contact: object('Contact', { pageTitle: text('Page title'), metaDescription: area('Meta description'), heading: text('Heading'),
     headingAccent: text('Highlighted heading'), subtitle: area('Introduction'),
     infoBlocks: list('Information blocks', object('Block', { title: text('Title'), lines: list('Lines', text('Line')) })), socialLinks: list('Social links', social) }),
   stats: object('Stats', { heading: text('Heading'), headingAccent: text('Highlighted heading'), subtitle: optional(area('Legacy subtitle (not rendered)')),
-    items: list('Statistics', object('Statistic', { value: { type: 'number', label: 'Value', min: 0, max: 1000000000 }, suffix: text('Suffix'), label: text('Label'), description: area('Description') })) }),
+    items: list('Statistics', object('Statistic', { value: { type: 'number', label: 'Value', min: 0, max: 1000000000 }, suffix: text('Suffix', { allowEmpty: true }), label: text('Label'), description: area('Description') })) }),
   colors: object('Colors', Object.fromEntries(['accentPurple','background','cardBackground','heroOverlay'].map(k => [k, text(k.replace(/([A-Z])/g, ' $1'), { format: 'color' })]))),
   typography: object('Typography', {
     headingFont: text('Heading font', { choices: ['mono','sans','serif'] }), bodySize: text('Body size', { choices: ['sm','md','lg'] }),
@@ -51,10 +53,10 @@ export const SECTION_SCHEMAS = {
   }),
   visibility: object('Visibility', Object.fromEntries(['services','about','portfolio','stats','cta'].map(k => [k, bool(k)]))),
 };
-SECTION_SCHEMAS.hero.fields.profile = optional(object('Profile', {
-  ...Object.fromEntries(['name','role','location','topLabel','topValue','bottomLabel','bottomValue','imageAlt'].map(k => [k, optional(text(k.replace(/([A-Z])/g, ' $1')))])),
-  image: url('Image reference', 'image'),
-}));
+SECTION_SCHEMAS.hero.fields.profile = object('Profile', {
+  ...Object.fromEntries(['name','role','location','topLabel','topValue','bottomLabel','bottomValue','imageAlt'].map(k => [k, text(k.replace(/([A-Z])/g, ' $1'))])),
+  image: requiredUrl('Image reference', 'image'),
+});
 export const isObject = v => v !== null && typeof v === 'object' && !Array.isArray(v);
 export function safeUrl(value, kind = 'link') {
   if (value === '') return true;
@@ -99,6 +101,7 @@ export function validateSection(section, data) {
     else if (s.type === 'number' && (!Number.isFinite(v) || v < s.min || v > s.max)) error(path, `Use a number between ${s.min} and ${s.max}`);
     else if (s.type === 'string') {
       if (v.length > s.max) error(path, `Maximum ${s.max} characters`);
+      if (!s.optional && !s.allowEmpty && v.trim().length === 0) error(path, 'Required value');
       if (s.choices && !s.choices.includes(v)) error(path, 'Choose a supported value');
       if (s.format === 'color' && !/^#[0-9a-f]{6}$/i.test(v)) error(path, 'Use a six-digit hex color');
       if (s.format === 'slug' && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v)) error(path, 'Use a lowercase hyphenated slug');

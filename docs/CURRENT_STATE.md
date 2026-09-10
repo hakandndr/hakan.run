@@ -1,5 +1,43 @@
 # Current State
 
+## Clean public-runtime foundation — local, not deployed, 2026-09-10
+
+The public renderer no longer begins with `siteContent` and no longer overlays a
+partial APP_DB response. Its sole runtime authority is `GET /api/content`, backed by
+`APP_DB`. The response must contain exactly the canonical twelve sections: `colors`,
+`typography`, `visibility`, `header`, `hero`, `services`, `about`, `portfolio`,
+`stats`, `cta`, `contact`, and `footer`. The client rejects empty, partial, duplicate,
+unknown, malformed, schema-invalid and legacy-field-bearing payloads atomically.
+
+The visible lifecycle is now only neutral LOADING, validated READY, or explicit
+ERROR. The initial HTML contains a dark structural shell and no editable marketing
+copy. Validated theme and typography values are applied before READY is committed.
+Failures never reveal source-bundled content; retry is manual and starts a fresh
+single request. No loader choreography, minimum duration, boot timeout, automatic
+retry, polling or `sessionStorage` boot flag remains in the public path.
+
+Public, Boss and preview are separate dynamic entry trees. The public tree contains
+the bootstrap, public router and renderer but no static Boss imports. Boss retains
+its private router. Preview builds an explicit immutable snapshot and uses the same
+public frame/components without importing or merging `content.js`. Historical
+`content.js`, `TerminalLoader.jsx` and `Project.jsx` remain as unreachable reference
+or later-disposal files; they do not enter the public runtime graph.
+
+Phase 1.5 reviewed all 47 Phase 1 working-tree entries and found them within the
+approved architecture. Staging APP_DB now contains the previously missing Hero
+button destinations, About chips and first-block periods, Portfolio technologies,
+CTA destination, and Footer bottom signature/location. They were published through
+the existing Boss revision/audit workflow. The resulting public API readback has
+exactly twelve sections, no drafts or forbidden fields, and passes the local strict
+snapshot constructor without transformation. Production was untouched.
+
+Focused pure tests pass 22/22 across the new snapshot, existing schema and preview
+contracts. The focused Chromium lifecycle suite passes 8/8, including a delayed
+content response and all required failure modes. Source lint and the production
+build pass. Production/staging final verification is recorded in Operations. No
+historical visual suite or broad browser tour ran, and no commit, push or deployment
+occurred.
+
 ## Public scroll lifecycle architecture correction — local, 2026-09-09
 
 The corrective checkpoint at `2ef68afd4428cb4e3677a42211f0b14e559c5d56`

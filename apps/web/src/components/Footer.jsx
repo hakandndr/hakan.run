@@ -2,11 +2,6 @@ import React from 'react';
 import { Github, Twitter, Linkedin, Instagram } from 'lucide-react';
 import { useContent } from '@/contexts/ContentContext';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
-const footerBottomDefaults = {
-  signature: '© 2026 Hakan.run — Built under DNDR Labs.',
-  location: 'Orange County, CA USA',
-};
-
 const SOCIAL_ICONS = {
   Linkedin:  <Linkedin  size={16} />,
   Github:    <Github    size={16} />,
@@ -127,10 +122,10 @@ const Footer = () => {
       <div className="border-t border-white/[0.06]">
         <div className="container mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="font-mono text-[11px] text-gray-500">
-            {renderBottomSignature(f.bottomSignature ?? footerBottomDefaults.signature)}
+            {renderBottomSignature(f.bottomSignature)}
           </p>
           <p className="font-mono text-[11px] text-gray-600">
-            {f.bottomLocation ?? footerBottomDefaults.location}
+            {f.bottomLocation}
           </p>
         </div>
       </div>

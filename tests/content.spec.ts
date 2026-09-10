@@ -1,38 +1,111 @@
 import { test, expect, Page } from '@playwright/test';
 
-// The public content authority, from the browser's side.
-//
-// APP_DB is the authority and /api/content is the only runtime path to it. The
-// preview server used by these tests has no Worker, so the endpoint is stubbed;
-// what is being tested is what the frontend does with each possible answer, and
-// that is frontend behaviour either way.
-//
-// The distinction these tests exist to defend: the fallback is shown in three
-// of the four cases, but only one of them is content. A test that only checked
-// what is on screen would pass for all three and would not notice the site
-// silently running on built-in copy because its authority was unreachable.
-
-const FALLBACK_HEADING = 'BUILD. DEPLOY.';
+const STALE_COPY = 'QA Automation & SDET';
 const PUBLISHED_HEADING = 'PUBLISHED FROM APP_DB.';
 
-const heroSection = (headingLine1: string) => ({
-  id: 'hero',
-  revision: 3,
-  publishedAt: 1757000000000,
-  data: {
-    badge: 'Software Developer • QA Automation • Irvine, CA',
-    headingLine1,
-    headingLine2: 'RUN.',
-    paragraphs: ['Published copy.'],
-    primaryButton: 'View Projects',
+const content = () => ({
+  colors: {
+    accentPurple: '#57b8ff',
+    background: '#090909',
+    cardBackground: '#1a1a1a',
+    heroOverlay: '#000000',
+  },
+  typography: { headingFont: 'mono', bodySize: 'md', sectionSpacing: 'default' },
+  visibility: { services: false, about: false, portfolio: false, stats: false, cta: false },
+  header: { siteName: 'PUBLISHED SITE', ctaButton: 'Contact', navLinks: [] },
+  hero: {
+    badge: 'PUBLISHED BADGE',
+    headingLine1: PUBLISHED_HEADING,
+    headingLine2: 'READY.',
+    paragraph: 'Published introduction.',
+    primaryButton: 'Published primary',
     primaryButtonHref: '#portfolio',
-    secondaryButton: "Let's Connect",
+    secondaryButton: 'Published secondary',
     secondaryButtonHref: '/contact',
+    profile: {
+      name: 'Published Name',
+      role: 'Published Role',
+      image: '/media/HakanDundar.webp',
+      imageAlt: 'Published profile',
+      location: 'Published Location',
+      topLabel: 'Published Top Label',
+      topValue: '15+',
+      bottomLabel: 'Published Bottom Label',
+      bottomValue: 'Published Bottom Value',
+    },
+  },
+  services: { heading: 'Published services', headingAccent: 'Ready', subtitle: 'Published services intro.', filterTags: [], items: [] },
+  about: {
+    chips: ['Published tag'],
+    block1: {
+      heading: 'Published about',
+      headingAccent: 'Ready',
+      image: '/media/HakanDundar.webp',
+      imageAlt: 'Published about image',
+      sections: [{ title: 'Published story', body: 'Published story body.', period: 'Published period' }],
+    },
+    block2: {
+      heading: 'Published location',
+      headingAccent: 'Ready',
+      image: '/media/hkndesk.webp',
+      imageAlt: 'Published desk image',
+      sections: [],
+      visible: false,
+    },
+  },
+  portfolio: {
+    badge: 'Published work',
+    heading: 'Published portfolio',
+    headingAccent: 'Ready',
+    cards: [{
+      id: 1,
+      slug: 'published-project',
+      title: 'Published project',
+      description: 'Published project description.',
+      imgSrc: '/portfolio/full-stack-saas-card.svg',
+      externalUrl: 'https://example.com/project',
+      technology: 'Published technology',
+    }],
+  },
+  stats: { heading: 'Published stats', headingAccent: 'Ready', items: [] },
+  cta: {
+    heading: 'Published CTA',
+    headingAccent: 'Ready',
+    headingSuffix: '.',
+    paragraph: 'Published CTA description.',
+    button: 'Published CTA button',
+    buttonHref: '/contact',
+  },
+  contact: {
+    pageTitle: 'Published contact',
+    metaDescription: 'Published contact description.',
+    heading: 'Published contact',
+    headingAccent: 'Ready',
+    subtitle: 'Published contact introduction.',
+    infoBlocks: [],
+    socialLinks: [],
+  },
+  footer: {
+    logoText: '<h/>',
+    siteName: 'PUBLISHED SITE',
+    tagline: 'Published footer tagline.',
+    bottomSignature: 'Published footer signature.',
+    bottomLocation: 'Published footer location.',
+    sections: [],
+    socialLinks: [],
   },
 });
 
-const stubContent = (page: Page, fulfil: Record<string, unknown>) =>
-  page.route('**/api/content', (route) => route.fulfill(fulfil as never));
+const validPayload = () => {
+  const current = content();
+  const sections = Object.entries(current).map(([id, data]) => ({
+    id,
+    revision: 1,
+    publishedAt: 1,
+    data,
+  }));
+  return { contract: 1, count: sections.length, publishedAt: 1, sections };
+};
 
 const json = (body: unknown, status = 200) => ({
   status,
@@ -40,126 +113,101 @@ const json = (body: unknown, status = 200) => ({
   body: JSON.stringify(body),
 });
 
-const consoleErrors = (page: Page) => {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
-  });
-  return errors;
+const stub = (page: Page, response: Record<string, unknown>) =>
+  page.route('**/api/content', (route) => route.fulfill(response as never));
+
+const expectNoFallback = async (page: Page) => {
+  await expect(page.getByText(STALE_COPY, { exact: false })).toHaveCount(0);
+  await expect(page.getByText('BUILD. DEPLOY.', { exact: false })).toHaveCount(0);
 };
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.sessionStorage.setItem('booted', '1'));
+test('a delayed complete APP_DB snapshot keeps the neutral shell stable until READY', async ({ page }) => {
+  let release: () => void = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  await page.route('**/api/content', async (route) => {
+    await gate;
+    await route.fulfill(json(validPayload()));
+  });
+
+  await page.goto('/', { waitUntil: 'commit' });
+  try {
+    await expect(page.locator('[data-public-bootstrap="loading"]')).toBeVisible();
+    await expectNoFallback(page);
+  } finally {
+    release();
+  }
+
+  await expect(page.locator('[data-public-bootstrap="loading"]')).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(PUBLISHED_HEADING);
+  await expectNoFallback(page);
 });
 
-test.describe('public content source', () => {
-  test('published content is what the page renders', async ({ page }) => {
-    await stubContent(page, json({
-      contract: 1,
-      count: 1,
-      publishedAt: 1757000000000,
-      sections: [heroSection(PUBLISHED_HEADING)],
-    }));
-    await page.goto('/');
+test('a complete valid APP_DB snapshot reaches READY with published theme tokens', async ({ page }) => {
+  await stub(page, json(validPayload()));
+  await page.goto('/');
 
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(PUBLISHED_HEADING);
-  });
-
-  test('an unpublished site renders the fallback and reports no error', async ({ page }) => {
-    const errors = consoleErrors(page);
-    await stubContent(page, json({ contract: 1, count: 0, publishedAt: null, sections: [] }));
-    await page.goto('/');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(FALLBACK_HEADING);
-    expect(errors.filter((line) => line.includes('/api/content'))).toEqual([]);
-  });
-
-  test('a server failure renders the fallback AND reports the failure', async ({ page }) => {
-    // Both halves matter. The visitor sees a working site; the operator sees
-    // that the authority is unreachable. Only reporting one of those is the bug.
-    const errors = consoleErrors(page);
-    await stubContent(page, json({ error: 'content_unavailable' }, 503));
-    await page.goto('/');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(FALLBACK_HEADING);
-    await expect
-      .poll(() => errors.filter((line) => line.includes('http_503')).length)
-      .toBeGreaterThan(0);
-  });
-
-  test('an HTML answer is reported as a contract failure, not as an empty site', async ({ page }) => {
-    // The failure this project has already had: the asset layer answering an
-    // API path with the single-page-application shell, HTTP 200.
-    const errors = consoleErrors(page);
-    await stubContent(page, {
-      status: 200,
-      contentType: 'text/html',
-      body: '<!doctype html><html><body>shell</body></html>',
-    });
-    await page.goto('/');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(FALLBACK_HEADING);
-    await expect
-      .poll(() => errors.filter((line) => line.includes('not_json')).length)
-      .toBeGreaterThan(0);
-  });
-
-  test('a malformed section is never partially applied', async ({ page }) => {
-    const errors = consoleErrors(page);
-    await stubContent(page, json({
-      contract: 1,
-      count: 2,
-      publishedAt: 1,
-      sections: [heroSection(PUBLISHED_HEADING), { id: 'footer', data: 'not an object' }],
-    }));
-    await page.goto('/');
-
-    // The good section in the same response is not applied either: a response
-    // that failed its contract is not a source of partial truth.
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(FALLBACK_HEADING);
-    await expect.poll(() => errors.filter((line) => line.includes('malformed')).length).toBeGreaterThan(0);
-  });
-
-  test('published content ignores legacy localStorage', async ({ page }) => {
-    // Old browser content must never become a runtime authority again.
-    await page.addInitScript(() => {
-      window.localStorage.setItem(
-        'siteContent',
-        JSON.stringify({ hero: { headingLine1: 'STALE LOCAL COPY.', headingLine2: 'RUN.' } }),
-      );
-    });
-    await stubContent(page, json({
-      contract: 1,
-      count: 1,
-      publishedAt: 1,
-      sections: [heroSection(PUBLISHED_HEADING)],
-    }));
-    await page.goto('/');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(PUBLISHED_HEADING);
-  });
-
-  test('the fallback ignores legacy localStorage when nothing is published', async ({ page }) => {
-    await page.addInitScript(() => {
-      window.localStorage.setItem(
-        'siteContent',
-        JSON.stringify({ hero: { headingLine1: 'STALE LOCAL COPY.', headingLine2: 'RUN.' } }),
-      );
-    });
-    await stubContent(page, json({ contract: 1, count: 0, publishedAt: null, sections: [] }));
-    await page.goto('/');
-
-    await expect(page.getByRole('heading', { level: 1 })).toContainText(FALLBACK_HEADING);
-  });
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(PUBLISHED_HEADING);
+  await expect(page.locator('html')).toHaveCSS('--color-bg', '#090909');
+  await expect(page.locator('body')).toHaveAttribute('data-heading-font', 'mono');
 });
 
-test('the removed Control Room renders the existing not-found page without legacy requests', async ({ page }) => {
-  const legacyRequests: string[] = [];
-  page.on('request', request => {
-    if (/\/run\/|supabase\.co/.test(request.url())) legacyRequests.push(request.url());
+const contractFailures = [
+  {
+    name: 'missing section',
+    payload: () => {
+      const value = validPayload();
+      value.sections.pop();
+      value.count = value.sections.length;
+      return value;
+    },
+  },
+  {
+    name: 'duplicate section',
+    payload: () => {
+      const value = validPayload();
+      value.sections[value.sections.length - 1] = structuredClone(value.sections[0]);
+      return value;
+    },
+  },
+  {
+    name: 'malformed section',
+    payload: () => {
+      const value = validPayload();
+      value.sections.find(({ id }) => id === 'hero')!.data = { headingLine1: 42 };
+      return value;
+    },
+  },
+  {
+    name: 'unknown section',
+    payload: () => {
+      const value = validPayload();
+      value.sections[value.sections.length - 1].id = 'unknown';
+      return value;
+    },
+  },
+];
+
+for (const failure of contractFailures) {
+  test(`${failure.name} reaches ERROR without source fallback`, async ({ page }) => {
+    await stub(page, json(failure.payload()));
+    await page.goto('/');
+
+    await expect(page.locator('[data-public-bootstrap="error"]')).toBeVisible();
+    await expectNoFallback(page);
+    await expect(page.getByText(PUBLISHED_HEADING, { exact: false })).toHaveCount(0);
   });
-  await stubContent(page, json({ contract: 1, count: 0, publishedAt: null, sections: [] }));
-  await page.goto('/control-room');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('404');
-  expect(legacyRequests).toEqual([]);
+}
+
+test('transport failure reaches ERROR without source fallback', async ({ page }) => {
+  await page.route('**/api/content', (route) => route.abort('failed'));
+  await page.goto('/');
+  await expect(page.locator('[data-public-bootstrap="error"]')).toBeVisible();
+  await expectNoFallback(page);
+});
+
+test('invalid JSON reaches ERROR without source fallback', async ({ page }) => {
+  await stub(page, { status: 200, contentType: 'application/json', body: '{not-json' });
+  await page.goto('/');
+  await expect(page.locator('[data-public-bootstrap="error"]')).toBeVisible();
+  await expectNoFallback(page);
 });

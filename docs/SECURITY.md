@@ -1,5 +1,41 @@
 # Security
 
+## Phase 1.5 staging content publication — 2026-09-10
+
+The authorized staging-only operation used Cloudflare Access and the Worker's
+independent owner verification, optimistic version/revision guard, atomic draft and
+publish batches, immutable revision rows, and explicit audit records. It did not use
+direct SQL, change Access, alter provider configuration or touch production.
+
+Post-publication readback contains no legacy `formEndpoint`, Formspree value,
+Supabase runtime value or absolute `https://hakan.run` content dependency. Exactly
+the five authorized sections changed, all drafts are clear, and unrelated staging
+tables and historical rows remained unchanged.
+
+## Public content fail-closed boundary — local, not deployed, 2026-09-10
+
+The public client treats `/api/content` as untrusted input even though the Worker
+reads it from APP_DB. It rejects redirects, non-success status, non-JSON or invalid
+JSON bodies, unsupported contracts, inconsistent counts or publication metadata,
+empty/partial sets, duplicate or unknown sections, invalid section values, unsafe
+URLs and forbidden retired-integration fields. One bad section invalidates the whole
+response; no partial truth is rendered.
+
+The renderer can consume only a deep-cloned, recursively frozen snapshot. APP_DB
+color and typography tokens are validated before they are written to document
+properties. Preview uses the same validation and sanitizes image references before
+rendering. Preview remains same-origin, parent-bound and interaction-disabled.
+
+Failure does not disclose stale bundled profile or marketing content. The ERROR
+surface contains only system status copy, and Retry is user-triggered. Public and
+Boss code are separate entry trees, reducing accidental inclusion of private module
+behavior in the public runtime. This is a code boundary, not an authorization
+boundary: Cloudflare Access and Worker verification remain authoritative for Boss.
+
+No provider settings, bindings, secrets, Access policy, Turnstile configuration,
+database rows or production resources changed in this phase. Production CMS writes,
+analytics and notifications remain disabled as recorded in `wrangler.jsonc`.
+
 ## Provisioned production trust boundary — 2026-09-09
 
 The production private surface now has a distinct Cloudflare Access application

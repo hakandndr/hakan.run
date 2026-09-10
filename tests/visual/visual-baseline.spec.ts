@@ -15,7 +15,7 @@ async function prepare(page: Page, path: string, viewport: { width: number; heig
     window.sessionStorage.setItem('booted', '1');
     window.localStorage.clear();
   });
-  await page.route(/^https?:\/\/(?!localhost:3000)/, route => route.abort());
+  await page.route(/^https?:\/\/(?!localhost:4173)/, route => route.abort());
   await page.goto(path, { waitUntil: 'networkidle' });
   await page.addStyleTag({
     content: `

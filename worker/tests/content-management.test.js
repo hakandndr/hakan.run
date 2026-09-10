@@ -1,4 +1,4 @@
-import { siteContent } from '../../apps/web/src/content.js';
+import { completeSiteContent } from '../../apps/web/test-fixtures/published-site.js';
 import test, { describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
@@ -57,12 +57,13 @@ const adapter = () => {
 };
 const createSetup = (environment) => {
   const db = adapter();
+  const hero = completeSiteContent().hero;
   db.sqlite.prepare(`INSERT INTO content_sections
     (section, published_data, published_revision, published_at, updated_at)
-    VALUES ('hero', ?, 1, 100, 100)`).run(JSON.stringify({ ...siteContent.hero, headingLine1: 'Original' }));
+    VALUES ('hero', ?, 1, 100, 100)`).run(JSON.stringify({ ...hero, headingLine1: 'Original' }));
   db.sqlite.prepare(`INSERT INTO content_revisions
     (section, revision, data, created_at, actor, note) VALUES ('hero', 1, ?, 100, 'bootstrap', '')`)
-    .run(JSON.stringify({ ...siteContent.hero, headingLine1: 'Original' }));
+    .run(JSON.stringify({ ...hero, headingLine1: 'Original' }));
   return { APP_DB: db, ENVIRONMENT: environment, CMS_PRODUCTION_WRITES_ENABLED: environment === 'production' ? 'true' : undefined };
 };
 const request = (method, path, payload, origin = 'https://staging.hakan.run') =>
@@ -72,7 +73,7 @@ const request = (method, path, payload, origin = 'https://staging.hakan.run') =>
     ...(['GET', 'HEAD'].includes(method) ? {} : { body: JSON.stringify(payload) }),
   });
 const call = async (env, method, path, payload) => {
-  if (payload?.data) payload = { ...payload, data: { ...siteContent.hero, ...payload.data } };
+  if (payload?.data) payload = { ...payload, data: { ...completeSiteContent().hero, ...payload.data } };
   const base = request(method, path, payload);
   const req = env.ENVIRONMENT === 'production'
     ? new Request(base.url.replace('staging.hakan.run', 'hakan.run'), {
@@ -234,7 +235,7 @@ test('enabled production denies absent, null and cross-origin mutations', async 
   for (const origin of [undefined, 'null', 'https://staging.hakan.run']) {
     const req = new Request('https://hakan.run/api/boss/content/hero/draft', {
       method: 'PUT', headers: origin === undefined ? {} : { origin },
-      body: JSON.stringify({ expectedVersion: 100, expectedRevision: 1, data: siteContent.hero }),
+      body: JSON.stringify({ expectedVersion: 100, expectedRevision: 1, data: completeSiteContent().hero }),
     });
     assert.equal((await handleContentManagement(req, env, { email: 'hakan@dndr.net' }, new URL(req.url).pathname)).status, 403);
   }

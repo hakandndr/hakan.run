@@ -9,7 +9,7 @@ const CTA = () => {
   const { content } = useContent();
   const c = content.cta;
 
-  const handleCTAClick = () => navigate(c.buttonHref || '/contact');
+  const handleCTAClick = () => navigate(c.buttonHref);
 
   return (
     <section

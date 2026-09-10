@@ -16,8 +16,8 @@ const Home = () => {
   return (
     <>
       <Helmet>
-        <title>Hakan Dundar | Software Developer &amp; QA Automation Engineer</title>
-        <meta name="description" content="Professional Software Developer based in California. Specializing in clean code, robust automation frameworks, and high-performance technical solutions." />
+        <title>{content.header.siteName}</title>
+        <meta name="description" content={content.hero.paragraph} />
       </Helmet>
       <Hero />
       {vis.stats    !== false && <SectionAnimator><Stats /></SectionAnimator>}

@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-027 — Public content mounts only from an atomic published snapshot
+
+- Decision: The public renderer accepts one complete immutable `PublishedSiteSnapshot` produced from `GET /api/content`; LOADING and ERROR render no editable site content.
+- Context: Source-bundled content was painted before APP_DB and silently survived failed or partial responses, producing ghost content and two authorities.
+- Alternatives considered: Continue overlaying published sections; deep-merge missing fields; cache the last source snapshot; delay the loader until the request usually completes.
+- Rationale: Atomic validation makes APP_DB the only public runtime truth and makes authority failure visible without timing heuristics.
+- Consequences: Public, Boss and preview need separate entry trees; theme tokens apply before READY; missing renderer fields block publication instead of receiving defaults; historical source content may remain only while unreachable from the public bundle.
+- Status: Approved and implemented locally; not deployed. This supersedes D-026 only where D-026 relied on source-bundled content for the initial document layout. Browser/SPA scroll ownership remains unchanged.
+
 ## D-001 — Preserve the existing visual language
 
 - Decision: Preserve the current visual identity through infrastructure migration.

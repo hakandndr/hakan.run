@@ -6,27 +6,15 @@ import { Button } from '@/components/ui/button';
 import { useContent } from '@/contexts/ContentContext';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
 
-const DEFAULT_PROFILE = {
-  name: 'Hakan Dundar',
-  role: 'Software Developer',
-  image: '/media/HakanDundar.webp',
-  imageAlt: 'Hakan Dundar',
-  location: 'Orange County, CA',
-  topLabel: 'Years in Tech',
-  topValue: '15+',
-  bottomLabel: 'Software · Cloud',
-  bottomValue: 'Automation',
-};
-
 const Hero = () => {
   const navigateTo = usePublicNavigation();
   const { content } = useContent();
   const h = content.hero;
-  const profile = { ...DEFAULT_PROFILE, ...(h.profile || {}) };
+  const profile = h.profile;
   const socialLinks = content.contact?.socialLinks || [];
 
   const handlePrimaryClick = () => {
-    const href = h.primaryButtonHref || '#portfolio';
+    const href = h.primaryButtonHref;
     if (href.startsWith('http')) {
       window.open(href, '_blank', 'noopener,noreferrer');
     } else {
@@ -35,7 +23,7 @@ const Hero = () => {
   };
 
   const handleSecondaryClick = () => {
-    const href = h.secondaryButtonHref || '/contact';
+    const href = h.secondaryButtonHref;
     if (href.startsWith('http')) window.open(href, '_blank', 'noopener,noreferrer');
     else navigateTo(href);
   };

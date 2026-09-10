@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
 import { contentPreview, previewShell, PREVIEW_CSP } from '../boss/content-preview.js';
-import { siteContent } from '../../apps/web/src/content.js';
-const rows = () => Object.entries(siteContent).map(([section,data]) => ({ section,published_data:JSON.stringify(data),draft_data:null,published_revision:1,updated_at:100 }));
+import { completeSiteContent } from '../../apps/web/test-fixtures/published-site.js';
+const rows = () => Object.entries(completeSiteContent()).map(([section,data]) => ({ section,published_data:JSON.stringify(data),draft_data:null,published_revision:1,updated_at:100 }));
 const envFor = results => ({ APP_DB: { prepare(sql) { assert.match(sql,/^SELECT/); return { all: async () => ({results}) }; } } });
 test('private preview shell and data fail closed before any storage or asset read', async () => {
   for (const path of ['/boss/content/preview','/api/boss/content/preview']) {
@@ -12,7 +12,7 @@ test('private preview shell and data fail closed before any storage or asset rea
   }
 });
 test('saved preview reads drafts and published sections without any writes and disables caching', async () => {
-  const data = rows(); data.find(r => r.section === 'hero').draft_data = JSON.stringify({...siteContent.hero,badge:'Private'});
+  const data = rows(); data.find(r => r.section === 'hero').draft_data = JSON.stringify({...completeSiteContent().hero,badge:'Private'});
   const response = await contentPreview(envFor(data));
   assert.equal(response.status,200); assert.match(response.headers.get('cache-control'),/no-store/);
   const payload = await response.json();

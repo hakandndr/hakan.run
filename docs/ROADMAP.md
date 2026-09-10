@@ -2,6 +2,15 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Phase 1D — Clean public-runtime foundation
+
+- Objective: Make APP_DB published content the sole public runtime authority through an atomic snapshot and explicit bootstrap boundary.
+- Dependencies: Canonical twelve-section CMS contract, public content endpoint, existing visual baseline.
+- Main risks: Ghost content, partial truth, schema drift, private-code coupling, token flash, current APP_DB fields that were previously supplied by source defaults.
+- Acceptance gates: Exact section membership, strict section/completeness validation, immutable snapshot, neutral LOADING and explicit ERROR, token-before-READY, public/Boss/preview entry isolation, focused source/browser/build evidence.
+- Authorization boundaries: BUILD is complete locally; content publication, DATABASE, MIGRATE, COMMIT, PUSH and DEPLOY remain separate.
+- Status: Implemented locally and not deployed. Phase 1.5 completed and strictly validated the required staging APP_DB fields through the existing Boss publication workflow. Commit, push and staging deployment remain separately unauthorized. Production content was untouched, and full historical-file disposal has not begun.
+
 ## Phase 0 — Legacy baseline
 
 - Objective: Audit the legacy implementation, document actual behavior, remove repository residue, and publish a clean baseline.

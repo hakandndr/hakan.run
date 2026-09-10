@@ -1,5 +1,65 @@
 # hakan.run Modernization Handoff
 
+## Phase 1.5 staging content authority completion — 2026-09-10
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `0ab22f58cc78a667774ef505407cce395c29ac12` |
+| Current phase | Phase 1.5 complete; owner review pending |
+| Completed | All 47 Phase 1 entries reviewed; five staging APP_DB sections completed through Boss draft/publish; strict public readback accepted |
+| Exact next action | Review this uncommitted change set, then separately authorize commit, push and staging deployment if desired |
+| Prohibited actions | Commit, push, deploy, production mutation, DNS, Access, Turnstile, secret or provider change; do not start Phase 2 |
+| Push state | Local HEAD and upstream remain `0ab22f58cc78a667774ef505407cce395c29ac12`; all code and documentation work is uncommitted |
+| Deploy state | No code was deployed; staging still runs the prior artifact |
+| Infrastructure state | Staging APP_DB Hero, About, Portfolio, CTA and Footer each gained one published revision; production was untouched |
+
+The staging public API now supplies every editable value required by the strict
+twelve-section renderer. Its direct readback passed the local
+`PublishedSiteSnapshot` constructor without fallback, merge, patching or injected
+defaults. The operation added five immutable content revisions and ten audit events
+(one draft and one publish per section), and left no drafts.
+
+The first strict readback exposed one local schema defect unrelated to the staged
+content additions: a required statistic `suffix` must be present but may legitimately
+be the empty string. The schema now expresses that distinction explicitly and a
+focused regression test covers it. No Stats data was changed.
+
+## Clean public-runtime foundation — local, 2026-09-10
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `0ab22f58cc78a667774ef505407cce395c29ac12` |
+| Current phase | Phase 1 clean public-runtime foundation implemented and validated locally; owner review pending |
+| Completed | Atomic twelve-section `PublishedSiteSnapshot`, neutral LOADING shell, READY/ERROR boundary, APP_DB-only public authority, public/Boss/preview entry isolation, fallback-default disconnection, focused contract and browser coverage |
+| Exact next action | Review this uncommitted change set, then separately decide how to publish the newly required content fields before any deployment |
+| Prohibited actions | Commit, push, deploy, production content import or mutation, migration, DNS, Access, Turnstile, secret, database or provider changes; do not start full disposal |
+| Push state | Local HEAD and upstream are both `0ab22f58cc78a667774ef505407cce395c29ac12`; all Phase 1 work is uncommitted |
+| Deploy state | Unchanged; neither staging nor production was deployed or activated in this phase |
+| Infrastructure state | Unchanged; no content, database, binding, secret, Access, Turnstile, DNS or provider mutation occurred |
+
+The public document now exposes only a neutral dark structural shell until one
+`GET /api/content` response has passed the complete contract. A valid answer is
+deep-cloned, recursively frozen, receives its validated color and typography tokens,
+and is then passed explicitly into the public renderer. Every transport, JSON,
+contract, membership, duplication, schema, legacy-field or completeness failure
+goes to one explicit ERROR surface. There is no partial merge, bundled-content
+initial state, artificial delay, automatic retry, polling or boot session state.
+
+`main.jsx` dynamically selects exactly one entry tree. Public loads
+`PublicBootstrap`; Boss loads `BossApplication`; private preview validates its saved
+or unsaved rows through the same snapshot constructor and passes that snapshot to
+the shared public frame. The public application has no static Boss imports, and
+neither public nor preview imports `content.js` or `mergeSections`.
+
+The repository-held production/bootstrap snapshot does not yet carry all fields the
+strict public renderer now requires: Hero button destinations, About chips and first-
+block periods, Portfolio technology labels, CTA destination, and Footer bottom
+signature/location. No live APP_DB read or write was authorized in this phase. Those
+fields must be published through a separately authorized content operation before
+this artifact can be deployed without intentionally reaching ERROR.
+
 ## Public scroll lifecycle architecture correction — local, 2026-09-09
 
 | Field | Current value |

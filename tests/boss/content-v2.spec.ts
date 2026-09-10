@@ -11,7 +11,7 @@ async function setup(page: Page, conflict = false) {
   let writes = 0;
   await page.route('**/*', async route => {
     const req=route.request(), u=new URL(req.url());
-    if (u.origin !== 'http://localhost:3000') return route.abort();
+    if (u.origin !== 'http://localhost:4173') return route.abort();
     if (u.pathname === '/boss/content/preview') {
       const asset = await route.fetch();
       const shell = await previewShell(new Request(req.url()),{ASSETS:{fetch:async()=>new Response(await asset.text())}});

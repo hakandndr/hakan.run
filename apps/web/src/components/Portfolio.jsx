@@ -1,16 +1,13 @@
 import React from 'react';
 import { GitBranch, ArrowUpRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
 
 const Portfolio = () => {
-  const navigate = useNavigate();
   const { content } = useContent();
   const p = content.portfolio;
 
   const handleProjectClick = (card) => {
-    if (card.externalUrl) window.open(card.externalUrl, '_blank', 'noopener,noreferrer');
-    else navigate(`/project/${card.slug}`);
+    window.open(card.externalUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -73,7 +70,7 @@ const Portfolio = () => {
                   <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
                     <div className="flex items-center gap-1.5">
                       <span className={`w-2 h-2 rounded-full shrink-0 bg-blue-400`} />
-                      <span className="font-mono text-[10px] text-gray-600">{project.technology || 'Project'}</span>
+                      <span className="font-mono text-[10px] text-gray-600">{project.technology}</span>
                     </div>
                     <span className="font-mono text-[10px] text-gray-700">↗ open</span>
                   </div>

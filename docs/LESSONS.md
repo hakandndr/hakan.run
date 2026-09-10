@@ -1,5 +1,29 @@
 # Reusable Engineering Lessons
 
+## 17. Required presence and non-empty text are different contracts
+
+- Problem: A global non-empty rule rejected valid statistic suffixes whose empty string intentionally means “display no suffix.”
+- Evidence / context: The first strict staging readback failed only for three present, empty Stats suffixes even though the renderer and approved output treat them as complete values.
+- Reusable rule: Model required presence separately from allowed scalar values; grant empty-value exceptions narrowly and cover both sides with tests.
+- Applies when: Empty strings have domain meaning rather than representing absent or incomplete content.
+- Exceptions / caveats: Navigation targets, labels and substantive editable copy should still fail on empty values unless their domain contract explicitly says otherwise.
+
+## 15. A bootstrap shell must not become a second content authority
+
+- Problem: Rendering a complete bundled site while remote content loads turns timing and failure into visible stale truth.
+- Evidence / context: The public provider began with `siteContent`, then shallowly replaced sections from APP_DB; failed, empty or partial reads could leave editable source copy visible.
+- Reusable rule: Render only neutral structure before authority validation, then pass one complete immutable snapshot or show an explicit failure.
+- Applies when: A CMS, remote configuration or database controls public presentation.
+- Exceptions / caveats: An offline product may deliberately cache authoritative snapshots, but cache provenance, freshness and precedence must be a separate approved contract.
+
+## 16. Renderer defaults are often undisclosed schema requirements
+
+- Problem: A component fallback can make incomplete persisted data appear valid while hiding which system owns the missing value.
+- Evidence / context: Hero destinations/profile, About chips/periods, Portfolio technology, CTA destination and Footer bottom text were supplied outside APP_DB.
+- Reusable rule: Promote fields required for preserved behavior into the validated content contract; do not replace one fallback with another.
+- Applies when: Moving hardcoded or fallback-backed UI into a canonical content authority.
+- Exceptions / caveats: Fixed interaction labels and non-editable system status copy may remain application-owned when that ownership is explicit.
+
 ## 1. Separate audit and cleanup from modernization
 
 - Problem: Starting implementation before understanding the legacy system mixes discovery, correction, and design risk.

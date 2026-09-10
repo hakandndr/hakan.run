@@ -6,9 +6,9 @@ import { ContentProvider } from '@/contexts/ContentContext';
 
 
 
-const Application = () => (
+const Application = ({ snapshot }) => (
   <BrowserRouter>
-    <ContentProvider>
+    <ContentProvider snapshot={snapshot}>
       <PageTracker />
       <App />
     </ContentProvider>

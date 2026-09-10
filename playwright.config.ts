@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: 'html',
 
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
   },
 
@@ -23,7 +23,7 @@ export default defineConfig({
   // Build the app and serve it before the tests start.
   webServer: {
     command: 'npm run build --prefix apps/web && npm run start --prefix apps/web',
-    url: 'http://localhost:3000',
+    url: 'http://localhost:4173',
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

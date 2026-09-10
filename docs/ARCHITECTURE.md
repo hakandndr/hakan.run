@@ -1,5 +1,52 @@
 # Architecture
 
+## Implemented clean public-runtime boundary — local, not deployed
+
+The public content flow is a single authority chain:
+
+```text
+APP_DB published rows -> GET /api/content -> strict validation
+-> immutable PublishedSiteSnapshot -> visual tokens -> public renderer
+```
+
+The snapshot contains exactly twelve canonical section objects and their revisions,
+plus the contract version and latest publication timestamp. Validation is atomic:
+the renderer receives the whole recursively frozen object or receives nothing. The
+section schemas reject invalid types, unsafe destinations, retired integrations and
+the legacy `formEndpoint`; the public completeness layer additionally requires every
+field that the preserved renderer previously obtained from source defaults.
+
+The document lifecycle has three visible states. Static `index.html` supplies a
+neutral dark LOADING structure. `PublicBootstrap` makes one request and either
+applies validated visual tokens before committing READY or commits the explicit
+ERROR surface. Only the user's Retry action starts another request. Public content
+is not mounted during LOADING or ERROR.
+
+Entry ownership is selected in `main.jsx` through separate dynamic imports:
+
+- public paths load `PublicBootstrap`, `Application`, `App` and public renderer code;
+- `/boss` paths load `BossApplication` and the existing private module tree;
+- `/boss/content/preview` loads `PreviewPage`, validates the supplied private rows as
+  a `PublishedSiteSnapshot`, and renders the shared `PublicFrame` in memory.
+
+The public router now exposes `/`, `/contact` and the not-found surface. Portfolio
+cards require published external destinations. The historical source-backed Project
+detail implementation is intentionally unreachable pending the later disposal or a
+future APP_DB-backed project-detail contract. The sitemap mirrors the implemented
+public routes.
+
+This section supersedes the earlier claim below that a complete source-bundled layout
+must mount synchronously. The browser still owns reload/POP restoration and
+`ScrollManager` still owns explicit SPA navigation, but asynchronous content is now
+represented honestly by a neutral structural boundary instead of a second content
+authority.
+
+Phase 1.5 completed the staging data side of this boundary through the existing Boss
+draft/publish path. Hero, About, Portfolio, CTA and Footer each received one explicit
+revision; no schema or direct SQL migration was used. A statistic suffix remains a
+required field, but an explicit empty string is valid because it represents the
+intentional absence of a displayed suffix rather than missing content.
+
 ## Implemented public scroll lifecycle — local, not deployed
 
 The public application is a static dependency of `main.jsx` and is committed

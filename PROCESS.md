@@ -2817,3 +2817,151 @@ removed during cleanup. The configuration was recreated, the exact staging artif
 passed 12/12 again with the stronger assertion, and the temporary configuration,
 results directory and loopback server were then removed. This was a verification-
 setup ordering error, not an application or test failure.
+
+### 2026-09-10 — Phase 1D clean public-runtime foundation
+
+Objective: implement the approved APP_DB-only public lifecycle without repeating the
+architecture audit or beginning the later disposal phase. Work started from clean
+`develop/hakan-run-v2` at `0ab22f58cc78a667774ef505407cce395c29ac12`;
+the upstream resolved to the same commit. BUILD was authorized for focused production
+and staging verification. COMMIT, PUSH, MIGRATE, DEPLOY, ACTIVATE, DELETE, DNS,
+ACCESS, SECRET, DATABASE and PROVIDER were not authorized.
+
+The public lifecycle was replaced rather than layered. `index.html` now contains a
+neutral dark structural shell and no editable marketing copy. `PublicBootstrap`
+makes one public content request, validates the complete response, applies published
+tokens, and commits either READY with one explicit snapshot or ERROR with a manual
+Retry action. `ContentProvider` no longer owns loading, network, source content or
+merge behavior. Terminal loader choreography and the `booted` session flag are
+disconnected from the public graph.
+
+`PublishedSiteSnapshot` requires contract 1, a consistent positive publication
+timestamp, exactly the twelve canonical section IDs, positive per-section revision
+and publication metadata, and schema-valid data. Missing, duplicate, unknown,
+malformed, unsafe, retired-integration and incomplete content fails atomically. The
+validated section data is cloned, placed in canonical order and recursively frozen.
+The shared schema now makes the renderer's former fallback fields explicit and
+required, so Boss/Worker publication validation also rejects the mismatch.
+
+`main.jsx` now selects separate dynamic public, Boss and preview entry trees. The
+public router has no static Boss import. Preview sanitizes images, validates the same
+snapshot shape and passes it into the shared public frame without `content.js` or
+section merging. Source-backed project detail routes were removed from the public
+router; portfolio cards now require published external destinations. Historical
+`content.js`, `TerminalLoader.jsx` and `Project.jsx` remain untouched for later
+review/disposal but are unreachable from the public entry. Static llms metadata is
+neutral and the sitemap now lists only `/` and `/contact`.
+
+The repository-held production/bootstrap snapshot exposes these unresolved data
+gaps: Hero primary/secondary destinations, About chips and first-block periods,
+Portfolio technology labels, CTA destination, and Footer bottom signature/location.
+No live APP_DB read was made and no content row was changed. A separately authorized
+content publication and validation is required before deploying this strict artifact.
+
+Changed runtime and build files: `apps/web/index.html`, `package.json`, public
+`llms.txt` and `sitemap.xml`, `src/main.jsx`, `Application.jsx`, `App.jsx`, new
+`src/public/PublicBootstrap.jsx`, new `src/public/PublicRenderer.jsx`, new
+`src/boss/BossApplication.jsx`, `src/boss/PreviewPage.jsx`, `ContentContext.jsx`, new
+`content-source/published-site.js`, compatibility `source.js`, `schema.js`, Hero,
+About, Portfolio, CTA, Footer, Stats, Layout, Home, and `tools/generate-llms.js`.
+Focused test changes include the new published snapshot contract and shared fixture,
+the focused browser lifecycle suite, Boss/Worker fixtures, the stale production
+binding assertion, and local preview port 4173 configuration. Architecture, state,
+security, operations, decisions, roadmap, lessons, CMS V2, handoff, README and this
+append-only journal were updated in the same local change set.
+
+The first production build failed because the legacy llms generator required real
+Home metadata in `index.html` and imported `content.js`. It was corrected to emit
+neutral route metadata without source content. The first browser invocation failed
+because Windows reserves the TCP range containing port 3000. Moving the test preview
+to 4173 corrected the bind. Playwright-managed server shutdown remained unreliable
+on this Windows host, so final browser evidence used one explicit local preview
+process, the focused suite, and explicit server termination; no server remained.
+An intermediate schema test retained the old internal-project assumption and failed
+1/21 after external destinations became required; the fixture was corrected and the
+final run passed.
+
+Final focused evidence: web lint passed; snapshot/schema/preview pure tests passed
+21/21; related content-management, preview and routing Worker tests passed 28/28;
+the Chromium public lifecycle suite passed 8/8; production build passed; staging
+build and noindex artifact verification passed. Built public chunks contain no
+source fallback strings and the public bootstrap preload list contains public/shared
+chunks but not `BossApplication`. No historical full visual suite, broad browser
+tour or unrelated cleanup ran. No commit, push, deployment, migration, provider or
+data mutation occurred. Exact next action is owner review followed by a separately
+authorized decision for completing target APP_DB fields before deployment.
+
+The exact final commands were `npm run lint --prefix apps/web`, the three-file
+`node --test` snapshot/schema/preview invocation, the three-file `node --test`
+content-management/preview/routing invocation, `npm run build --prefix apps/web`,
+the explicit port-4173 preview plus `npx playwright test tests/content.spec.ts
+--project=chromium --workers=1 --reporter=list`, `npm run build:staging --prefix
+apps/web`, and `npm run verify:artifact:staging --prefix apps/web`; every final
+command exited zero. Commit identity was not exercised because no commit was
+authorized; any later commit must use only `Hakan Dundar <hakan@dndr.net>` as author
+and committer.
+
+### 2026-09-10 — Phase 1.5 staging content authority completion
+
+Objective: independently review the complete uncommitted Phase 1 diff, promote only
+the renderer values previously supplied by source/component defaults into staging
+APP_DB, and prove the resulting public response satisfies the strict snapshot
+contract. Work started from dirty `develop/hakan-run-v2` at
+`0ab22f58cc78a667774ef505407cce395c29ac12` with the expected 47 entries (40
+modified, one deleted, six new). DATABASE authorization covered only staging APP_DB
+content. COMMIT, PUSH, MIGRATE, DEPLOY, ACTIVATE, DELETE, DNS, ACCESS, SECRET,
+PROVIDER and all production changes remained unauthorized.
+
+All 47 entries were reviewed by architecture role rather than accepted from prior
+test status. Runtime, entry-boundary, renderer, schema, test/build support and
+documentation changes remained within the approved APP_DB-only atomic snapshot
+scope. The port-4173 updates were required verification support on this Windows
+host, and the production-binding assertion documents already provisioned but
+inactive resources rather than changing them.
+
+The remote target was verified as `hakan-run-app-staging`, database
+`71a28b10-861f-4554-9e14-5464c7116394`. The full pre-write export was stored outside
+Git at `%LOCALAPPDATA%\Temp\hakan-run-phase-1-5-20260910T2245Z\hakan-run-app-staging-before.sql`
+with SHA-256 `536A1282831B68AD18ABA403CB7087A8CE99644B4574A778AC49D6929E0DA032`.
+It contained twelve canonical published rows, seventeen revisions, twenty relevant
+audit events and no drafts; current revision data matched every published row.
+
+The existing deployed schema could safely retain all additions, including About
+periods as unknown-safe fields, so publication used the Access-protected Boss API
+rather than direct D1 SQL. Hero revision 5 became 6 with `primaryButtonHref` set to
+`#portfolio` and `secondaryButtonHref` to `/contact`. About, Portfolio, CTA and
+Footer each moved from revision 1 to 2. About gained four approved chips and periods
+`2009 — 2024` / `2025 — PRESENT`; all four current Portfolio cards gained the
+existing visible label `Project`; CTA gained `/contact`; Footer gained
+`© 2026 Hakan.run — Built under DNDR Labs.` and `Orange County, CA USA`. Each section
+created one `content.draft` and one `content.publish` audit event under
+`hakan@dndr.net`, then returned to no-draft state. Revision IDs 18 through 22 were
+created with explicit Phase 1.5 notes.
+
+Post-write comparison showed exactly five changed sections and only the approved
+JSON paths. Colors, Typography, Visibility, Header, Services, Stats and Contact were
+identical; migrations, submissions, OG card and settings tables were identical;
+all seventeen old revisions and twenty old audit events were unchanged. Counts moved
+only from 17 to 22 revisions and from 20 to 30 audit events. The public response
+matched current D1 published data and metadata exactly, contained no forbidden
+legacy/Formspree/Supabase/absolute-production-origin field, and left no draft.
+
+The first direct strict validation failed on the unchanged Stats rows because the
+new general non-empty string rule treated three intentionally empty `suffix` values
+as incomplete. No Stats content was changed. The local schema was corrected to keep
+the suffix field required while allowing an explicit empty string, and a focused
+regression test proves that exception while ordinary required text still rejects
+empty input. The fresh staging public response then passed the local immutable
+`PublishedSiteSnapshot` constructor without fallback, merge, patch or injected
+defaults; the focused snapshot/schema/preview run passed 22/22.
+
+The first remote identity call failed with Cloudflare API authentication code 10000
+despite a locally recorded OAuth identity. Refreshing the Wrangler OAuth session
+corrected the provider session; it did not change Access or provider configuration.
+The only browser-side pause was the owner-completed Access email-code login. No broad
+browser/visual suite, code deployment, production read/write, commit or push ran.
+The post-operation export and public JSON readback remain in the same Git-external
+directory. Exact next action is owner review, followed only by separately authorized
+commit, push and staging deployment decisions. Commit identity was not exercised;
+any later commit must use only `Hakan Dundar <hakan@dndr.net>` as author and
+committer.

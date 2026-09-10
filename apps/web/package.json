@@ -10,7 +10,7 @@
     "verify:artifact": "node tools/verify-artifact.js",
     "verify:artifact:staging": "node tools/verify-artifact.js --mode staging",
     "preview": "vite preview --host :: --port 3000",
-    "start": "vite preview --outDir ../../dist/apps/web --host :: --port 3000",
+    "start": "vite preview --outDir ../../dist/apps/web --host :: --port 4173",
     "lint": "eslint . --quiet"
   },
   "dependencies": {

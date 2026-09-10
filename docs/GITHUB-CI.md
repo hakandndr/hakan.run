@@ -31,7 +31,7 @@ The workflow has no deployment, FTP, hosting, Supabase, migration, DNS, cache, o
 npm run build --prefix apps/web && npm run start --prefix apps/web
 ```
 
-The preview URL is `http://localhost:3000`. Two projects run:
+The preview URL is `http://localhost:4173`. Two projects run:
 
 - desktop Chrome profile;
 - Pixel 5 mobile profile.

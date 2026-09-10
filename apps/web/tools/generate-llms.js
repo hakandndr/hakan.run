@@ -3,12 +3,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { siteContent } from '../src/content.js';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicDirectory = path.join(appDirectory, 'public');
 const sitemapPath = path.join(publicDirectory, 'sitemap.xml');
-const indexPath = path.join(appDirectory, 'index.html');
 const outputPath = path.join(publicDirectory, 'llms.txt');
 const siteOrigin = 'https://hakan.run';
 const privatePaths = new Set(['/admin', '/control-room']);
@@ -33,39 +31,18 @@ function readPublicPaths() {
   });
 }
 
-function readHomeMetadata() {
-  const html = fs.readFileSync(indexPath, 'utf8');
-  const title = html.match(/<title>\s*([^<]+?)\s*<\/title>/i)?.[1];
-  const description = html.match(/<meta\s+name="description"\s+content="([^"]+)"/i)?.[1];
-
-  if (!title || !description) {
-    throw new Error('Home title or description is missing from index.html.');
-  }
-
-  return { title, description };
-}
-
 function metadataForPath(publicPath) {
   if (publicPath === '/') {
-    return readHomeMetadata();
+    return {
+      title: 'hakan.run',
+      description: 'Published page content is provided at runtime by the canonical content API.',
+    };
   }
 
   if (publicPath === '/contact') {
     return {
-      title: siteContent.contact.pageTitle,
-      description: siteContent.contact.metaDescription,
-    };
-  }
-
-  if (publicPath.startsWith('/project/')) {
-    const slug = publicPath.slice('/project/'.length);
-    const project = siteContent.portfolio.cards.find(card => card.slug === slug);
-    if (!project) {
-      throw new Error(`Sitemap project has no matching portfolio card: ${publicPath}`);
-    }
-    return {
-      title: `${project.title} | Hakan Dundar`,
-      description: project.description,
+      title: 'Contact | hakan.run',
+      description: 'Published contact content is provided at runtime by the canonical content API.',
     };
   }
 

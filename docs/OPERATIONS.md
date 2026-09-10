@@ -1,5 +1,64 @@
 # Operations
 
+## Phase 1.5 staging content verification — 2026-09-10
+
+The staging APP_DB content completion used the existing Access-protected Boss
+draft/publish workflow, not direct SQL. Before-state and after-state D1 exports were
+kept outside Git. Comparison proved that only Hero, About, Portfolio, CTA and Footer
+published JSON and version metadata changed; existing revisions, audit events, the
+other seven content sections and all unrelated APP_DB tables remained identical.
+Five revisions and ten audit events were added, and no draft remained.
+
+The fresh staging `/api/content` response returned HTTP 200 JSON with exactly twelve
+canonical sections and matched the post-operation APP_DB export. Direct invocation
+of the local `PublishedSiteSnapshot` constructor accepted it and recursively froze
+the result. The focused snapshot/schema/preview run passed 22/22. An initial readback
+correctly exposed that empty Stats suffixes were rejected by a too-broad non-empty
+rule; the schema now requires each suffix field while permitting an intentional
+empty value. Stats content was not mutated.
+
+This evidence clears the staging content-completeness gate only. Commit, push and
+staging code deployment still require separate authorization. Production APP_DB was
+not queried or mutated during publication.
+
+## Clean public-runtime verification — 2026-09-10
+
+Run the focused pure contracts:
+
+```powershell
+node --test apps/web/src/content-source/published-site.test.js apps/web/src/content-source/schema.test.js apps/web/src/boss/preview-contract.test.js
+node --test worker/tests/routing-boundary.test.js
+```
+
+Run focused lint and build checks:
+
+```powershell
+npm run lint --prefix apps/web
+npm run build --prefix apps/web
+npm run build:staging --prefix apps/web
+npm run verify:artifact:staging --prefix apps/web
+```
+
+For the focused browser contract, start the already-built artifact on port 4173 in
+one terminal and run only the content suite in another:
+
+```powershell
+npm run start --prefix apps/web
+npx playwright test tests/content.spec.ts --project=chromium --workers=1 --reporter=list
+```
+
+Port 4173 replaces port 3000 for local preview because the verified Windows host
+reserves the TCP range containing 3000. The browser suite proves delayed-response
+shell stability, READY content and tokens, missing/duplicate/malformed/unknown
+section rejection, transport and JSON failure, and absence of source fallback copy.
+The local run passed 8/8. The pure contract run passed 21/21. The focused Worker
+boundary passed 5/5 after its stale empty-production-binding expectation was aligned
+with the already verified provisioned configuration; `wrangler.jsonc` was unchanged.
+The related Boss content-management, preview and routing group passed 28/28.
+
+The staging content-completeness gate is now satisfied by the Phase 1.5 evidence
+above. These checks do not authorize commit, push, migration or deployment.
+
 ## Deterministic scroll lifecycle verification — 2026-09-09
 
 The public entry module must import and synchronously commit `Application`; it must

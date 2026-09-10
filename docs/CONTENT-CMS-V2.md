@@ -104,7 +104,12 @@ navigation precedence. Internal cards use only `full-stack-development`,
 Advanced JSON, saved draft publication, discard, revision inspection and restore
 remain available. Dirty edits survive conflicts and warn before reload, section
 switching and page unload. A section switch clears the previous record before
-rendering the next schema.
+rendering the next schema. Phase 1D strengthens the shared renderer contract: Hero
+profile and button destinations, About chips and first-block periods, Portfolio
+external destinations and technology, CTA destination, and Footer bottom text are
+required and cannot be removed. Required editable text and destinations cannot be
+published empty; a statistic suffix is the explicit exception because an empty
+string intentionally means that no suffix is displayed.
 
 ## Contracts and compatibility
 
@@ -116,13 +121,14 @@ metadata. Field editing copies only the edited branch; it does not rebuild an
 object from a whitelist. Optional fields can be deliberately removed with
 "Use default". Unknown fields can be inspected in Advanced JSON.
 
-All twelve current staging published sections were read through the public API
-and passed the new validator without modification. Optional Hero profile fields,
-button destinations, About chips/visibility, Portfolio technology and footer
-bottom text are supported. Fields no longer rendered by the public components
-are labeled as legacy rather than promised a visual effect. Colors and
-Typography control the existing variables/settings only; fixed component styles
-remain fixed. Images are references, not uploads.
+The earlier CMS V2 acceptance verified the then-current optional schema. Phase 1.5
+completed the newly required fields in staging through the existing draft/publish,
+revision and audit model. A fresh `/api/content` readback passes the strict local
+snapshot contract without defaults or transformation. Production content remains
+unchanged. Fields no longer rendered by the public components remain labeled as
+legacy rather than promised a visual effect. Colors and Typography control the
+existing variables/settings only; fixed component styles remain fixed. Images are
+references, not uploads.
 
 Header now consumes `header.siteName`, `header.ctaButton` and `header.navLinks`,
 including their stored ordering, with the existing markup/styles. Other public
