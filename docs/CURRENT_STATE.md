@@ -1,5 +1,27 @@
 # Current State
 
+## Corrective scroll restoration fix — local, 2026-09-09
+
+The deployed `132762b` checkpoint did not fix real staging refreshes. Live staging
+reproduction measured a scroll position of 1200 before refresh and 0 afterward.
+During reload the document was only 900 pixels high at `DOMContentLoaded` and `load`,
+then grew to approximately 5720 pixels after the asynchronous public application
+mounted. Framer Motion layout measurement also re-applied `top: 0` during that mount.
+
+History shows that `19abe9a` introduced the asynchronous public/private renderer
+split after `648c609` had made native restoration depend on a full-height first paint.
+The corrective local implementation restores the explicit `ee5ba2e` model for the
+public application: manual history restoration, per-path session position persistence,
+retry while layout/content becomes ready, user-input cancellation and top reset only
+for in-app route changes. The private preview keeps native history behavior.
+
+The focused test now delays the public Application chunk so the initial document has
+no scrollable height, matching staging instead of a fast local cache. Refresh and
+route-change cases pass in desktop Chromium and the Pixel 5 profile (4/4 total).
+Focused lint and the staging build/indexing check pass. These changes are uncommitted
+and undeployed; staging version `dc3ae112-5faf-4b66-905c-7d8db50979bc` remains active
+with the reported regression.
+
 ## Local scroll restoration regression fix — 2026-09-09
 
 Based on pushed checkpoint `8de849a00d60912afa6aa4c09377b608e3f08d4b`, the

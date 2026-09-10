@@ -1,5 +1,26 @@
 # hakan.run Modernization Handoff
 
+## Scroll restoration corrective fix — local, 2026-09-09
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `132762b9940b16d3a09f646336489fb806af8468` |
+| Current phase | Corrective scroll restoration fix validated locally; owner review pending |
+| Completed | Live staging reproduction, exact async-mount/Framer Motion timing diagnosis, explicit refresh restoration, delayed-chunk desktop and mobile coverage |
+| Exact next action | Review the seven-file corrective diff, then separately authorize checkpoint commit/push and staging-only deployment |
+| Prohibited actions | Commit, push, deploy, production import or activation, DNS, Access, Turnstile, database or provider changes |
+| Push state | Remote checkpoint is `132762b9940b16d3a09f646336489fb806af8468`; corrective work is uncommitted |
+| Deploy state | Staging version `dc3ae112-5faf-4b66-905c-7d8db50979bc` remains active and still has the reported regression |
+| Infrastructure state | Unchanged; no provider or database mutation was performed during the corrective investigation |
+
+The first fix removed `ScrollToTop`'s initial reset but incorrectly assumed native
+restoration could run after a full first paint. CMS V2 commit `19abe9a` made the public
+application an asynchronous import, so the document is only viewport-height when the
+browser attempts restoration. Live tracing also found Framer Motion restoring that
+temporary zero position while the page grows. The corrective implementation owns
+refresh restoration explicitly and waits for mounted, authoritative content.
+
 ## Scroll restoration regression fix — local, 2026-09-09
 
 | Field | Current value |

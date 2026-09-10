@@ -7,22 +7,18 @@ const emptyContent = {
 };
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    window.sessionStorage.setItem('booted', '1');
-
-    const browserScrollTo = window.scrollTo.bind(window);
-    const scrollCalls: unknown[][] = [];
-    Object.defineProperty(window, '__browserScrollTo', { value: browserScrollTo });
-    Object.defineProperty(window, '__scrollCalls', { value: scrollCalls });
-    window.scrollTo = (...args: Parameters<typeof window.scrollTo>) => {
-      scrollCalls.push(args);
-      browserScrollTo(...args);
-    };
+  await page.addInitScript(() => window.sessionStorage.setItem('booted', '1'));
+  await page.route(/\/assets\/Application-[^/]+\.js$/, async route => {
+    await new Promise(resolve => setTimeout(resolve, 400));
+    await route.continue();
   });
   await page.route('**/api/content', route => route.fulfill(emptyContent));
 });
 
 const scrollTarget = async (page: import('@playwright/test').Page) => {
+  await page.waitForFunction(
+    () => document.documentElement.scrollHeight - window.innerHeight > 400,
+  );
   const reachable = await page.evaluate(
     () => document.documentElement.scrollHeight - window.innerHeight,
   );
@@ -33,35 +29,18 @@ const scrollTarget = async (page: import('@playwright/test').Page) => {
 test('a hard refresh restores the previous homepage scroll position', async ({ page }) => {
   await page.goto('/');
 
+  expect(await page.evaluate(() => history.scrollRestoration)).toBe('manual');
   const target = await scrollTarget(page);
-  await page.evaluate(y => {
-    const instrumentedWindow = window as typeof window & {
-      __browserScrollTo: typeof window.scrollTo;
-      __scrollCalls: unknown[][];
-    };
-    instrumentedWindow.__browserScrollTo(0, y);
-    instrumentedWindow.__scrollCalls.length = 0;
-  }, target);
+  await page.evaluate(y => window.scrollTo(0, y), target);
   await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(target);
 
-  await page.reload();
+  await page.reload({ waitUntil: 'load' });
 
-  await expect
-    .poll(() =>
-      page.evaluate(() => {
-        const calls = (window as typeof window & { __scrollCalls: unknown[][] })
-          .__scrollCalls;
-        return calls.filter(
-          args =>
-            (args.length >= 2 && args[0] === 0 && args[1] === 0) ||
-            (typeof args[0] === 'object' &&
-              args[0] !== null &&
-              'top' in args[0] &&
-              args[0].top === 0),
-        ).length;
-      }),
-    )
-    .toBe(0);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollHeight - window.innerHeight,
+    ),
+  ).toBeLessThanOrEqual(0);
   await expect
     .poll(() => page.evaluate(() => Math.round(window.scrollY)), { timeout: 5_000 })
     .toBe(target);

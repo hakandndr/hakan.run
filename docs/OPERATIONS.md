@@ -1,5 +1,18 @@
 # Operations
 
+## Corrective scroll restoration verification — 2026-09-09
+
+The earlier native-restoration test was not representative of staging because its
+Application chunk loaded quickly enough for the document to become scrollable before
+the browser restored. The focused test must delay `Application-*.js` and assert the
+document is initially non-scrollable after reload. It then verifies that explicit
+restoration reaches the saved position after the application and content mount.
+
+Run only `tests/scroll-restoration.spec.ts` in desktop Chromium and Mobile Chrome.
+Both refresh restoration and in-app top reset must pass in each profile. The local
+corrective checkpoint passed all four cases, focused source lint and the staging
+build/indexing policy. Deployment remains separately authorized.
+
 ## Scroll restoration staging-fix verification — 2026-09-09
 
 Before a staging-only deployment, run the focused Chromium regression in

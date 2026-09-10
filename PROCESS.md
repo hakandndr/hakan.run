@@ -2690,3 +2690,40 @@ No full suite, visual tour, provider action, database operation, content or anal
 import, production/staging deployment, DNS change, commit or push occurred. Exact next
 action is owner review, followed by separately authorized checkpointing and a
 staging-only deployment.
+
+### Scroll restoration corrective fix — 2026-09-09
+
+The owner reported that staging version
+`dc3ae112-5faf-4b66-905c-7d8db50979bc`, built from pushed commit
+`132762b9940b16d3a09f646336489fb806af8468`, still reopened at the top after refresh
+on desktop and mobile. A targeted live Chromium trace reproduced 1200 to 0. At load,
+the document height was 900 pixels; after the asynchronous public Application chunk
+mounted it grew to approximately 5720 pixels. Two `top: 0` calls during growth came
+from Framer Motion layout measurement, not `ScrollToTop`.
+
+Git history identified the invalidated assumption precisely. `648c609` removed manual
+restoration because the then-current public application painted full-height content
+immediately. Later CMS V2 commit `19abe9a` dynamically imported Application to isolate
+the private preview, returning an empty viewport-height document at the browser's
+native restoration point. The first regression checkpoint restored only the initial
+effect skip and therefore did not restore the required first-paint condition.
+
+The corrective implementation sets `history.scrollRestoration` to `manual` only for
+the public application. It saves positions per pathname in session storage and
+re-applies the saved initial-path position while content and layout become ready,
+with a three-second bound and cancellation on deliberate visitor input. In-app route
+changes still reset to the top; the private preview is unaffected.
+
+The focused Playwright test now delays `Application-*.js`, asserts that reload first
+has no scrollable document, and then checks restoration. Desktop Chromium passed 2/2
+and Pixel 5 Mobile Chrome passed 2/2. Focused lint for the two changed source files
+passed. The staging build transformed 1,713 modules and verified the noindex policy.
+The first validation command used paths relative to the wrong working directory and
+started neither lint nor build; corrected paths passed. Temporary probe/configuration,
+preview server and test artifacts were removed.
+
+Changed `apps/web/src/main.jsx`, `apps/web/src/components/ScrollToTop.jsx`, the focused
+test, HANDOFF.md, CURRENT_STATE.md, OPERATIONS.md and this append-only journal. No
+provider, database, content, analytics, DNS, Access or Turnstile operation occurred.
+No commit, push or deployment occurred. Exact next action is owner review, followed
+by separately authorized checkpointing and a staging-only deployment.
