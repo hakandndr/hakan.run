@@ -2727,3 +2727,93 @@ test, HANDOFF.md, CURRENT_STATE.md, OPERATIONS.md and this append-only journal. 
 provider, database, content, analytics, DNS, Access or Turnstile operation occurred.
 No commit, push or deployment occurred. Exact next action is owner review, followed
 by separately authorized checkpointing and a staging-only deployment.
+
+### Public scroll lifecycle architecture correction — 2026-09-09
+
+Started clean at `2ef68afd4428cb4e3677a42211f0b14e559c5d56` on
+`develop/hakan-run-v2`, equal to `origin/develop/hakan-run-v2`. The owner rejected
+another layered restoration patch and authorized a focused correction of the public
+scroll lifecycle plus an integrity review for the same architectural smell. No
+provider, production, data, content-model, design or deployment work was in scope.
+
+The audit traced every public `scrollTo`, `scrollIntoView`, `scrollRestoration`,
+browser-storage checkpoint, navigation effect, bootstrap split, relevant layout
+animation and timing construct. Git history established the causal sequence:
+`648c609` correctly delegated refresh restoration to the browser while the public
+layout mounted synchronously; `19abe9a` later moved `Application` behind a dynamic
+import; `2ef68af` then added a manual session-storage restorer to compensate for the
+missing load-boundary layout.
+
+The rapid-reload failure was deterministic. A stable position of 900 existed in the
+old document. Reload created a viewport-height document at zero. Before the manual
+restorer's first animation-frame attempt, its save listeners were active. A second
+hard reload therefore persisted transient zero over 900. The unfinished restoration
+cycle had destroyed its own only stable checkpoint. More cancellation, retries or
+observers could reduce the window but could not remove the competing authority.
+
+Category C defects and corrections:
+
+- The asynchronous public entry violated the browser restoration premise. Public
+  `Application` is now a static import and is committed with `flushSync` before the
+  load lifecycle completes. Only the private Boss preview remains dynamically loaded.
+- Browser history and `ScrollToTop` both owned reload state. The entire manual
+  session-storage, unload/visibility save, input cancellation, animation-frame retry
+  and timeout state machine was deleted.
+- Header and Footer used independent target-discovery timeout chains, Hero scrolled a
+  target directly, and Project carried a second route reset. They now delegate intent
+  through `usePublicNavigation`; one `ScrollManager` acts after the destination Layout
+  commits and owns only PUSH/REPLACE navigation.
+- Services animated document height through Framer Motion `height: auto`, whose layout
+  measurement wrote temporary scroll positions during initial growth. A CSS grid-row
+  transition preserves the approved disclosure motion without a document-scroll
+  side effect.
+
+Category A constructs deliberately retained include the terminal's bounded first-
+visit animation, the Stats display interval, Contact feedback timeout, Header's
+read-only scroll observer, analytics session identifier, toast expiry, and the local
+horizontal Testimonials scroller. The built-in content snapshot remains a synchronous
+render seed with explicit failed-source reporting, not a silent second content
+authority. Category B findings left unchanged are the unreferenced duplicate toast
+hook and unreferenced Testimonials component; neither enters the current production
+bundle or competes for public document scroll, so removing them would be unrelated
+cleanup.
+
+Focused pre-fix evidence used the old built artifact. Delaying the asynchronous
+`Application-*.js` chunk produced zero scrollable height at load. With animation-
+frame work delayed to expose the race, three rapid cache-bypassing reloads changed
+the expected 900 position to zero. These failures reproduced the current architecture
+rather than depending on a fast local cache.
+
+The first corrected cross-route implementation mounted the scroll manager above the
+route transition, so it could run before the target route committed. Moving it into
+`Layout` supplied the deterministic commit signal. React Router's `Routes location`
+override then reported POP from inside that subtree; capturing the actual navigation
+type in `App` and passing it to `Layout` corrected the classification. The final hash
+assertion accepts the target inside the 80-pixel top band because the intentional
+`SectionAnimator` transform can move visual geometry by 50 pixels while the logical
+scroll target is already correct.
+
+Changed runtime/test files are `apps/web/src/main.jsx`, `App.jsx`, `Application.jsx`,
+`components/Layout.jsx`, new `components/ScrollManager.jsx`, new
+`hooks/usePublicNavigation.js`, `components/Header.jsx`, `Footer.jsx`, `Hero.jsx`,
+`Services.jsx`, `pages/Project.jsx`, deletion of `components/ScrollToTop.jsx`, and
+`tests/scroll-restoration.spec.ts`. Architecture, decision, operations, state,
+roadmap, lessons, handoff and this append-only journal were updated in the same local
+change set.
+
+Validation passed: the final focused Playwright run passed 12/12 in desktop Chromium
+and Pixel 5 Mobile Chrome; changed-source ESLint passed; the staging build completed
+and its noindex/nofollow artifact policy passed. No historical visual suite, broad
+browser tour or unrelated test suite ran. Temporary loopback preview configuration,
+test output and server were removed. No commit, push or deployment occurred. Exact
+next action is owner review of this uncommitted architecture correction.
+
+#### Verification cleanup correction
+
+After the first successful final run, the delayed-bootstrap assertion was strengthened
+to prove that no public `Application-*.js` request occurs. The immediate re-run exited
+before test discovery because the temporary Playwright configuration had already been
+removed during cleanup. The configuration was recreated, the exact staging artifact
+passed 12/12 again with the stronger assertion, and the temporary configuration,
+results directory and loopback server were then removed. This was a verification-
+setup ordering error, not an application or test failure.

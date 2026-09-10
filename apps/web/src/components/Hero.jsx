@@ -3,8 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
+import usePublicNavigation from '@/hooks/usePublicNavigation';
 
 const DEFAULT_PROFILE = {
   name: 'Hakan Dundar',
@@ -19,7 +19,7 @@ const DEFAULT_PROFILE = {
 };
 
 const Hero = () => {
-  const navigate = useNavigate();
+  const navigateTo = usePublicNavigation();
   const { content } = useContent();
   const h = content.hero;
   const profile = { ...DEFAULT_PROFILE, ...(h.profile || {}) };
@@ -29,18 +29,15 @@ const Hero = () => {
     const href = h.primaryButtonHref || '#portfolio';
     if (href.startsWith('http')) {
       window.open(href, '_blank', 'noopener,noreferrer');
-    } else if (href.startsWith('#')) {
-      const el = document.getElementById(href.slice(1));
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
     } else {
-      navigate(href);
+      navigateTo(href, { behavior: href.includes('#') ? 'smooth' : 'auto' });
     }
   };
 
   const handleSecondaryClick = () => {
     const href = h.secondaryButtonHref || '/contact';
     if (href.startsWith('http')) window.open(href, '_blank', 'noopener,noreferrer');
-    else navigate(href);
+    else navigateTo(href);
   };
 
   return (

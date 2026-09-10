@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import usePublicNavigation from '@/hooks/usePublicNavigation';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const navigate = useNavigate();
+  const navigateTo = usePublicNavigation();
   const { content } = useContent();
 
   const navLinks = content.header.navLinks;
@@ -24,33 +25,18 @@ const Header = () => {
     e.preventDefault();
     const href = e.currentTarget.getAttribute('href');
     if (/^https?:/.test(href)) { window.open(href, '_blank', 'noopener,noreferrer'); setIsOpen(false); return; }
-    const [path, id] = href.split('#');
-    if (path === '/' && id) {
-      navigate(path);
-      // Retry until the section element is in the DOM — handles cross-route navigation
-      const tryScroll = (remaining = 20) => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        } else if (remaining > 0) {
-          setTimeout(() => tryScroll(remaining - 1), 80);
-        }
-      };
-      setTimeout(tryScroll, 80);
-    } else {
-      navigate(href);
-    }
+    navigateTo(href, { behavior: href.includes('#') ? 'smooth' : 'auto' });
     if (isOpen) setIsOpen(false);
   };
 
   const handleHomeClick = e => {
     e.preventDefault();
-    navigate('/');
+    navigateTo('/');
     if (isOpen) setIsOpen(false);
   };
 
   const handleCTA = () => {
-    navigate('/contact');
+    navigateTo('/contact');
     if (isOpen) setIsOpen(false);
   };
 

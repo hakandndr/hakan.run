@@ -1,5 +1,37 @@
 # Current State
 
+## Public scroll lifecycle architecture correction — local, 2026-09-09
+
+The corrective checkpoint at `2ef68afd4428cb4e3677a42211f0b14e559c5d56`
+still contained two authorities for document restoration: browser history state and
+an application-managed session-storage checkpoint. Because the public application
+was dynamically imported, reload initially presented only a viewport-height document.
+The manual restorer then mounted at `scrollY = 0`; a rapid second reload could persist
+that transient value and destroy the previous stable checkpoint.
+
+The local architecture correction removes manual restoration and makes the public
+application part of the synchronous entry graph. React commits the built-in complete
+layout before the load lifecycle finishes, so native browser restoration always has
+a scrollable document. The private Boss content preview remains a separate dynamic
+entry and does not mount public providers or tracking.
+
+Scroll ownership is now explicit. The browser owns document loads, history POP and
+visitor input. A single `ScrollManager`, mounted with the committed public layout,
+owns explicit client-side PUSH/REPLACE navigation: hash targets scroll once and
+ordinary routes reset once to the top. Header, Footer and Hero delegate internal
+navigation to one hook; the Project page no longer carries a duplicate reset. The
+Services disclosure uses a CSS grid transition instead of Framer Motion's document-
+measuring `height: auto` animation. No session scroll state, restoration timer,
+retry loop, polling or observer remains in the production path.
+
+Focused pre-fix evidence reproduced both defects: a delayed public mount had zero
+scrollable height at load, and rapid hard reloads changed 900 to 0. The corrected
+focused suite passes 12/12 across desktop Chromium and Pixel 5, including normal
+refresh, delayed bootstrap, three rapid cache-bypassing reloads, visitor override,
+route reset and cross-route section navigation. Focused lint and the staging build
+with noindex verification pass. No commit, push, deployment or external mutation
+occurred.
+
 ## Corrective scroll restoration fix — local, 2026-09-09
 
 The deployed `132762b` checkpoint did not fix real staging refreshes. Live staging

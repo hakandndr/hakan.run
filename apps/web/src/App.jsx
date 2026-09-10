@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import Home from '@/pages/Home';
 import Contact from '@/pages/Contact';
@@ -21,6 +21,7 @@ const alreadyBooted = !!sessionStorage.getItem('booted');
 
 function App() {
   const location = useLocation();
+  const navigationType = useNavigationType();
   // The boot animation belongs to the public site. The private surface is a
   // tool, and an operator opening it does not want a title sequence.
   const [loading, setLoading] = useState(!alreadyBooted && !isBossPath(location.pathname));
@@ -41,7 +42,7 @@ function App() {
           <KonamiEasterEgg />
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Layout />}>
+              <Route path="/" element={<Layout navigationType={navigationType} />}>
                 <Route index element={<Home />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="project/:projectId" element={<Project />} />

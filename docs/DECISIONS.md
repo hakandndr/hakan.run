@@ -226,3 +226,30 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Rationale: Reuse visual components while keeping drafts behind the existing verified identity boundary and preventing preview side effects.
 - Consequences: Remote preview images and outbound interactions are disabled; incomplete snapshots fail closed. Project-detail editing stays separate; only existing internal slugs are accepted, while new cards can use external URLs. Unknown safe fields remain available in Advanced JSON.
 - Status: Approved by owner; implemented and tested locally, not committed or deployed. See CONTENT-CMS-V2.md.
+
+## D-026 — Browser-owned document restoration and one SPA scroll authority
+
+- Decision: The public application is synchronously available at the document load
+  boundary. The browser exclusively owns reload, history POP restoration and visitor
+  scrolling. One layout-bound `ScrollManager` handles only explicit SPA PUSH/REPLACE
+  navigation, performing either one target scroll or one top reset.
+- Context: Dynamically importing the public route tree left the document at viewport
+  height when native restoration ran. A later manual session-storage restorer became
+  a second authority; rapid reload could persist a transient zero before restoration
+  completed. Header and Footer retry loops, a Hero direct scroll and a Project reset
+  further duplicated navigation ownership, while Framer Motion `height: auto`
+  measurement could write temporary document positions during mount.
+- Alternatives considered: Harden the manual restorer with a state machine and more
+  lifecycle signals; keep native restoration and reserve placeholder height; continue
+  per-component target retries.
+- Rationale: The application already has a synchronous complete fallback layout.
+  Mounting it synchronously restores the premise native history needs and permits the
+  entire second persistence system to be deleted. Routing commits are the deterministic
+  signal for explicit navigation and require neither retries nor elapsed-time guesses.
+- Consequences: The public bundle no longer splits `Application` into an asynchronous
+  chunk. Private preview splitting remains. Public navigation controls express intent
+  through one hook, and layout-dependent document animation must not compete with
+  browser scroll restoration. Focused desktop/mobile tests cover refresh, delayed
+  bootstrap, rapid reload, user input, route reset and hash navigation.
+- Status: Approved architectural requirement; implemented and validated locally, not
+  committed or deployed.

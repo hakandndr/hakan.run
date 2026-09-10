@@ -103,3 +103,22 @@
 - Reusable rule: Document and isolate nondeterministic inputs without masking actual design elements or changing production behavior.
 - Applies when: Maintaining pixel baselines for SPAs with animation, client storage, and external services.
 - Exceptions / caveats: Truly dynamic product content may require narrowly masked regions, but masks must never hide layout or design regressions.
+
+## 14. Browser-native restoration requires a complete load-boundary layout
+
+- Problem: Native history restoration cannot recover a deep position when the
+  document is only viewport-height at the restoration boundary. Adding application
+  persistence creates a second authority and can turn a transient mount position
+  into durable state.
+- Evidence / context: Asynchronous public bootstrap made staging grow from one
+  viewport to a full page after load. The manual correction then allowed a rapid
+  second reload to save zero over the last stable position.
+- Reusable rule: First restore the browser's structural premise: synchronously expose
+  the complete layout when practical. Give explicit SPA navigation to one commit-bound
+  authority, and leave document history and direct visitor input to the browser.
+- Applies when: SPAs combine route transitions, dynamic entry chunks, browser history,
+  animated layout and refresh-position requirements.
+- Exceptions / caveats: A genuinely asynchronous document whose final geometry cannot
+  be represented at load may need an explicit restoration state machine, but that
+  state machine must distinguish restoring and stable states and must never overwrite
+  a stable checkpoint with transient layout data.

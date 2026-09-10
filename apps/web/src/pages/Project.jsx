@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
@@ -161,10 +161,6 @@ const ContentCard = ({ cmdPrefix, label, accentClass = 'text-accent-purple', chi
 const Project = () => {
   const { projectId } = useParams();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [projectId]);
-
   // Detail records are hardcoded here and keyed by the legacy slugs. Published
   // content now carries different slugs — the four production portfolio cards
   // are external links and never route here — so an unknown slug is genuinely
@@ -174,7 +170,6 @@ const Project = () => {
   //
   // The narrow fix is to stop substituting. This phase does not invent detail
   // pages for the new slugs; it only stops answering for them incorrectly. The
-  // hook above runs first so this stays an ordinary conditional render.
   if (!Object.prototype.hasOwnProperty.call(projectData, projectId)) return <NotFound />;
 
   const project = projectData[projectId];

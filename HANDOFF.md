@@ -1,5 +1,34 @@
 # hakan.run Modernization Handoff
 
+## Public scroll lifecycle architecture correction — local, 2026-09-09
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `2ef68afd4428cb4e3677a42211f0b14e559c5d56` |
+| Current phase | Deterministic public scroll lifecycle implemented and validated locally; owner review pending |
+| Completed | Synchronous public bootstrap, browser-owned reload/POP restoration, one route-scroll authority for PUSH/REPLACE navigation, removal of manual persistence/retries and competing resets, focused architecture-integrity review |
+| Exact next action | Review the local architecture-correction diff; commit, push and staging deployment each require separate authorization |
+| Prohibited actions | Commit, push, deploy, production import or activation, DNS, Access, Turnstile, database or provider changes |
+| Push state | Remote checkpoint and local HEAD are `2ef68afd4428cb4e3677a42211f0b14e559c5d56`; all current work is uncommitted |
+| Deploy state | Unchanged; no staging or production deployment occurred in this task |
+| Infrastructure state | Unchanged; no provider, secret, database, content or analytics mutation occurred |
+
+The real conflict was architectural: the public application mounted asynchronously,
+so the browser restored against an empty viewport, while an application-level manual
+restorer persisted and replayed a second copy of browser state. A rapid reload could
+therefore save the new document's transient zero over the previous stable position.
+The public application now mounts synchronously with its complete fallback layout.
+The browser alone owns document reload and POP restoration; `ScrollManager` owns only
+explicit SPA PUSH/REPLACE navigation after the destination layout commits; direct
+visitor input remains entirely browser-owned. No scroll persistence, retry loop,
+observer or restoration timer remains in the public production path.
+
+The focused Playwright contract passes 12/12 across desktop Chromium and Pixel 5:
+full-height load under a delayed legacy chunk probe, normal refresh, rapid repeated
+hard refresh, user override, route top reset and cross-route section navigation.
+Focused lint and the staging build/indexing verification also pass.
+
 ## Scroll restoration corrective fix — local, 2026-09-09
 
 | Field | Current value |

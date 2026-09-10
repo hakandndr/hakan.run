@@ -1,5 +1,27 @@
 # Architecture
 
+## Implemented public scroll lifecycle — local, not deployed
+
+The public application is a static dependency of `main.jsx` and is committed
+synchronously on a fresh document. This gives the browser the complete built-in
+layout before its load/restoration boundary. The separately protected Boss content
+preview remains dynamically imported and never mounts public providers or tracking.
+
+Scroll behavior has three non-overlapping authorities:
+
+1. The browser owns document load, reload, hard reload, history POP restoration and
+   direct visitor scrolling.
+2. `ScrollManager` owns explicit public SPA PUSH/REPLACE navigation after the
+   destination `Layout` commits. It performs one hash-target scroll or one top reset.
+3. Public controls express navigation intent through `usePublicNavigation`; they do
+   not query for destination elements or manipulate scroll directly.
+
+The public runtime stores no document scroll checkpoint and has no restoration
+state machine, retry timer, observer or polling loop. The Services disclosure keeps
+its visual transition through CSS grid rows, avoiding the Framer Motion `height:
+auto` measurement that previously wrote temporary document scroll positions during
+initial layout. See decision D-026.
+
 ## Implemented CMS V2 — local, not deployed
 
 The editor and Worker share the explicit section schema. Full objects are retained while known paths are edited. Existing APP_DB draft/publish/revision/audit transactions are unchanged. The owner-only preview snapshot endpoint reads all saved sections once; the parent overlays optional unsaved editor data in memory and sends it to a separately protected iframe. A controlled provider renders the existing public components in that document. Preview never reads the public content API or browser storage. Project-detail CMS remains a later phase.

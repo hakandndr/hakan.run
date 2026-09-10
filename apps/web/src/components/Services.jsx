@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useContent } from '@/contexts/ContentContext';
 
 const Services = () => {
@@ -103,24 +103,23 @@ const Services = () => {
                 </div>
               </div>
 
-              <AnimatePresence>
-                {activeIndex === index && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="overflow-hidden"
-                  >
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                  activeIndex === index
+                    ? 'grid-rows-[1fr] opacity-100'
+                    : 'grid-rows-[0fr] opacity-0'
+                }`}
+                aria-hidden={activeIndex !== index}
+              >
+                <div className="overflow-hidden">
                     <div className="pb-6 ml-6 pl-8 pr-6 border-l border-accent-purple/20">
                       <p className="text-[15px] text-gray-400 leading-[1.7]">
                         <span className="text-gray-700 mr-2 select-none">{'>'}</span>
                         {service.description}
                       </p>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                </div>
+              </div>
             </div>
           ))}
         </div>

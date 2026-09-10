@@ -1,5 +1,31 @@
 # Operations
 
+## Deterministic scroll lifecycle verification — 2026-09-09
+
+The public entry module must import and synchronously commit `Application`; it must
+not defer the public route tree behind a dynamic import. Browser-native restoration
+is accepted only when the document is already scrollable at the load boundary.
+Application code must not set `history.scrollRestoration`, persist document scroll
+positions, or retry restoration.
+
+Run the focused contract against the staging-mode artifact in both configured
+Playwright projects:
+
+```powershell
+npx --no-install playwright test tests/scroll-restoration.spec.ts --reporter=line
+```
+
+The contract covers full-height initial render under a delayed legacy Application-
+chunk probe, normal refresh, three rapid cache-bypassing reloads, user override,
+client route top reset and cross-route hash navigation. The local architecture
+checkpoint passed 12/12 across desktop Chromium and Pixel 5. The staging build also
+passed its noindex/nofollow artifact check, and focused changed-source lint passed.
+
+If Windows prevents the configured preview from binding port 3000, a temporary
+configuration may point the already-built artifact at a loopback-only alternate
+port. Remove the temporary configuration, test results, report and server after the
+run. This verification does not authorize commit, push or deployment.
+
 ## Corrective scroll restoration verification — 2026-09-09
 
 The earlier native-restoration test was not representative of staging because its

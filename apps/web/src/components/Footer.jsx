@@ -1,7 +1,7 @@
 import React from 'react';
 import { Github, Twitter, Linkedin, Instagram } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useContent } from '@/contexts/ContentContext';
+import usePublicNavigation from '@/hooks/usePublicNavigation';
 const footerBottomDefaults = {
   signature: '© 2026 Hakan.run — Built under DNDR Labs.',
   location: 'Orange County, CA USA',
@@ -37,30 +37,14 @@ const renderBottomSignature = (text) => {
 };
 
 const Footer = () => {
-  const navigate = useNavigate();
+  const navigateTo = usePublicNavigation();
   const { content } = useContent();
   const f = content.footer;
 
   const handleNavClick = (e) => {
     e.preventDefault();
     const href = e.currentTarget.getAttribute('href');
-    const [path, id] = href.split('#');
-    if (path === '/' || path === '') {
-      navigate('/');
-      if (id) {
-        const tryScroll = (remaining = 20) => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-          } else if (remaining > 0) {
-            setTimeout(() => tryScroll(remaining - 1), 80);
-          }
-        };
-        setTimeout(tryScroll, 80);
-      } else {
-        setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 80);
-      }
-    }
+    navigateTo(href, { behavior: 'smooth' });
   };
 
   const footerSections = f.sections;
@@ -118,7 +102,7 @@ const Footer = () => {
                         if (link.href.startsWith('http')) return;
                         if (link.href === '/contact') {
                           e.preventDefault();
-                          navigate('/contact');
+                          navigateTo('/contact');
                         } else {
                           handleNavClick(e);
                         }

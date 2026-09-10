@@ -94,6 +94,9 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: SPA routing, headers, caching, asset paths, and visual drift.
 - Acceptance gates: Build reproducibility, route matrix, visual parity evidence, staging smoke tests, rollback readiness.
 - Authorization boundaries: BUILD, DEPLOY, ACTIVATE, and any provider change are separate.
+- Current corrective gate: the public scroll lifecycle has been consolidated locally
+  under D-026 and passes its focused desktop/mobile contract; owner review, commit,
+  push and any staging deployment remain separate actions.
 - Status: Planned.
 
 ## Phase 4 — First-party PAGE analytics
