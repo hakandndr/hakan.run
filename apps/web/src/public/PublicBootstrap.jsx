@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Application from '@/Application';
 import BootIntro from '@/components/BootIntro';
 import { loadPublishedSiteSnapshot } from '@/content-source/published-site';
-import { applyPublishedVisualTokens } from '@/contexts/ContentContext';
+import { applyPublishedVisualTokens } from '@/content-source/visual-tokens';
 
 export const PUBLIC_BOOTSTRAP_STATE = Object.freeze({
   loading: 'loading',

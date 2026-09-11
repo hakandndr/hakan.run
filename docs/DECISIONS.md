@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-031 — Complete the public renderer with explicit snapshot slices
+
+- Decision: Every editable public section receives only its validated immutable `PublishedSiteSnapshot` slice. Delete the temporary public content context, superseded section files and source-backed project-detail renderer rather than retain compatibility paths.
+- Context: Phase 2B established this ownership for Header, Hero and Expertise; Stats, Portfolio, About, CTA, Footer and Contact still read the snapshot through a broad context, and an unreachable legacy Project source remained.
+- Alternatives considered: Retain the context for convenience, wrap old components, keep Project as reference, or introduce section defaults.
+- Rationale: Explicit dependencies make authority auditable, prevent fallback resurrection and leave one implementation per public section without changing the approved visual product.
+- Consequences: `PublicHome`, `PublicPageShell` and `App` pass section slices. Preview validates and uses the same renderer. Visual tokens are isolated from content distribution. Offline `content.js` tooling remains but has no public or Preview import path. `/project/*` remains 404; `/card` requires a separate future decision.
+- Status: Approved by the Phase 2C task and implemented/focused-verified locally; owner visual review and all Git/deployment actions remain pending.
+
 ## D-030 — Browser diagnostics require source ownership evidence
 
 - Decision: Change application code only when a browser diagnostic resolves to an application document, node or versioned bundle. Anonymous `VM` scripts, extension worlds and third-party frames remain externally owned unless reproducible evidence connects them to the application.

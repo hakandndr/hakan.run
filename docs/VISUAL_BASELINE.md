@@ -31,6 +31,16 @@ presentation-only for Header and Hero; Expertise expansion uses semantic buttons
 one explicit open-index owner and CSS transitions. No historical visual suite was
 re-baselined; owner visual review is the remaining Phase 2B gate.
 
+## Approved Phase 2C implementation boundary — local
+
+Stats, Portfolio, About, CTA, Footer and Contact preserve their inherited visual
+contracts through `PublicStats`, `PublicPortfolio`, `PublicAbout`, `PublicCTA`,
+`PublicFooter` and `PublicContact`. Their legacy implementations and the source-
+backed Project renderer are deleted. The temporary content context is also deleted;
+explicit immutable snapshot slices now feed every public section. No historical
+screenshot suite was re-baselined. Owner visual review is the remaining Phase 2C
+gate before any Git or staging-deployment decision.
+
 ## Preservation Contract
 
 The existing public design is authoritative during infrastructure and framework work. A future implementation must preserve brand identity, hierarchy, typography intent, major spacing geometry, section order, navigation, responsive behavior, interaction semantics, card proportions, major component geometry, motion intent, and content completeness. Approximate similarity is insufficient. Every intentional deviation requires explicit owner approval and documentation.
@@ -42,12 +52,8 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`.
 | Route | Boundary | Source | Title and primary heading | Archetype | Indexing and capture contract |
 | --- | --- | --- | --- | --- | --- |
 | `/` | Public | `apps/web/src/public/PublicHome.jsx` | Published title and description; `BUILD. DEPLOY. RUN.` | Long-form portfolio landing page | Listed in sitemap and `llms.txt`; desktop/mobile full page and critical sections |
-| `/contact` | Public | `apps/web/src/pages/Contact.jsx` | `Connect - Hakan Dundar`; `LET'S CONNECT` | Two-column terminal-style contact page | Listed in sitemap and `llms.txt`; desktop/mobile full page |
-| `/project/full-stack-development` | Public | `apps/web/src/pages/Project.jsx` | `Full-Stack SaaS Platform — Hakan Dundar`; project title | Long-form terminal case study | Listed in sitemap and `llms.txt`; representative desktop/mobile capture |
-| `/project/ai-and-automation` | Public | `apps/web/src/pages/Project.jsx` | `QA Automation with Playwright — Hakan Dundar`; `QA Automation with Playwright` | Long-form terminal case study | Listed in sitemap and `llms.txt`; covered structurally by the shared route implementation |
-| `/project/it-infrastructure` | Public | `apps/web/src/pages/Project.jsx` | `Infrastructure & Systems Modernization — Hakan Dundar`; `Infrastructure & Systems Modernization` | Long-form terminal case study | Listed in sitemap and `llms.txt`; covered structurally by the shared route implementation |
-| `/project/:unknown` | Public fallback | `apps/web/src/pages/Project.jsx` | Falls back to the full-stack project title and content | Project page, not a 404 | Not listed in sitemap or `llms.txt`; preserve until an explicit routing decision changes it |
-| `/control-room` | Private intent, public bundle | `apps/web/src/pages/Admin.jsx` | Control Room login/admin surface | Standalone private operational UI | Disallowed by `robots.txt`; excluded from screenshots and authentication |
+| `/contact` | Public | `apps/web/src/public/components/PublicContact.jsx` | Published title and Contact heading | Two-column terminal-style contact page | Listed in sitemap and `llms.txt`; desktop/mobile full page |
+| `/project/*` | Public catch-all | `apps/web/src/pages/NotFound.jsx` | `404 — Page Not Found \| Hakan Dundar`; `404` | Terminal-style error page | Source-backed detail renderer deleted; `noindex` |
 | `/admin` | Redirect | `apps/web/src/App.jsx` | Redirects to `/` | No independent page | Not indexed or captured |
 | Any other path | Public catch-all | `apps/web/src/pages/NotFound.jsx` | `404 — Page Not Found \| Hakan Dundar`; `404` | Terminal-style error page | `noindex`; real desktop/mobile capture |
 
@@ -55,17 +61,16 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`.
 
 | Surface | Source | Current behavior and dependencies | Content authority |
 | --- | --- | --- | --- |
-| Entry and router | `apps/web/src/main.jsx`, `apps/web/src/App.jsx` | `BrowserRouter`, `ContentProvider`, scroll restoration, shared `Layout`, public and private route branches | Source-defined |
+| Entry and router | `apps/web/src/main.jsx`, `apps/web/src/Application.jsx`, `apps/web/src/App.jsx` | Strict snapshot bootstrap, `BrowserRouter`, shared `Layout`, explicit slice handoff | Immutable published snapshot |
 | Header and mobile navigation | `apps/web/src/public/components/PublicHeader.jsx` | Fixed header, scroll backdrop, desktop navigation at `md`, full-screen animated mobile menu below `md`, Lucide arrow | Immutable published `header` slice |
 | Hero and profile card | `apps/web/src/public/components/PublicHero.jsx` | One column below `lg`; text plus 340 px photo column at `lg`, 360 px at `xl`; Framer entrances | Immutable published `hero` and contact social-link slices |
-| Stats | `apps/web/src/components/Stats.jsx` | 1/2/4-column responsive grid; animated counters over 2 seconds in 60 steps | Fallback/CMS-driven |
+| Stats | `apps/web/src/public/components/PublicStats.jsx` | 1/2/4-column responsive grid; presentation-only reduced-motion-safe value reveal | Immutable published `stats` slice |
 | Expertise / Services | `apps/web/src/public/components/PublicExpertise.jsx` | Terminal process rows; first row open; one row may be open or all closed | Immutable published `services` slice |
-| Portfolio | `apps/web/src/components/Portfolio.jsx` | 1/2/3-column card grid; 16:9 images; internal and external navigation | Fallback/CMS-driven |
-| About | `apps/web/src/components/About.jsx` | Timeline and portrait; one column below `lg`, two columns from `lg` | Hardcoded |
-| CTA | `apps/web/src/components/CTA.jsx` | Centered call to action and primary button | Fallback/CMS-driven |
-| Contact | `apps/web/src/pages/Contact.jsx` | One column below `lg`, two columns from `lg`; Formspree browser submission | Fallback/CMS-driven |
-| Project detail | `apps/web/src/pages/Project.jsx` | Source-local project map, terminal cards, metrics, images, CTA | Hardcoded project data |
-| Footer | `apps/web/src/components/Footer.jsx` | 1/2/4-column responsive layout; source-driven navigation/social content | Fallback/CMS-driven |
+| Portfolio | `apps/web/src/public/components/PublicPortfolio.jsx` | 1/2/3-column card grid; 16:9 images; published external links | Immutable published `portfolio` slice |
+| About | `apps/web/src/public/components/PublicAbout.jsx` | Timeline and portrait; one column below `lg`, two columns from `lg` | Immutable published `about` slice |
+| CTA | `apps/web/src/public/components/PublicCTA.jsx` | Centered call to action via centralized navigation | Immutable published `cta` slice |
+| Contact | `apps/web/src/public/components/PublicContact.jsx` | One/two-column terminal form; Turnstile and Worker submission | Immutable published `contact` slice plus system interaction state |
+| Footer | `apps/web/src/public/components/PublicFooter.jsx` | 1/2/4-column responsive layout and centralized navigation | Immutable published `footer` slice |
 | Boot intro | `apps/web/src/components/BootIntro.jsx` | Presentation-only first-entry overlay; no READY/content ownership | Source-controlled system copy |
 | Not found | `apps/web/src/pages/NotFound.jsx` | Path-aware terminal error and home link | Hardcoded |
 | Control Room boundary | `apps/web/src/pages/Admin.jsx` | Supabase Auth/TOTP, content editors, tracker UI | Private boundary; intentionally not captured |
@@ -82,7 +87,7 @@ Current occurrences are inconsistent:
 | --- | --- | --- |
 | `apps/web/src/public/components/PublicHeader.jsx` | Inline SVG text, desktop and mobile | Canonical `<h/>`; slash is explicitly white |
 | `apps/web/index.html` | SVG data-URI favicon | `<h>`; not canonical |
-| `apps/web/src/content.js` and `apps/web/src/components/Footer.jsx` | Content string rendered as text | `<h>`; not canonical |
+| `apps/web/src/content.js` and `apps/web/src/public/components/PublicFooter.jsx` | Offline source text and published rendering | Renderer isolates the slash as white |
 | `apps/web/src/public/components/PublicHeader.jsx` mobile wordmark | JSX text fragments | `<hakan.run />`; secondary wordmark retained for visual parity |
 | `apps/web/src/pages/Admin.jsx` | Login, MFA, and sidebar text | `<hakan.run />`; another representation inside the private boundary |
 | `apps/web/public/og-image.png` | Raster social image | Large `</>` glyph; another representation |

@@ -40,27 +40,30 @@
 
 | Path | Purpose |
 | --- | --- |
-| `src/main.jsx` | React mount/hydration branch, router, content provider |
-| `src/App.jsx` | terminal-loader gate and route tree |
-| `src/content.js` | fallback content and seed source |
-| `src/contexts/ContentContext.jsx` | localStorage/Supabase overlay, save path, theme application |
-| `src/lib/supabase.js` | optional browser Supabase client |
+| `src/main.jsx` | Public/Boss/preview entry selection and React mount |
+| `src/App.jsx` | Public route tree and explicit Contact snapshot-slice boundary |
+| `src/Application.jsx` | Browser router and immutable snapshot handoff |
+| `src/content.js` | Offline historical/bootstrap source for tools and fixtures; absent from public runtime |
+| `src/content-source/visual-tokens.js` | Applies validated color and typography presentation tokens before READY |
 | `src/index.css` | global tokens, typography attributes, accessibility behavior |
 
 ## Public components
 
 | Path | Content authority and behavior |
 | --- | --- |
-| `components/Layout.jsx` | Header, route outlet, Footer, toast viewport |
-| `components/Header.jsx` | Hardcoded identity/navigation/CTA; visitor-log call; desktop/mobile menus |
-| `components/TerminalLoader.jsx` | One-time tab-session boot animation |
-| `components/Hero.jsx` | Mixed CMS and hardcoded biography/profile presentation |
-| `components/Stats.jsx` | CMS data or explicit project-page prop; animated counters |
-| `components/Services.jsx` | CMS-backed expertise accordion |
-| `components/Portfolio.jsx` | CMS-backed cards; external-tab or internal-route action |
-| `components/About.jsx` | Hardcoded public About timeline and profile card |
-| `components/CTA.jsx` | CMS-backed copy and client-side route action |
-| `components/Footer.jsx` | Mixed CMS data and hardcoded bottom attribution/location |
+| `components/Layout.jsx` | Scroll coordinator plus route outlet inside the public page shell |
+| `public/PublicRenderer.jsx` | Shared Header/Footer frame and validated Preview renderer |
+| `public/PublicHome.jsx` | Home visibility and explicit snapshot-slice composition |
+| `public/components/PublicHeader.jsx` | Published Header slice, desktop/mobile navigation |
+| `public/components/PublicHero.jsx` | Published Hero plus explicit Contact social-link slice |
+| `public/components/PublicStats.jsx` | Published Stats slice and presentation-only reduced-motion-safe reveal |
+| `public/components/PublicExpertise.jsx` | Published Services slice and single-owner accordion |
+| `public/components/PublicPortfolio.jsx` | Published Portfolio slice and external project links |
+| `public/components/PublicAbout.jsx` | Published About timeline, media and chips |
+| `public/components/PublicCTA.jsx` | Published CTA slice via centralized navigation |
+| `public/components/PublicFooter.jsx` | Published Footer slice, canonical mark and centralized navigation |
+| `public/components/PublicContact.jsx` | Published Contact slice, Turnstile and Worker submission boundary |
+| `components/BootIntro.jsx` | One-time tab-session presentation overlay |
 | `components/SectionAnimator.jsx` | Viewport-entry animation wrapper |
 | `components/KonamiEasterEgg.jsx` | Key-sequence overlay |
 
@@ -70,11 +73,10 @@
 
 | Path | Purpose |
 | --- | --- |
-| `pages/Home.jsx` | Homepage composition and visibility checks |
-| `pages/Contact.jsx` | CMS-backed Formspree form UI |
-| `pages/Project.jsx` | Three hardcoded project detail records and unknown-slug fallback |
 | `pages/NotFound.jsx` | Designed catch-all 404 page |
-| `pages/Admin.jsx` | Control Room auth, MFA, editors, and tracker |
+
+Legacy public Home, Contact and Project page implementations are deleted. Boss is
+an isolated entry tree under `src/boss/`, not a public page branch.
 
 ## Supabase
 

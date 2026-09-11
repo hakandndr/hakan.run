@@ -138,18 +138,21 @@ test('transport, HTTP, content-type and invalid JSON failures stay errors', asyn
   );
 });
 
-test('the public providers and bootstrap have no fallback or merge authority', () => {
+test('the public renderer and bootstrap have no context, fallback, or merge authority', () => {
   const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8');
   const publicSources = [
-    read('../contexts/ContentContext.jsx'),
     read('../public/PublicBootstrap.jsx'),
     read('../Application.jsx'),
+    read('../App.jsx'),
+    read('../public/PublicHome.jsx'),
+    read('../public/PublicRenderer.jsx'),
   ].join('\n');
 
   assert.doesNotMatch(publicSources, /from\s+['"][^'"]*content(?:\.js)?['"]/);
-  assert.doesNotMatch(publicSources, /mergeSections|siteContent/);
+  assert.doesNotMatch(publicSources, /ContentContext|ContentProvider|mergeSections|siteContent/);
   assert.doesNotMatch(publicSources, /sessionStorage|TerminalLoader|setTimeout|setInterval/);
   assert.match(read('../public/PublicBootstrap.jsx'), /loadPublishedSiteSnapshot/);
+  assert.match(read('../public/PublicBootstrap.jsx'), /content-source\/visual-tokens/);
 });
 
 test('public and Boss entry trees are dynamically isolated', () => {
@@ -166,12 +169,12 @@ test('public and Boss entry trees are dynamically isolated', () => {
 test('Boss preview validates an explicit snapshot without fallback merging', () => {
   const preview = readFileSync(new URL('../boss/PreviewPage.jsx', import.meta.url), 'utf8');
   assert.match(preview, /createPublishedSiteSnapshot/);
-  assert.match(preview, /PreviewContentProvider snapshot=/);
-  assert.doesNotMatch(preview, /content\.js|siteContent|mergeSections/);
+  assert.doesNotMatch(preview, /ContentContext|ContentProvider|content\.js|siteContent|mergeSections/);
 });
 
 test('the neutral document shell contains no real editable content', () => {
   const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
-  assert.match(html, /data-public-bootstrap="loading"/);
+  assert.match(html, /<div id="root"><\/div>/);
+  assert.doesNotMatch(html, /data-public-bootstrap="loading"|bootstrap-shell|skeleton|placeholder/i);
   assert.doesNotMatch(html, /BUILD\. DEPLOY|QA Automation|MY EXPERTISE|Portfolio|About|Hakan Dundar/);
 });

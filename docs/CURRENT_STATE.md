@@ -1,5 +1,34 @@
 # Current State
 
+## Phase 2C clean public renderer — local, 2026-09-11
+
+The committed, upstream-matching and staging-deployed checkpoint is
+`b0ca7b28aab2c98f72543a7a90f5a3735d30fac7`. The Phase 2C renderer migration is
+complete and verified only in the local working tree. It is not committed, pushed
+or deployed; production and all mutable infrastructure are unchanged.
+
+All visible public sections now consume explicit recursively frozen
+`PublishedSiteSnapshot` slices. `PublicHeader`, `PublicHero`, `PublicStats`,
+`PublicExpertise`, `PublicPortfolio`, `PublicAbout`, `PublicCTA`, `PublicFooter` and
+`PublicContact` are the sole active implementations. `PublicHome` owns home-section
+composition and visibility, `PublicPageShell` owns the shared Header/Footer frame,
+and `App` owns the Contact route prop boundary.
+
+The old Stats, Portfolio, About, CTA, Footer and Contact files are deleted. The
+unreachable source-backed `Project.jsx` is deleted and `/project/*` resolves to the
+designed 404. `ContentContext.jsx` is deleted; no `ContentProvider` or `useContent`
+reference remains. Visual token application is a content-source presentation helper,
+not a context. `content.js` remains only for offline migration/bootstrap tools and
+test fixture derivation and is absent from public and Preview import graphs.
+
+Phase 2C browser coverage passes 7/7; the combined focused Chromium regression
+passes 37/37; web source contracts pass 115/115. Stats explicitly covers empty
+suffix and reduced motion. Portfolio covers published external destinations and no
+detail route. About covers timeline/media/chips at mobile width. CTA and Footer
+exercise centralized navigation. Contact preserves semantic labels, autocomplete,
+Turnstile and `/api/contact` outcomes. Owner visual acceptance is the next gate;
+`/card` is a separate future phase.
+
 ## Pre-Phase 2C console and accessibility hygiene — local, 2026-09-11
 
 The committed, upstream-matching and staging-deployed checkpoint is

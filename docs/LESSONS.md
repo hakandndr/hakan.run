@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 21. Temporary migration context should disappear when the last consumer moves
+
+- Problem: A compatibility context can outlive its migration purpose and obscure that a strict snapshot already supplies every renderer dependency.
+- Evidence / context: After the final six public sections moved to explicit slices, the only remaining context responsibilities were distribution and visual tokens. Distribution became unnecessary; token application was isolated as a presentation helper.
+- Reusable rule: Trace all consumers after the last incremental migration, extract genuinely orthogonal behavior, delete the compatibility layer, and prove zero imports in source and built runtime graphs.
+- Applies when: A staged rewrite temporarily bridges old consumers to a new immutable boundary.
+- Exceptions / caveats: Keep a context only for real cross-cutting runtime state; do not retain it as speculative compatibility or hidden data authority.
+
 ## 20. A browser warning is not application evidence until its execution context is owned
 
 - Problem: DevTools can present application nodes, third-party frames, extension worlds and anonymous evaluated scripts in one console and Issues surface.

@@ -1,5 +1,48 @@
 # Architecture
 
+## Phase 2C complete public renderer boundary — local
+
+The complete public ownership graph is now:
+
+```text
+APP_DB -> GET /api/content -> strict validation -> immutable PublishedSiteSnapshot
+  -> visual tokens
+  -> Application -> App
+      -> Layout -> ScrollManager
+                -> PublicPageShell(header, footer)
+                    -> PublicHeader(header)
+                    -> route content
+                        -> PublicHome(snapshot)
+                            -> PublicHero(hero, contact.socialLinks)
+                            -> PublicStats(stats)
+                            -> PublicExpertise(services)
+                            -> PublicPortfolio(portfolio)
+                            -> PublicAbout(about)
+                            -> PublicCTA(cta)
+                        -> PublicContact(contact)
+                    -> PublicFooter(footer)
+```
+
+Each leaf receives only the validated slice it renders. No section fetches content,
+reads a global content object, merges defaults or knows about Boss persistence.
+`PublicHome` reads only composition visibility plus the slices it passes onward.
+Preview creates the same strict snapshot from private in-memory rows and supplies it
+to the same renderer; `preview` on Contact disables interaction and is not content
+authority.
+
+`ContentContext`, its providers and `useContent` are removed. Visual-token mutation
+is isolated in `content-source/visual-tokens.js` because it is a presentation step
+between validation and READY, not content distribution. Historical `content.js`
+remains an offline bootstrap/reference dependency for tools and fixtures only; it
+has no edge into the public or Preview module graph.
+
+`usePublicNavigation` remains the single component-facing navigation coordinator.
+Only `ScrollManager` calls `scrollIntoView` or `window.scrollTo`. CTA and internal
+Footer links delegate navigation; Portfolio destinations are validated published
+external URLs. The source-backed Project renderer is deleted and no project-detail
+route exists. Stats values always render directly; its reveal motion is decorative
+and reduced-motion safe.
+
 ## Pre-Phase 2C form semantics boundary — local
 
 The Contact form keeps the existing renderer, submission flow and Turnstile hook.

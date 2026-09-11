@@ -6,7 +6,7 @@ import ScrollManager from '@/components/ScrollManager';
 const Layout = ({ navigationType, routeLocation, snapshot }) => (
   <>
     <ScrollManager navigationType={navigationType} location={routeLocation} />
-    <PublicPageShell header={snapshot.content.header} interactive>
+    <PublicPageShell header={snapshot.content.header} footer={snapshot.content.footer} interactive>
       <Outlet />
     </PublicPageShell>
   </>

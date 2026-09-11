@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { applyPublishedVisualTokens, PreviewContentProvider } from '../contexts/ContentContext.jsx';
+import { applyPublishedVisualTokens } from '../content-source/visual-tokens.js';
 import { createPublishedSiteSnapshot } from '../content-source/published-site.js';
 import { acceptPreview, previewImages } from './preview-contract.js';
 import { PublicPreviewRenderer } from '../public/PublicRenderer.jsx';
@@ -49,9 +49,9 @@ export default function PreviewPage() {
   if (error) return <p>Preview unavailable: the private snapshot is incomplete or invalid.</p>;
   if (!snapshot) return <p>Open preview from Boss Content. Waiting for a private snapshot.</p>;
   const stop = e => { e.preventDefault(); e.stopPropagation(); };
-  return <MemoryRouter><PreviewContentProvider snapshot={snapshot}>
+  return <MemoryRouter>
     <div ref={surface} onContextMenuCapture={stop} onDragStartCapture={stop} onClickCapture={stop} onAuxClickCapture={stop} onSubmitCapture={stop} onKeyDownCapture={e => { if (e.key === 'Enter' || e.key === ' ') stop(e); }}>
       <PublicPreviewRenderer page={page} snapshot={snapshot} />
     </div>
-  </PreviewContentProvider></MemoryRouter>;
+  </MemoryRouter>;
 }

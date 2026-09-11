@@ -2,6 +2,16 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Phase 2C — Complete clean public renderer
+
+- Objective: Preserve the approved public product while replacing Stats, Portfolio, About, CTA, Footer and Contact with explicit immutable snapshot-slice renderers and disposing of the temporary content context.
+- Dependencies: Owner-accepted Phase 2B renderer, strict published snapshot, centralized navigation and deterministic scroll lifecycle.
+- Scope: Six renderer sections, shared frame/preview prop wiring, removal of their legacy files, removal of `ContentContext`, removal of the unreachable source-backed Project renderer, focused tests and continuity documentation. No `/card`.
+- Main risks: Visual drift, duplicate implementations, source fallback resurrection, Contact/Turnstile regression, internal project-route resurrection and competing navigation/scroll authority.
+- Acceptance gates: One renderer per section; explicit slices; no public context/default path; published external Portfolio links; Contact semantics and submission outcomes; Phase 2B/hash/Back-Forward/reload/BootIntro regressions; clean public artifact; owner visual acceptance.
+- Authorization boundaries: Local implementation and focused BUILD only. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER and production remain separately unauthorized.
+- Status: Implementation and focused verification complete locally at committed base `b0ca7b2`; owner visual review is next, followed only by separately authorized Git/deployment work. `/card` is the next feature phase after acceptance.
+
 ## Phase 2B — Clean public renderer foundation
 
 - Objective: Preserve the approved visual product while replacing the Header, Hero and MY EXPERTISE implementation with explicit immutable snapshot-slice consumers.

@@ -34,14 +34,14 @@ History API state only at stable checkpoints. This prevents smooth scrolling fro
 exhausting browser history frequency limits and preserves indefinite hash-to-hash
 PUSH navigation, reload restoration and Back/Forward semantics.
 
-Phase 2B is committed, pushed, deployed and owner-accepted on staging. `PublicHeader`, `PublicHero`
-and `PublicExpertise` consume explicit slices from the immutable snapshot through
-`PublicPageShell` and `PublicHome`; their former Context-reading implementations
-are deleted. Context remains temporary only for the page sections not yet migrated.
-Navigation and scroll ownership are unchanged. A narrow pre-Phase 2C local cleanup
-associates the existing Contact labels with their controls and declares standard
-name/email autocomplete semantics; it does not change visual design, copy, Turnstile,
-CSP, storage or submission behavior and is not committed or deployed.
+Phase 2B is committed, pushed, deployed and owner-accepted on staging. Phase 2C is
+complete and focused-verified only in the local working tree. Every public section
+now consumes an explicit immutable snapshot slice through `PublicPageShell`,
+`PublicHome` or the route boundary. The temporary `ContentContext`, superseded
+section components and source-backed Project renderer are deleted. Contact keeps
+its labels, name/email autocomplete, Turnstile and Worker submission behavior.
+Navigation and scroll ownership are unchanged. Owner visual acceptance is the next
+gate; no Phase 2C commit, push or deployment has occurred.
 
 ## Legacy technology reference
 
@@ -74,10 +74,10 @@ exactly `colors`, `typography`, `visibility`, `header`, `hero`, `services`, `abo
 whole response before mounting, applies the validated visual tokens, then passes one
 explicit `PublishedSiteSnapshot` to the renderer.
 
-`apps/web/src/content.js` remains temporarily as historical/bootstrap reference for
-later disposal work. Neither the public entry nor Boss preview imports it, and no
-merge or fallback path reaches the public production bundle. The historical
-source-backed project detail page is also unreachable from the public router;
+`apps/web/src/content.js` remains as an offline historical/bootstrap input for
+repository tools and fixtures. Neither the public entry nor Boss preview imports it,
+and no merge or fallback path reaches the public production bundle. The historical
+source-backed project detail renderer is deleted; all `/project/*` paths are 404 and
 Portfolio cards require published external destinations.
 
 ## Security boundary

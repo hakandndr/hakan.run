@@ -1,5 +1,19 @@
 # Security
 
+## Phase 2C renderer authority reduction — local, 2026-09-11
+
+Removing `ContentContext` narrows the public data boundary: one validated frozen
+snapshot enters the router and every section receives an explicit slice. No renderer
+can discover browser-local content, merge source defaults, access drafts or call a
+content provider. Preview still validates private rows before rendering and has no
+fallback authority.
+
+Contact changed only at its renderer dependency boundary. The Turnstile hook,
+`/api/config`, `/api/contact`, token/reset behavior, honeypot and stored/refused/
+unavailable outcomes are unchanged. CSP was not modified and `unsafe-eval` was not
+added. No Worker, binding, migration, secret, Access, DNS, provider, APP_DB,
+ANALYTICS_DB or production state changed.
+
 ## Pre-Phase 2C console hygiene — local, 2026-09-11
 
 No Content Security Policy directive changed and `unsafe-eval` was not added. Clean

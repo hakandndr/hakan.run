@@ -180,23 +180,12 @@ test.describe('contact form', () => {
   });
 });
 
-test.describe('project routes', () => {
-  // The canonical record for this slug is titled 'Full-Stack SaaS Platform'
-  // (apps/web/src/pages/Project.jsx), and the page renders `${title} — Hakan
-  // Dundar`. The slug and the title are different strings and always were.
-  test('a known legacy slug still renders its project', async ({ page }) => {
-    await page.goto('/project/full-stack-development');
-    await expect(page).toHaveTitle('Full-Stack SaaS Platform — Hakan Dundar');
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Full-Stack SaaS Platform');
-  });
-
-  test('an external portfolio slug does not silently render a different project', async ({ page }) => {
-    // Production portfolio cards are external links and never route here. If one
-    // is opened directly it must not answer with the first legacy record.
-    for (const slug of ['dndr-labs', 'turkcyber', 'turkiyecennet', 'americawhat']) {
-      await page.goto(`/project/${slug}`);
-      await expect(page.getByText('404')).toBeVisible();
-      await expect(page).not.toHaveTitle(/Full-Stack SaaS Platform/i);
-    }
-  });
+test('legacy project-detail routes remain absent', async ({ page }) => {
+  await isolatePublicWrites(page);
+  await page.route('**/api/content', fulfillPublishedContent);
+  for (const slug of ['full-stack-development', 'dndr-labs', 'turkcyber', 'turkiyecennet', 'americawhat']) {
+    await page.goto(`/project/${slug}`);
+    await expect(page.getByText('404')).toBeVisible();
+    await expect(page).not.toHaveTitle(/Full-Stack SaaS Platform/i);
+  }
 });

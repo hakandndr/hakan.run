@@ -1,12 +1,12 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import About from '@/components/About';
-import CTA from '@/components/CTA';
-import Portfolio from '@/components/Portfolio';
 import SectionAnimator from '@/components/SectionAnimator';
-import Stats from '@/components/Stats';
+import PublicAbout from '@/public/components/PublicAbout';
+import PublicCTA from '@/public/components/PublicCTA';
 import PublicExpertise from '@/public/components/PublicExpertise';
 import PublicHero from '@/public/components/PublicHero';
+import PublicPortfolio from '@/public/components/PublicPortfolio';
+import PublicStats from '@/public/components/PublicStats';
 
 const PublicHome = ({ snapshot }) => {
   const { content } = snapshot;
@@ -19,13 +19,15 @@ const PublicHome = ({ snapshot }) => {
         <meta name="description" content={content.hero.paragraph} />
       </Helmet>
       <PublicHero hero={content.hero} socialLinks={content.contact.socialLinks} />
-      {visibility.stats !== false && <SectionAnimator><Stats /></SectionAnimator>}
+      {visibility.stats !== false && <SectionAnimator><PublicStats stats={content.stats} /></SectionAnimator>}
       {visibility.services !== false && (
         <SectionAnimator><PublicExpertise services={content.services} /></SectionAnimator>
       )}
-      {visibility.portfolio !== false && <SectionAnimator><Portfolio /></SectionAnimator>}
-      {visibility.about !== false && <About />}
-      {visibility.cta !== false && <SectionAnimator><CTA /></SectionAnimator>}
+      {visibility.portfolio !== false && (
+        <SectionAnimator><PublicPortfolio portfolio={content.portfolio} /></SectionAnimator>
+      )}
+      {visibility.about !== false && <PublicAbout about={content.about} />}
+      {visibility.cta !== false && <SectionAnimator><PublicCTA cta={content.cta} /></SectionAnimator>}
     </>
   );
 };

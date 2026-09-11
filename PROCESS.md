@@ -3308,3 +3308,51 @@ No commit identity was exercised. No request mutated APP_DB, ANALYTICS_DB, conte
 drafts, Access, Turnstile, DNS, provider configuration or production. Exact next
 action is owner review and a separately authorized commit/push/staging deployment
 decision; Phase 2C must not begin yet.
+
+### 2026-09-11 — Phase 2C complete clean public renderer
+
+Objective: finish the clean renderer migration for Stats, Portfolio, About, CTA,
+Footer and Contact while retaining the owner-approved public visual and interaction
+contracts. Work began clean on `develop/hakan-run-v2` at committed, upstream-
+matching and staging-deployed SHA `b0ca7b28aab2c98f72543a7a90f5a3735d30fac7`.
+Local implementation and focused BUILD were authorized. COMMIT, PUSH, DEPLOY,
+DATABASE, PROVIDER, Boss behavior, production and `/card` remained prohibited.
+
+Before this phase, Header, Hero and Expertise received explicit immutable snapshot
+slices, while the remaining sections read the same snapshot through a temporary
+content context. The completed graph passes Stats, Portfolio, About and CTA from
+`PublicHome`, Header and Footer through `PublicPageShell`, and Contact from the route
+boundary. Preview validates its rows into the same strict snapshot and supplies
+explicit props to the same renderer. No section fetches, merges or defaults editable
+content.
+
+New renderer files are `PublicStats.jsx`, `PublicPortfolio.jsx`, `PublicAbout.jsx`,
+`PublicCTA.jsx`, `PublicFooter.jsx` and `PublicContact.jsx`. Visual token application
+moved to the new `content-source/visual-tokens.js`; focused coverage is in
+`tests/public-renderer-phase2c.spec.ts`. Integration changes cover `Application`,
+`App`, `Layout`, `PublicBootstrap`, `PublicHome`, `PublicRenderer` and Boss Preview.
+The old Stats, Portfolio, About, CTA, Footer and Contact files are deleted, as are
+`ContentContext.jsx` and the unreachable source-backed `Project.jsx`. The offline
+`content.js` bootstrap/reference remains for tools and fixtures only and has no
+public or Preview import edge.
+
+Stats renders source values directly with a reduced-motion-safe decorative reveal;
+empty suffix remains a valid published value. Portfolio cards are semantic external
+links driven only by published URLs, and every `/project/*` route is 404. About
+retains timeline, media, chips and responsive layout. CTA and internal Footer links
+use `usePublicNavigation`; only `ScrollManager` scrolls. Footer retains the white
+slash in `<h/>`. Contact keeps its terminal layout, semantic labels, name/email
+autocomplete, honeypot, Turnstile hook and `/api/contact` stored/refused/unavailable
+behavior. CSP and Worker semantics did not change.
+
+Focused Chromium passed 37/37: Phase 2C 7/7, Phase 2B 4/4, Contact plus project-route
+disposal 7/7, hash navigation 5/5, scroll restoration 6/6 and BootIntro/first-paint/
+Footer/MY EXPERTISE 8/8. Web source contracts passed 115/115. Final lint, production
+and staging builds, indexing-policy checks, graph scans and diff hygiene are recorded
+in Operations after documentation completion. No historical visual suite or live
+browser acceptance ran.
+
+No commit identity was exercised. No APP_DB, ANALYTICS_DB, content, draft, Worker,
+Turnstile, Access, DNS, provider or production mutation occurred. Exact next action
+is owner local visual acceptance, followed only by separately authorized commit,
+push and staging deployment. `/card` is a separate later phase.

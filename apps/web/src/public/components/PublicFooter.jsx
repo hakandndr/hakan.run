@@ -1,12 +1,12 @@
 import React from 'react';
-import { Github, Twitter, Linkedin, Instagram } from 'lucide-react';
-import { useContent } from '@/contexts/ContentContext';
+import { Github, Instagram, Linkedin, Twitter } from 'lucide-react';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
+
 const SOCIAL_ICONS = {
-  Linkedin:  <Linkedin  size={16} />,
-  Github:    <Github    size={16} />,
+  Linkedin: <Linkedin size={16} />,
+  Github: <Github size={16} />,
   Instagram: <Instagram size={16} />,
-  Twitter:   <Twitter   size={16} />,
+  Twitter: <Twitter size={16} />,
 };
 
 const renderLogoText = (text) => {
@@ -25,7 +25,6 @@ const renderLogoText = (text) => {
 const renderBottomSignature = (text) => {
   const label = 'DNDR Labs';
   const labelIndex = text.indexOf(label);
-
   if (labelIndex === -1) return text;
 
   return (
@@ -44,37 +43,28 @@ const renderBottomSignature = (text) => {
   );
 };
 
-const Footer = () => {
+const PublicFooter = ({ footer }) => {
   const navigateTo = usePublicNavigation();
-  const { content } = useContent();
-  const f = content.footer;
+  const socialLinks = footer.socialLinks.map((social) => ({ ...social, icon: SOCIAL_ICONS[social.name] }));
 
-  const handleNavClick = (e) => {
-    e.preventDefault();
-    const href = e.currentTarget.getAttribute('href');
-    navigateTo(href, { behavior: 'smooth' });
+  const navigateInternal = (event, href) => {
+    event.preventDefault();
+    navigateTo(href, href.includes('#') ? { behavior: 'smooth' } : undefined);
   };
 
-  const footerSections = f.sections;
-  const socialLinks = f.socialLinks.map(s => ({ ...s, icon: SOCIAL_ICONS[s.name] }));
-
   return (
-    <footer className="border-t border-white/[0.06]" style={{ backgroundColor: '#0A0A0A' }}>
-
-      {/* Main columns */}
+    <footer data-public-section="footer" className="border-t border-white/[0.06]" style={{ backgroundColor: '#0A0A0A' }}>
       <div className="container mx-auto px-6 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-
-          {/* Brand column */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-1.5 mb-1 font-mono">
               <span className="text-accent-purple/50 text-xs select-none">~/</span>
-              <span className="font-bold text-accent-purple text-sm">{renderLogoText(f.logoText)}</span>
-              <span className="font-bold text-white text-sm tracking-widest uppercase">{f.siteName}</span>
+              <span className="font-bold text-accent-purple text-sm">{renderLogoText(footer.logoText)}</span>
+              <span className="font-bold text-white text-sm tracking-widest uppercase">{footer.siteName}</span>
             </div>
             <p className="font-mono text-xs text-gray-500 mb-5 leading-relaxed">
               <span className="text-gray-700 select-none">{'// '}</span>
-              {f.tagline}
+              {footer.tagline}
             </p>
             <div className="flex gap-2">
               {socialLinks.map((social) => (
@@ -92,59 +82,46 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Nav sections */}
-          {footerSections.map((section) => (
+          {footer.sections.map((section) => (
             <div key={section.title}>
               <p className="font-mono text-xs text-gray-500 uppercase tracking-widest mb-4">
                 <span className="text-accent-purple/40 mr-1 select-none">##</span>
                 {section.title}
               </p>
               <ul className="space-y-2.5">
-                {section.links.map((link) => (
-                  <li key={link.name}>
-                    <a
-                      href={link.href}
-                      target={link.href.startsWith('http') ? '_blank' : '_self'}
-                      rel={link.href.startsWith('http') ? 'noopener noreferrer' : ''}
-                      onClick={(e) => {
-                        if (link.href.startsWith('http')) return;
-                        if (link.href === '/contact') {
-                          e.preventDefault();
-                          navigateTo('/contact');
-                        } else {
-                          handleNavClick(e);
-                        }
-                      }}
-                      className="font-mono text-xs text-gray-400 hover:text-accent-purple transition-colors flex items-center gap-1 group"
-                    >
-                      <span className="text-gray-700 group-hover:text-accent-purple/50 transition-colors select-none">./</span>
-                      {link.name}
-                    </a>
-                  </li>
-                ))}
+                {section.links.map((link) => {
+                  const external = link.href.startsWith('http');
+                  return (
+                    <li key={link.name}>
+                      <a
+                        href={link.href}
+                        target={external ? '_blank' : undefined}
+                        rel={external ? 'noopener noreferrer' : undefined}
+                        onClick={external ? undefined : (event) => navigateInternal(event, link.href)}
+                        className="font-mono text-xs text-gray-400 hover:text-accent-purple transition-colors flex items-center gap-1 group"
+                      >
+                        <span className="text-gray-700 group-hover:text-accent-purple/50 transition-colors select-none">./</span>
+                        {link.name}
+                      </a>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
 
-          {/* Social column (icons already in brand col on mobile; kept for lg grid fill) */}
           <div className="hidden lg:block" />
         </div>
       </div>
 
-      {/* Bottom bar */}
       <div className="border-t border-white/[0.06]">
         <div className="container mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="font-mono text-[11px] text-gray-500">
-            {renderBottomSignature(f.bottomSignature)}
-          </p>
-          <p className="font-mono text-[11px] text-gray-600">
-            {f.bottomLocation}
-          </p>
+          <p className="font-mono text-[11px] text-gray-500">{renderBottomSignature(footer.bottomSignature)}</p>
+          <p className="font-mono text-[11px] text-gray-600">{footer.bottomLocation}</p>
         </div>
       </div>
-
     </footer>
   );
 };
 
-export default Footer;
+export default PublicFooter;

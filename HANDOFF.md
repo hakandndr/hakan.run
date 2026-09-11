@@ -1,5 +1,38 @@
 # hakan.run Modernization Handoff
 
+## Phase 2C clean public renderer — local, 2026-09-11
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `b0ca7b28aab2c98f72543a7a90f5a3735d30fac7` |
+| Current phase | Phase 2C renderer migration is complete and focused-verified locally; owner visual review is pending |
+| Completed | Stats, Portfolio, About, CTA, Footer and Contact rewritten as explicit immutable snapshot-slice consumers; public content context and source-backed project page removed; focused renderer/lifecycle/contact verification passed |
+| Exact next action | Owner performs local visual acceptance; if accepted, separately authorize checkpoint/push/staging deployment. `/card` begins only under a later explicit task |
+| Prohibited actions | Commit, push, deploy, `/card`, production, database/content/provider, Boss, Turnstile, CSP, DNS or Access changes |
+| Push state | Local committed HEAD and upstream remain `b0ca7b2`; Phase 2C is uncommitted |
+| Deploy state | Staging remains on deployed `b0ca7b2`; no Phase 2C code is deployed and production is unchanged |
+| Infrastructure state | Unchanged; all browser writes were locally intercepted and no APP_DB, ANALYTICS_DB, content, provider or production mutation occurred |
+
+The public route graph now passes one strict `PublishedSiteSnapshot` into explicit
+section props. `PublicHome` supplies Stats, Portfolio, About and CTA slices;
+`PublicPageShell` supplies Header and Footer slices; `/contact` supplies only the
+Contact slice. Preview first validates its in-memory rows into the same snapshot and
+then calls the same renderer with an explicit preview presentation flag.
+
+The legacy Stats, Portfolio, About, CTA, Footer and Contact components are deleted.
+The unused source-backed `Project.jsx` is also deleted and every `/project/*` path
+remains a 404. `ContentContext.jsx`, `ContentProvider` and `useContent` are gone;
+visual-token application lives independently in `content-source/visual-tokens.js`.
+The offline `content.js` bootstrap/reference file remains for repository tooling but
+has no import path into the public renderer or Preview.
+
+Focused Chromium passes 37/37 across Phase 2B, Phase 2C, Contact/Turnstile,
+sequential hash navigation, Back/Forward, reload/hard-refresh scroll restoration,
+BootIntro/first paint and MY EXPERTISE. Web source contracts pass 115/115. Lint,
+production build, artifact policy and final graph/hygiene scans are recorded in
+Operations. No broad historical visual suite or live acceptance was run.
+
 ## Pre-Phase 2C console and accessibility hygiene — local, 2026-09-11
 
 | Field | Current value |

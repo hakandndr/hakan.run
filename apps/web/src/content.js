@@ -1,5 +1,5 @@
-// Fallback content: the synchronous initial value, before the /api/content
-// overlay. Not a second authority — see contexts/ContentContext.jsx.
+// Historical content retained only for offline bootstrap tooling and test fixtures.
+// The public renderer and Preview do not import or merge this module.
 //
 // `contact.formEndpoint` used to live here. It is gone: submissions go to the
 // Worker's POST /api/contact, and the excluded field must not survive in the

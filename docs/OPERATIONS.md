@@ -1,5 +1,34 @@
 # Operations
 
+## Phase 2C clean renderer verification — 2026-09-11
+
+The local work starts from clean, upstream-matching and staging-deployed SHA
+`b0ca7b28aab2c98f72543a7a90f5a3735d30fac7`. Browser tests stub the strict
+published snapshot, public config, Turnstile where applicable, and analytics writes.
+No live acceptance or mutable endpoint was used.
+
+Focused verification commands:
+
+```powershell
+npx playwright test tests/public-renderer-phase2b.spec.ts tests/public-renderer-phase2c.spec.ts tests/contact.spec.ts tests/hash-navigation.spec.ts tests/scroll-restoration.spec.ts tests/boot-intro.spec.ts --project=chromium
+npm run test:web
+npm run lint --prefix apps/web
+npm run build --prefix apps/web
+npm run verify:artifact --prefix apps/web
+npm run build:staging --prefix apps/web
+npm run verify:artifact:staging --prefix apps/web
+git diff --check
+```
+
+Final browser result is 37/37: Phase 2C 7/7, Phase 2B 4/4, Contact and legacy-route
+disposal 7/7, hash navigation 5/5, deterministic scroll 6/6, and BootIntro/first-
+paint/Footer/MY EXPERTISE 8/8. Web source contracts pass 115/115. Source and public-
+chunk scans prove zero content-context references, deleted-component imports,
+project-detail routes, component-owned scroll calls, Formspree or Supabase public
+runtime. Web lint and `git diff --check` pass. Production and staging builds each
+complete 1716 modules, and both explicit indexing-policy checks pass. The broad
+historical visual suite is deliberately excluded.
+
 ## Pre-Phase 2C console and accessibility verification — 2026-09-11
 
 The baseline is committed, upstream-matching and staging-deployed SHA `e4ea9db`.
