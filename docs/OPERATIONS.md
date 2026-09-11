@@ -1,5 +1,26 @@
 # Operations
 
+## Phase 2A immutable intro and blank LOADING verification — 2026-09-11
+
+This local-only correction starts from deployed commit `874b7e8`. It fixes the
+BootIntro canvas at source-controlled `#090909` and removes every visible child from
+the full-viewport `#090909` LOADING shell. The presentation session marker, ERROR,
+strict snapshot, READY and scroll coordinator contracts are unchanged.
+
+```powershell
+npm run lint --prefix apps/web
+npm run build --prefix apps/web
+npx --no-install playwright test tests/boot-intro.spec.ts tests/scroll-restoration.spec.ts --project=chromium --workers=1 --reporter=line
+git diff --check
+```
+
+Focused Chromium passed 13/13 in 8.6 seconds using an explicit local preview: seven
+intro/bootstrap/Footer/MY EXPERTISE cases and all six scroll cases. The first
+Playwright-managed run executed all cases but inherited the known Windows preview
+shutdown hang; the explicit-preview rerun supplied the final result and the preview
+was terminated. No historical visual suite or live endpoint was used. Web lint
+passed; final production-build and diff results are recorded at handoff.
+
 ## Phase 2A first-entry intro follow-up verification — 2026-09-10
 
 The narrow local follow-up keeps the existing public content and scroll contracts

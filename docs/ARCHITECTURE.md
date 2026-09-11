@@ -17,7 +17,7 @@ the legacy `formEndpoint`; the public completeness layer additionally requires e
 field that the preserved renderer previously obtained from source defaults.
 
 The document lifecycle has three visible states. Static `index.html` supplies a
-neutral dark LOADING structure. `PublicBootstrap` makes one request and either
+blank, childless `#090909` LOADING canvas. `PublicBootstrap` makes one request and either
 applies validated visual tokens before committing READY or commits the explicit
 ERROR surface. Only the user's Retry action starts another request. Public content
 is not mounted during LOADING or ERROR.
@@ -88,8 +88,10 @@ ERROR and retry remain independent. Reduced-motion CSS removes the practical
 duration and delay. A tab-scoped `hakan.run:boot-intro-seen` boolean is its sole
 presentation eligibility state: the first public entry claims it, reload omits the
 intro, and SPA navigation does not remount it. The flag has no content, readiness or
-scroll authority. The overlay uses `var(--color-bg, #090909)` to match the public
-document rather than a separate terminal background.
+scroll authority. The overlay uses immutable presentation color `#090909`; it does
+not subscribe to the published `--color-bg` token and therefore cannot change while
+visual tokens are applied. When the intro is suppressed, LOADING remains the same
+childless full-viewport canvas with no skeleton, header line or layout approximation.
 
 Footer logo text remains published content. Source-controlled rendering isolates
 the slash and paints it white, matching the Header's canonical `<h/>` treatment

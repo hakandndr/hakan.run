@@ -1,18 +1,18 @@
 # hakan.run Modernization Handoff
 
-## Phase 2A first-entry intro and footer parity follow-up — local, 2026-09-10
+## Phase 2A immutable intro canvas follow-up — local, 2026-09-11
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2` / `9409630868f0cb4438c0eab967c104c08bf229c2` |
-| Current phase | Narrow Phase 2A visual/lifecycle follow-up implemented and verified locally; owner review pending |
-| Completed | BootIntro main-background parity, first-entry-only tab-session eligibility, reload/navigation non-replay, footer `<h/>` slash parity, focused boot/footer/scroll regression, lint and production build |
-| Exact next action | Owner reviews this uncommitted follow-up and separately decides whether to authorize commit, push or staging deployment |
-| Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, DNS, Access, Turnstile, broader renderer rewrite or historical visual suite |
-| Push state | Local HEAD and upstream both remain `9409630868f0cb4438c0eab967c104c08bf229c2`; only this follow-up is uncommitted |
-| Deploy state | Follow-up is not deployed; staging remains on Phase 2A version `33d1fbea-0ff0-4179-9021-e6e2b08cf3fe` |
-| Infrastructure state | Unchanged in this follow-up; no provider, database, production or live-browser operation occurred |
+| Branch / HEAD | `develop/hakan-run-v2` / `874b7e86960a8275f56273f79a99dcc97336a527` |
+| Current phase | Narrow immutable BootIntro/blank-LOADING correction implemented and verified locally; owner review pending |
+| Completed | Stable `#090909` BootIntro canvas, childless blank LOADING shell, focused intro/bootstrap/footer/MY EXPERTISE and scroll regression, lint and production build |
+| Exact next action | Owner reviews this uncommitted local correction and separately decides whether to authorize commit, push or staging deployment |
+| Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, Boss/content work, scroll changes or historical visual suite |
+| Push state | Local HEAD and upstream remain `874b7e86960a8275f56273f79a99dcc97336a527`; this correction is uncommitted |
+| Deploy state | Correction is not deployed; staging remains on Worker version `ab036105-38ba-4851-865d-7797a472f14e` from `874b7e8` |
+| Infrastructure state | Unchanged; no provider, database, production or live staging operation occurred |
 
 `index.html` changes native history restoration to `manual` before the body exists.
 Each browser history entry owns one `{ x, y }` value under
@@ -28,13 +28,15 @@ shell zero and stale outgoing-route events cannot replace a stable position.
 of content, READY and scroll state: the first public entry renders the fixed,
 pointer-transparent, `aria-hidden` overlay; subsequent reloads in that tab return
 `null`; SPA navigation never remounts it. Its background uses
-`var(--color-bg, #090909)`, exactly matching the main public background. Historical
-`TerminalLoader.jsx` remains unreachable.
+immutable `#090909` rather than the mutable published `--color-bg` token, so token
+application cannot recolour the overlay while it is visible. Historical
+`TerminalLoader.jsx` remains unreachable. The LOADING surface is now a childless,
+full-viewport `#090909` canvas; it contains no header line, skeleton or fake geometry.
 
 Footer preserves its published logo text while rendering the slash as an explicit
-white span, matching the Header mark. Final local evidence: focused Chromium 11/11,
-web lint, production build/artifact policy and `git diff --check` passed. No commit,
-push, deployment or broad visual run occurred.
+white span, matching the Header mark. Final local evidence for this correction:
+focused Chromium 13/13 and web lint passed; production build and final diff checks
+are recorded in Operations. No commit, push, deployment or broad visual run occurred.
 
 ## Phase 1.5 staging content authority completion — 2026-09-10
 

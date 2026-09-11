@@ -3079,3 +3079,35 @@ cases. `git diff --check` passed before documentation completion and was rerun o
 complete working tree at handoff. No commit identity was exercised; no commit, push,
 deployment, migration, provider/database mutation or production action occurred.
 Exact next action is owner review of this uncommitted local follow-up.
+
+### 2026-09-11 — Phase 2A immutable intro canvas and blank LOADING follow-up
+
+Objective: correct two owner-observed transient staging visuals without changing
+scroll, first-entry semantics, content authority, Boss or infrastructure. Work began
+clean on `develop/hakan-run-v2` at deployed and upstream-matching
+`874b7e86960a8275f56273f79a99dcc97336a527`. Local BUILD was authorized. COMMIT,
+PUSH, DEPLOY, DATABASE, PROVIDER and production work were prohibited.
+
+The BootIntro inline background read `var(--color-bg, #090909)`. It began on the
+fallback, then changed when `applyPublishedVisualTokens` assigned the published
+background during the still-running intro. The reload shadow was the implemented
+LOADING shell itself: a header border and five low-opacity horizontal skeleton bars
+became briefly visible whenever the session marker correctly suppressed BootIntro.
+
+`BootIntro.jsx` now owns immutable presentation color `#090909`; it does not read a
+mutable theme token and gains no content authority. `PublicBootstrap.jsx` reduces
+`NeutralPublicShell` to one childless, full-viewport `#090909` element. ERROR, retry,
+strict `PublishedSiteSnapshot`, READY, session marker, Footer, routes and scroll code
+are unchanged. `tests/boot-intro.spec.ts` proves the intro stays `#090909` before and
+after a deliberately different published background is applied, proves an already-
+seen intro exposes only an empty `#090909` LOADING canvas, and proves READY still
+mounts real content.
+
+Focused Chromium passed 13/13 in 8.6 seconds using an explicit local preview: seven
+BootIntro/bootstrap/Footer/MY EXPERTISE cases plus all six deterministic scroll
+cases. The initial Playwright-managed invocation ran every case but retained its
+known Windows preview process; it was stopped and the explicit-preview run supplied
+the final result. Web lint passed. Final production build and `git diff --check`
+results are recorded after documentation completion. No broad historical visual
+suite, live endpoint, content/database mutation, commit, push or deploy occurred.
+Exact next action is owner review of this uncommitted local correction.

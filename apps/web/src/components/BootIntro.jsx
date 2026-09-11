@@ -30,8 +30,7 @@ const BootIntro = () => {
     <div
       data-boot-intro="presentation"
       aria-hidden="true"
-      className="boot-intro fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none"
-      style={{ backgroundColor: 'var(--color-bg, #090909)' }}
+      className="boot-intro fixed inset-0 z-[99999] flex items-center justify-center bg-[#090909] pointer-events-none"
     >
       <div className="font-mono text-sm w-72 space-y-2">
         <div className="text-gray-700 text-[10px] mb-5 select-none tracking-widest">

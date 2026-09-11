@@ -39,6 +39,60 @@ test('BootIntro is a presentation-only fresh-load overlay with no editable copy'
   await expect(page.locator('h1')).toContainText('RUN.');
 });
 
+test('BootIntro background stays immutable when published theme tokens are applied', async ({ page }) => {
+  const payload = JSON.parse(publishedContentResponse.body);
+  const colors = payload.sections.find((section: { id: string }) => section.id === 'colors');
+  colors.data.background = '#0c1424';
+
+  let releaseContent: (() => void) | undefined;
+  const contentGate = new Promise<void>(resolve => { releaseContent = resolve; });
+  await page.route('**/api/content', async route => {
+    await contentGate;
+    await route.fulfill({
+      ...publishedContentResponse,
+      body: JSON.stringify(payload),
+    });
+  });
+
+  await page.goto('/', { waitUntil: 'load' });
+  const intro = page.locator('[data-boot-intro="presentation"]');
+  await page.addStyleTag({ content: '.boot-intro { animation: none !important; opacity: 1 !important; }' });
+  await expect(intro).toHaveCSS('background-color', 'rgb(9, 9, 9)');
+
+  releaseContent?.();
+  await waitForPublishedSite(page);
+  await expect(page.locator('html')).toHaveCSS('--color-bg', '#0c1424');
+  await expect(intro).toBeVisible();
+  await expect(intro).toHaveCSS('background-color', 'rgb(9, 9, 9)');
+});
+
+test('seen intro leaves a blank stable loading canvas until READY', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.sessionStorage.setItem('hakan.run:boot-intro-seen', '1');
+  });
+
+  let releaseContent: (() => void) | undefined;
+  const contentGate = new Promise<void>(resolve => { releaseContent = resolve; });
+  await page.route('**/api/content', async route => {
+    await contentGate;
+    await route.fulfill(publishedContentResponse);
+  });
+
+  await page.goto('/', { waitUntil: 'load' });
+  await expect(page.locator('[data-boot-intro="presentation"]')).toHaveCount(0);
+
+  const shell = page.locator('[data-public-bootstrap="loading"]');
+  await expect(shell).toBeVisible();
+  await expect(shell).toHaveCSS('background-color', 'rgb(9, 9, 9)');
+  await expect(shell).toBeEmpty();
+
+  releaseContent?.();
+  await waitForPublishedSite(page);
+  await expect(shell).toHaveCount(0);
+  await expect(page.locator('h1')).toContainText('BUILD. DEPLOY.');
+  await expect(page.locator('h1')).toContainText('RUN.');
+});
+
 test('BootIntro is claimed once per tab session and does not replay on reload or navigation', async ({ page }) => {
   await page.route('**/api/content', route => route.fulfill(publishedContentResponse));
 

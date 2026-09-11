@@ -181,3 +181,19 @@
   document reloads without becoming a correctness gate.
 - Exceptions / caveats: Do not use presentation storage as a substitute for durable
   product state, authentication, consent or history-entry scroll checkpoints.
+
+## 17. Bootstrap presentation must not subscribe to mutable theme state
+
+- Problem: A presentation overlay can visibly recolour mid-animation when it reads a
+  CSS custom property that authoritative content updates during bootstrap. Decorative
+  LOADING geometry remains visible when the overlay is correctly suppressed.
+- Evidence / context: BootIntro began on fallback `#090909`, then followed the newly
+  applied published background token. On reload, its session gate returned null and
+  revealed the LOADING shell's header line and horizontal skeleton blocks.
+- Reusable rule: Give fixed bootstrap presentation an immutable source-controlled
+  canvas, and keep strict asynchronous LOADING childless when no placeholder semantics
+  are required. Theme values begin affecting real content at READY.
+- Applies when: Runtime tokens are applied asynchronously while an independent splash
+  or neutral loading boundary may still be visible.
+- Exceptions / caveats: An intentionally theme-aware intro is a separate visual
+  decision; it must not be inferred from the site's mutable content theme.

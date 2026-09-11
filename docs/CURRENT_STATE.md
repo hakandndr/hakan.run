@@ -1,6 +1,6 @@
 # Current State
 
-## Phase 2A public lifecycle — deployed baseline plus local follow-up, 2026-09-10
+## Phase 2A public lifecycle — deployed baseline plus local canvas correction, 2026-09-11
 
 The asynchronous strict content boundary remains authoritative, but native browser
 restoration is no longer expected to succeed against its viewport-height LOADING
@@ -16,25 +16,28 @@ current. The LOADING shell does not mount the coordinator, and an outgoing anima
 route cannot write into the destination entry. No timer, delay, retry, polling,
 observer, animation-frame restoration loop or height-guess shell is involved.
 
-The deployed Phase 2A baseline is commit `9409630`, staging version
-`33d1fbea-0ff0-4179-9021-e6e2b08cf3fe`. A narrow uncommitted follow-up changes only
-presentation eligibility and footer mark rendering. `BootIntro` uses one tab-scoped
+The deployed Phase 2A baseline is commit `874b7e8`, staging version
+`ab036105-38ba-4851-865d-7797a472f14e`. `BootIntro` uses one tab-scoped
 `hakan.run:boot-intro-seen` flag: the first public entry claims and renders it,
 reload returns no intro, and internal navigation does not remount it. This flag has
-no content, READY or scroll authority. The overlay background is the main
-`var(--color-bg, #090909)`, and reduced motion remains effectively immediate.
-Historical `TerminalLoader.jsx` remains unreachable.
+no content, READY or scroll authority. A narrow uncommitted correction fixes the
+overlay background at immutable `#090909`, independent of the published mutable
+theme token, and removes all child geometry from the `#090909` LOADING canvas.
+Reduced motion remains effectively immediate. Historical `TerminalLoader.jsx`
+remains unreachable.
 
 Footer continues to read `logoText` from the published snapshot, but renders its
 slash in white to match the Header `<h/>` treatment. No service/accordion code,
 content schema, Boss behavior or scroll code changed.
 
-Focused Chromium evidence for the follow-up passes 11/11, including normal and cache-bypassing reloads,
+Focused Chromium evidence for the correction passes 13/13, including immutable
+background across theme application, blank LOADING, normal and cache-bypassing reloads,
 stable state through repeated hard reload, post-READY user ownership, PUSH/REPLACE,
 POP, cross-route hash navigation, BootIntro, reduced motion and the unchanged
 MY EXPERTISE single-open accordion. Strict snapshot/schema/preview tests pass 22/22;
-lint, production/staging builds, both artifact policies and `git diff --check` pass.
-The follow-up remains uncommitted and undeployed at HEAD `9409630`.
+the focused correction's web lint, production build/artifact policy and
+`git diff --check` pass. No staging build was needed or run for this local gate.
+The correction remains uncommitted and undeployed at HEAD `874b7e8`.
 
 ## Clean public-runtime foundation — local, not deployed, 2026-09-10
 

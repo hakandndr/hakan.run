@@ -8,8 +8,8 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Dependencies: Deployed Phase 1 strict `PublishedSiteSnapshot` boundary and completed staging content authority.
 - Main risks: Persisting transient LOADING zero, competing native/application restoration, stale animated routes writing into a destination entry, presentation timing becoming a correctness gate, and visual/accordion regression.
 - Acceptance gates: Manual native restoration selected before body creation; one history-entry authority; one READY-commit coordinator; exact reload/POP and PUSH/REPLACE behavior; no timer/retry/storage scroll workaround; BootIntro independent of content/readiness/scroll; first-entry-only presentation; reduced motion; stale-copy exclusion; Header/Footer mark parity; MY EXPERTISE regression; focused strict-contract/lint/build evidence.
-- Authorization boundaries: Core Phase 2A is deployed to staging. The current follow-up has local BUILD authorization only; COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
-- Status: Core implementation is committed at `9409630` and deployed to staging as `33d1fbea-0ff0-4179-9021-e6e2b08cf3fe`. The first-entry/background/footer-parity follow-up passes focused Chromium 11/11 locally and awaits owner review.
+- Authorization boundaries: Phase 2A through first-entry/Footer parity is deployed to staging. The immutable intro/blank-LOADING correction has local BUILD authorization only; COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
+- Status: Commit `874b7e8` is deployed to staging as `ab036105-38ba-4851-865d-7797a472f14e`. The immutable `#090909` intro and childless LOADING correction passes focused Chromium 13/13 locally and awaits owner review.
 
 ## Phase 1D — Clean public-runtime foundation
 

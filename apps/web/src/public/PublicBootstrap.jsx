@@ -14,17 +14,8 @@ export const NeutralPublicShell = () => (
   <div
     data-public-bootstrap="loading"
     aria-label="Loading published site"
-    className="min-h-screen bg-[#090909] text-white"
-  >
-    <div className="h-20 border-b border-white/[0.06]" />
-    <div className="max-w-[1120px] mx-auto px-6 py-20 lg:py-28" aria-hidden="true">
-      <div className="h-4 w-40 rounded bg-white/[0.04] mb-10" />
-      <div className="h-16 max-w-2xl rounded bg-white/[0.05] mb-5" />
-      <div className="h-16 max-w-xl rounded bg-white/[0.035] mb-10" />
-      <div className="h-3 max-w-lg rounded bg-white/[0.03] mb-3" />
-      <div className="h-3 max-w-md rounded bg-white/[0.03]" />
-    </div>
-  </div>
+    className="min-h-screen bg-[#090909]"
+  />
 );
 
 export const PublicFailure = ({ onRetry }) => (

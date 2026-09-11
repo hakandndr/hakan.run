@@ -21,6 +21,11 @@ boolean only. It is never read by content, READY, authorization or scroll logic 
 is not a restoration checkpoint. Storage denial falls back to showing the harmless
 presentation and never blocks the public application.
 
+The 2026-09-11 visual follow-up adds no state or authority. Immutable `#090909` is a
+source-controlled presentation constant, and the childless LOADING canvas exposes no
+content or fallback geometry. ERROR, validation, retry and session-marker behavior
+remain unchanged. No database, Boss, binding, Access or production boundary changed.
+
 ## Phase 1.5 staging content publication — 2026-09-10
 
 The authorized staging-only operation used Cloudflare Access and the Worker's

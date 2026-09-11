@@ -8,7 +8,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Context: Source-bundled content was painted before APP_DB and silently survived failed or partial responses, producing ghost content and two authorities.
 - Alternatives considered: Continue overlaying published sections; deep-merge missing fields; cache the last source snapshot; delay the loader until the request usually completes.
 - Rationale: Atomic validation makes APP_DB the only public runtime truth and makes authority failure visible without timing heuristics.
-- Consequences: Public, Boss and preview need separate entry trees; theme tokens apply before READY; missing renderer fields block publication instead of receiving defaults; historical source content may remain only while unreachable from the public bundle.
+- Consequences: Public, Boss and preview need separate entry trees; theme tokens apply before READY; LOADING is a childless `#090909` canvas rather than content-like geometry; missing renderer fields block publication instead of receiving defaults; historical source content may remain only while unreachable from the public bundle.
 - Status: Approved, committed and deployed to staging at the Phase 1 checkpoint. This supersedes D-026 where D-026 relied on source-bundled content for the initial document layout; D-028 supersedes its native-restoration model for the resulting asynchronous boundary.
 
 ## D-028 — History entries own restoration; BootIntro is presentation only
@@ -18,7 +18,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Reintroduce session storage; retain native restoration with guessed shell height; use timers, retries, animation-frame loops or observers; gate READY on the intro duration; allow route components to manage their own targets.
 - Rationale: The history entry is the browser object whose lifetime already matches reload and POP semantics. Binding one coordinator to the committed destination frame gives an exact lifecycle boundary without elapsed-time guesses. Presentation can then remain independent of application correctness.
 - Consequences: `history.state.__hakanRunScroll` is the sole restoration checkpoint. LOADING/ERROR never mount the coordinator; stale route-key writes are ignored; POP/reload restore once; PUSH/REPLACE perform one available hash or top action. BootIntro is fixed, pointer-transparent, `aria-hidden`, reduced-motion aware and contains only fixed system copy. It uses one tab-scoped session boolean solely to decide first-entry presentation; this value cannot participate in scroll, content or readiness. No timer/retry/session/local-storage scroll workaround is permitted.
-- Status: Core decision is deployed to staging from `9409630`; the first-entry presentation refinement is implemented and focused-validated locally, uncommitted and undeployed.
+- Status: Scroll and first-entry presentation behavior are deployed to staging from `874b7e8`; the immutable intro/blank-LOADING visual correction is focused-validated locally, uncommitted and undeployed.
 
 ## D-001 — Preserve the existing visual language
 

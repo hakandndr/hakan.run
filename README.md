@@ -13,7 +13,7 @@ For the implemented site, start with the [documentation index](./docs/README.md)
 The modernization branch has a deployed staging clean public-runtime boundary.
 Public paths render only after one complete, validated, immutable twelve-section
 snapshot has been read from `GET /api/content` and therefore from `APP_DB`. Loading
-shows a neutral dark shell; any authority or contract failure shows an explicit
+shows a blank, childless `#090909` canvas; any authority or contract failure shows an explicit
 error and never source-bundled copy. Public, Boss and preview have separate entry
 trees. The Phase 1 checkpoint is committed, pushed and deployed to staging; production
 is untouched.
@@ -24,11 +24,11 @@ canonical fields in staging APP_DB, and a fresh public API readback passes the s
 snapshot contract. Production content was not changed; commit, push and staging code
 deployment remain separate authorization gates for subsequent work.
 
-Phase 2A deterministic history-entry scroll restoration and its presentation-only
-BootIntro are deployed to staging from `9409630`. A narrow local follow-up makes the
-intro first-entry-only through a presentation-scoped tab-session flag, aligns its
-background with the main site, and makes the Footer `<h/>` slash white like Header.
-The follow-up is uncommitted and undeployed; it changes no content or scroll authority.
+Phase 2A deterministic history-entry scroll restoration, first-entry-only BootIntro
+and Footer mark parity are deployed to staging from `874b7e8`. A narrow local visual
+follow-up makes the intro canvas immutable `#090909` throughout token application and
+removes all decorative geometry from LOADING. It is uncommitted and undeployed; it
+changes no content, first-entry semantics or scroll authority.
 
 ## Legacy technology reference
 
