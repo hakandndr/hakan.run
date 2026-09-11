@@ -1,5 +1,41 @@
 # Operations
 
+## Phase 2A hash-navigation history quota verification — 2026-09-11
+
+The deployed checkpoint is commit `9e99fe1`, staging Worker version
+`ed92f542-7821-43b5-8ab8-42adc67bf5a2`. The current correction is local only.
+Public browser tests stub content and analytics writes. One diagnostic staging run
+used only document/content GET requests and fulfilled every non-GET request inside
+the browser; it made no APP_DB or ANALYTICS_DB mutation.
+
+Pre-fix instrumentation must capture click delivery, `pushState`, router history
+key/index, target existence and ScrollManager calls. A normal Chromium run can stay
+green because its immediate frequency policy is permissive; the decisive signal is
+the 49 `replaceState` calls emitted by the first smooth hash scroll. The HTML standard
+allows user agents to reject rapidly repeated History API calls. A controlled shared
+quota then reproduces the owner boundary: first target succeeds, later navigation
+loses its router entry and no second ScrollManager target action occurs.
+
+Focused verification:
+
+```powershell
+npm run build --prefix apps/web
+npm run start --prefix apps/web
+npx --no-install playwright test tests/hash-navigation.spec.ts --project=chromium --workers=1 --reporter=line
+npx --no-install playwright test tests/scroll-restoration.spec.ts --project=chromium --workers=1 --reporter=line
+npx --no-install playwright test tests/boot-intro.spec.ts --project=chromium --workers=1 --reporter=line --grep "MY EXPERTISE"
+npm run lint --prefix apps/web
+git diff --check
+```
+
+Final focused results are hash navigation 5/5, deterministic scroll restoration
+6/6, and MY EXPERTISE 1/1. The production build completed 1716 modules and artifact
+policy passed. The hash suite covers six sequential/reverse transitions, same-target
+repetition followed by a new target, Back/Forward, bounded history writes,
+Hero/Footer targets and `/contact`. No historical visual suite is part of this gate.
+Playwright-managed preview shutdown remained unreliable on Windows; the final runs
+used an explicit preview and explicit termination.
+
 ## Phase 2A zero-geometry first-paint verification — 2026-09-11
 
 The deployed base is commit `7f506e3`, staging Worker version

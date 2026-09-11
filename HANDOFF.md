@@ -1,18 +1,18 @@
 # hakan.run Modernization Handoff
 
-## Phase 2A zero-geometry first-paint follow-up — local, 2026-09-11
+## Phase 2A hash-navigation history quota correction — local, 2026-09-11
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2` / `7f506e32e10b158184865dedd6945e51b07ab03f` |
-| Current phase | Pre-React first-paint shell diagnosed, deleted and verified locally; owner review pending |
-| Completed | Empty static `#root`, base-only inline first-paint CSS, generated staging artifact inspection, pre-React pseudo-element proof, focused intro/bootstrap/footer/MY EXPERTISE and scroll regression |
+| Branch / HEAD | `develop/hakan-run-v2` / `9e99fe1551dcd842de87900ec5f86b30aab10584` |
+| Current phase | Same-document hash-navigation history quota defect corrected and focused-verified locally; owner review pending |
+| Completed | Exact click/router/history/scroll trace, bounded history checkpoint strategy, sequential and reverse hash navigation, same-target recovery, Back/Forward, Hero/Footer/contact controls, deterministic reload restoration and MY EXPERTISE regression |
 | Exact next action | Owner reviews this uncommitted local correction and separately decides whether to authorize commit, push or staging deployment |
-| Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, Boss/content work, scroll changes or historical visual suite |
-| Push state | Local HEAD and upstream remain `7f506e32e10b158184865dedd6945e51b07ab03f`; this correction is uncommitted |
-| Deploy state | Correction is not deployed; staging remains on Worker version `5392a1cd-dd06-4381-a325-116958c225e3` from `7f506e3` |
-| Infrastructure state | Unchanged; no provider, database, production or live staging operation occurred |
+| Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, Boss/content work or historical visual suite |
+| Push state | Local committed HEAD and upstream remain `9e99fe1551dcd842de87900ec5f86b30aab10584`; this correction is uncommitted |
+| Deploy state | Correction is not deployed; staging remains on Worker version `ed92f542-7821-43b5-8ab8-42adc67bf5a2` from `9e99fe1` |
+| Infrastructure state | Unchanged; no database/provider/production mutation occurred; one staging diagnostic GET session intercepted every non-GET request locally |
 
 `index.html` changes native history restoration to `manual` before the body exists.
 Each browser history entry owns one `{ x, y }` value under
@@ -20,8 +20,12 @@ Each browser history entry owns one `{ x, y }` value under
 snapshot captured by the animated route frame and runs its layout effect only after
 the strict published snapshot is READY and the destination DOM has committed. POP
 and reload restore once; PUSH/REPLACE perform one top or available hash-target
-action. A listener may update only the currently owned history entry, so loading-
-shell zero and stale outgoing-route events cannot replace a stable position.
+action. Scroll events update an entry-keyed in-memory position, while History API
+state is written only for the initial entry checkpoint, `scrollend`, and `pagehide`.
+The entry-key guard rejects stale outgoing-route events. This removes the earlier
+dozens of `replaceState` calls produced by one smooth scroll, which could exhaust a
+browser's shared push/replace frequency limit and make later hash PUSH navigation
+inert.
 
 `BootIntro` now claims a single presentation-only flag named
 `hakan.run:boot-intro-seen` in tab-scoped `sessionStorage`. The flag is independent
@@ -40,9 +44,10 @@ module and public chunk loaded. The static root is now empty and the document in
 style contains only the uniform `html`, `body` and `#root` `#090909` canvas.
 
 Footer preserves its published logo text while rendering the slash as an explicit
-white span, matching the Header mark. Final local evidence for this correction:
-focused Chromium 14/14 against the staging artifact passed; final lint/build/diff
-results are recorded in Operations. No commit, push, deployment or broad visual run occurred.
+white span, matching the Header mark. The deployed zero-geometry first-paint work is
+commit `9e99fe1`; this new hash correction changes no visual, content, Boss or
+bootstrap surface. Final local evidence is recorded in Operations. No commit, push,
+deployment or broad visual run occurred for the current correction.
 
 ## Phase 1.5 staging content authority completion — 2026-09-10
 

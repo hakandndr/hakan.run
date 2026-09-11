@@ -27,9 +27,13 @@ deployment remain separate authorization gates for subsequent work.
 
 Phase 2A deterministic history-entry scroll restoration, first-entry-only BootIntro,
 immutable intro canvas, blank React LOADING and Footer mark parity are deployed to
-staging from `7f506e3`. A narrow local first-paint follow-up deletes the earlier static
-HTML skeleton and its inline rules. It is uncommitted and undeployed; it changes no
-content, first-entry semantics or scroll authority.
+staging. Commit `9e99fe1` also deletes the earlier static HTML skeleton and its inline
+rules, leaving an empty pre-React root. A narrow local follow-up keeps one
+`ScrollManager` but records continuous scroll motion in entry-keyed memory and writes
+History API state only at stable checkpoints. This prevents smooth scrolling from
+exhausting browser history frequency limits and preserves indefinite hash-to-hash
+PUSH navigation, reload restoration and Back/Forward semantics. It is uncommitted
+and undeployed and changes no content, visual or bootstrap behavior.
 
 ## Legacy technology reference
 

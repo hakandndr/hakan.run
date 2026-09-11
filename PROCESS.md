@@ -3147,3 +3147,54 @@ paint/BootIntro/Footer/MY EXPERTISE cases and all six scroll cases. Final lint a
 `git diff --check` results were recorded after documentation completion. No commit,
 push, deployment, database/provider mutation or live endpoint operation occurred.
 Exact next action is owner review of this uncommitted local correction.
+
+### 2026-09-11 — Phase 2A same-document hash navigation correction
+
+Objective: reproduce and correct the owner-observed pattern where the first in-page
+hash navigation succeeds but later same-document hash transitions become inert.
+Work began clean on `develop/hakan-run-v2` at deployed and upstream-matching
+`9e99fe1551dcd842de87900ec5f86b30aab10584`. Local diagnosis, implementation and
+focused BUILD were authorized. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER, Boss,
+content and production work were prohibited.
+
+Unmodified local and write-isolated staging Chromium both completed repeated hash
+navigation because Chromium did not immediately enforce a restrictive frequency
+quota. The detailed trace nevertheless exposed the failure boundary: the first
+Portfolio click fired, `navigate()` produced one PUSH with a new route key and the
+target existed, but its smooth scroll caused 49 `replaceState` calls. The HTML
+History API permits user agents to reject rapid successive push/replace calls. A
+controlled shared quota reproduced the owner sequence: the first target completed,
+then later navigation lost valid router history state and ScrollManager did not
+consume a second target. This excluded stale hooks, missing targets, pathname
+routing, BootIntro and content authority.
+
+`ScrollManager` remains the only scroll authority. It now tracks continuous
+positions in an entry-keyed in-memory map and merges them into the current history
+entry only at initialization, `scrollend`, and `pagehide`. POP reads the current-
+session keyed position first and falls back to the persisted entry for reload.
+Every memory and persistent update checks the captured route key against the active
+history key. The first implementation revealed two corrections in the existing POP
+suite: cleanup-time measurement occurred after destination DOM mutation, and the
+outgoing listener could observe a layout-clamp event after the browser changed keys.
+Cleanup measurement was removed and the key guard was extended to memory updates.
+
+Runtime scope is only `apps/web/src/components/ScrollManager.jsx`; focused coverage
+is added in `tests/hash-navigation.spec.ts`. Documentation continuity updates are
+README, HANDOFF, this journal, CURRENT_STATE, ARCHITECTURE, OPERATIONS, DECISIONS,
+ROADMAP and LESSONS. No Header, Hero, Footer, router, bootstrap, Boss, schema,
+content, Worker, configuration or migration source changed.
+
+Focused Chromium passes hash navigation 5/5, deterministic scroll restoration 6/6,
+and MY EXPERTISE 1/1. The production build completed 1716 modules and artifact
+policy passed; web lint passed. The first test draft incorrectly selected Header
+contact as an anchor although it is a button, and was corrected to the real
+accessible CTA. The first two scroll-regression runs exposed the stale outgoing
+memory ownership described above (5/6 each) before the final 6/6 result. The
+Playwright-owned Windows preview did not terminate reliably, so final evidence used
+an explicit preview. Final diff hygiene is recorded after documentation completion.
+
+One staging diagnostic browser session was permitted only after all non-GET requests
+were intercepted locally. The initial guard caught Cloudflare RUM before network
+continuation; the corrected run fulfilled every non-GET request in-browser. No live
+database write, deployment or provider mutation occurred. No commit identity was
+exercised. Exact next action is owner review of this uncommitted local correction.

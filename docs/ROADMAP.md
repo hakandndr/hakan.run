@@ -6,10 +6,10 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 - Objective: Preserve deep scroll positions across the strict asynchronous public bootstrap and add the approved presentation-only BootIntro without creating a second content or readiness authority.
 - Dependencies: Deployed Phase 1 strict `PublishedSiteSnapshot` boundary and completed staging content authority.
-- Main risks: Persisting transient LOADING zero, competing native/application restoration, stale animated routes writing into a destination entry, presentation timing becoming a correctness gate, and visual/accordion regression.
-- Acceptance gates: Manual native restoration selected before body creation; one history-entry authority; one READY-commit coordinator; exact reload/POP and PUSH/REPLACE behavior; no timer/retry/storage scroll workaround; BootIntro independent of content/readiness/scroll; first-entry-only presentation; reduced motion; stale-copy exclusion; Header/Footer mark parity; MY EXPERTISE regression; focused strict-contract/lint/build evidence.
-- Authorization boundaries: Phase 2A through immutable intro/blank React LOADING is deployed to staging. The zero-geometry static first-paint correction has local BUILD authorization only; COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
-- Status: Commit `7f506e3` is deployed to staging as `5392a1cd-dd06-4381-a325-116958c225e3`. The static shell deletion passes focused staging-artifact Chromium 14/14 locally and awaits owner review.
+- Main risks: Persisting transient LOADING zero, competing native/application restoration, stale animated routes writing into a destination entry, flooding the shared History API frequency budget during smooth scrolling, presentation timing becoming a correctness gate, and visual/accordion regression.
+- Acceptance gates: Manual native restoration selected before body creation; one history-entry authority; one READY-commit coordinator; bounded stable history checkpoints; indefinite hash PUSH plus deterministic reload/POP behavior; no timer/retry/storage scroll workaround; BootIntro independent of content/readiness/scroll; first-entry-only presentation; reduced motion; stale-copy exclusion; Header/Footer mark parity; MY EXPERTISE regression; focused strict-contract/lint/build evidence.
+- Authorization boundaries: Phase 2A through zero-geometry static first paint is deployed to staging. The hash-navigation history quota correction has local BUILD authorization only; COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
+- Status: Commit `9e99fe1` is deployed to staging as `ed92f542-7821-43b5-8ab8-42adc67bf5a2`. The local history-checkpoint correction passes focused hash navigation 5/5 and deterministic scroll restoration 6/6 and awaits owner review.
 
 ## Phase 1D — Clean public-runtime foundation
 

@@ -32,6 +32,13 @@ or weaken the fail-closed snapshot boundary. An empty root exposes less unauthor
 surface while the public module loads; `html`, `body` and `#root` retain only the
 source-controlled `#090909` canvas.
 
+The same-document navigation correction keeps only `{ x, y }` coordinates in a
+route-keyed in-memory map for the current document. It contains no URL, content,
+identity or authorization data and is discarded with the document. The existing
+namespaced history state remains the reload-persistent boundary and is now written
+less frequently. No cookie, session/local storage, analytics field, network request,
+database row or trust boundary was added.
+
 ## Phase 1.5 staging content publication — 2026-09-10
 
 The authorized staging-only operation used Cloudflare Access and the Worker's

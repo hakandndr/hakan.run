@@ -55,7 +55,7 @@ The strict public snapshot remains asynchronous. `index.html` synchronously sets
 `history.scrollRestoration = 'manual'` in the document head, before the neutral body
 shell exists. Native restoration and application restoration therefore cannot race.
 
-Each browser history entry is the sole persistence boundary. Its state is merged,
+Each browser history entry is the reload-persistent boundary. Its state is merged,
 not replaced, with this namespaced value:
 
 ```js
@@ -70,18 +70,23 @@ It is reachable only after `PublicBootstrap` has constructed the strict immutabl
 `PublishedSiteSnapshot` and mounted the READY application. Its `useLayoutEffect`
 therefore runs after the full destination DOM commit:
 
-1. reload/POP reads the current history entry and restores its position once;
+1. reload reads the current history entry, while POP first reads the same entry's
+   current-session keyed position and falls back to persisted state;
 2. PUSH/REPLACE performs exactly one top action, or one hash action when the target
    exists in the committed destination;
-3. a passive listener records subsequent document scroll only when the captured
-   route key still owns the current history entry.
+3. a passive scroll listener records continuous movement in memory only when the
+   captured route key still owns the current history entry;
+4. entry initialization, `scrollend`, and `pagehide` are the only boundaries that
+   merge the current position into History API state.
 
 LOADING and ERROR do not mount the coordinator, so their transient zero cannot be
 persisted. The history-entry key guard also rejects layout scroll events from an
 outgoing route after the browser has switched entries. Public controls still express
 navigation intent through `usePublicNavigation` and do not perform restoration.
+One smooth scroll therefore produces bounded history writes instead of dozens of
+replacements that can consume the shared `pushState`/`replaceState` browser quota.
 There is no session/local storage for scroll, timer, retry, requestAnimationFrame
-loop, MutationObserver, polling, unload persistence or geometry-guess shell.
+loop, MutationObserver, polling or geometry-guess shell.
 
 `BootIntro` is a sibling presentation layer owned by `PublicBootstrap`, not part of
 the snapshot state machine. It is fixed, pointer-transparent and `aria-hidden`.

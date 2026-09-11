@@ -1,6 +1,6 @@
 # Current State
 
-## Phase 2A public lifecycle — deployed baseline plus local first-paint correction, 2026-09-11
+## Phase 2A public lifecycle — deployed baseline plus local hash correction, 2026-09-11
 
 The asynchronous strict content boundary remains authoritative, but native browser
 restoration is no longer expected to succeed against its viewport-height LOADING
@@ -10,38 +10,37 @@ session or local-storage checkpoint.
 
 Exactly one route-frame `ScrollManager` receives the frame's immutable location
 snapshot. Its `useLayoutEffect` runs only after READY and the destination DOM commit.
-It restores reload/POP once, performs one explicit PUSH/REPLACE top or available
-hash action, and then records document scroll only while the same history entry is
-current. The LOADING shell does not mount the coordinator, and an outgoing animated
-route cannot write into the destination entry. No timer, delay, retry, polling,
-observer, animation-frame restoration loop or height-guess shell is involved.
+It restores reload/POP once and performs one explicit PUSH/REPLACE top or available
+hash action. Raw scroll events update only an entry-keyed in-memory position;
+`history.state` is checkpointed at entry initialization, `scrollend`, and `pagehide`.
+Both memory and persistent writes require the captured key to remain current. The
+LOADING shell does not mount the coordinator, and an outgoing animated route cannot
+write into the destination entry. No timer, delay, retry, polling, observer,
+animation-frame restoration loop or height-guess shell is involved.
 
-The deployed Phase 2A baseline is commit `7f506e3`, staging version
-`5392a1cd-dd06-4381-a325-116958c225e3`. `BootIntro` uses one tab-scoped
+The deployed Phase 2A baseline is commit `9e99fe1`, staging version
+`ed92f542-7821-43b5-8ab8-42adc67bf5a2`. `BootIntro` uses one tab-scoped
 `hakan.run:boot-intro-seen` flag: the first public entry claims and renders it,
 reload returns no intro, and internal navigation does not remount it. This flag has
 no content, READY or scroll authority. Its background is immutable `#090909`, and
 the React LOADING canvas is childless. Reduced motion remains effectively immediate.
 Historical `TerminalLoader.jsx` remains unreachable.
 
-A narrower uncommitted first-paint correction removes the pre-React
-`.bootstrap-shell` tree from `index.html` and deletes its seven inline shell rules.
-The static `#root` is empty; `html`, `body` and `#root` retain only uniform `#090909`.
-This is deletion, not an opacity, visibility, z-index or timing mask.
+The deployed first-paint correction removes the pre-React `.bootstrap-shell` tree
+from `index.html` and its seven inline shell rules. The static `#root` is empty;
+`html`, `body` and `#root` retain only uniform `#090909`.
 
 Footer continues to read `logoText` from the published snapshot, but renders its
-slash in white to match the Header `<h/>` treatment. No service/accordion code,
-content schema, Boss behavior or scroll code changed.
+slash in white to match the Header `<h/>` treatment. The current local correction
+changes only ScrollManager checkpoint frequency and focused browser coverage; no
+service/accordion, content schema, Boss, visual or bootstrap code changed.
 
-Focused staging-artifact Chromium evidence for the correction passes 14/14, including
-the JavaScript-blocked pre-React document, immutable background across theme application,
-blank LOADING, normal and cache-bypassing reloads,
-stable state through repeated hard reload, post-READY user ownership, PUSH/REPLACE,
-POP, cross-route hash navigation, BootIntro, reduced motion and the unchanged
-MY EXPERTISE single-open accordion. Strict snapshot/schema/preview tests pass 22/22;
-the focused correction's staging build/artifact policy pass. Final lint and
-`git diff --check` results are recorded in Operations.
-The correction remains uncommitted and undeployed at HEAD `7f506e3`.
+Pre-fix instrumentation recorded one hash PUSH followed by 49 `replaceState` calls
+during its smooth scroll. A controlled shared History API quota reproduced the
+failure boundary after the first successful target. The local correction passes hash
+navigation 5/5, deterministic scroll restoration 6/6, and MY EXPERTISE 1/1 in
+Chromium. The correction remains uncommitted and undeployed at committed HEAD
+`9e99fe1`; final lint/build/diff results are recorded in Operations.
 
 ## Clean public-runtime foundation — local, not deployed, 2026-09-10
 

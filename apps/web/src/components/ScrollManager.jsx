@@ -2,6 +2,8 @@ import React, { useLayoutEffect } from 'react';
 
 export const SCROLL_POSITION_KEY = '__hakanRunScroll';
 
+const sessionScrollPositions = new Map();
+
 const finitePosition = (value) =>
   Number.isFinite(value) && value >= 0 ? value : null;
 
@@ -22,6 +24,17 @@ export const writeScrollPosition = (history, position) => {
   }, '');
 };
 
+const currentScrollPosition = () => ({
+  x: Math.max(0, window.scrollX),
+  y: Math.max(0, window.scrollY),
+});
+
+const rememberScrollPosition = (entryKey) => {
+  const position = currentScrollPosition();
+  sessionScrollPositions.set(entryKey, position);
+  return position;
+};
+
 // Native reload restoration is disabled in index.html before the document body
 // exists. This coordinator is therefore the sole restoration authority. It is
 // mounted only after the published snapshot is READY and the full document has
@@ -30,7 +43,8 @@ export const writeScrollPosition = (history, position) => {
 const ScrollManager = ({ navigationType, location }) => {
   useLayoutEffect(() => {
     if (navigationType === 'POP') {
-      const saved = readScrollPosition(window.history.state);
+      const saved = sessionScrollPositions.get(location.key)
+        ?? readScrollPosition(window.history.state);
       if (saved) {
         window.scrollTo({ top: saved.y, left: saved.x, behavior: 'auto' });
       }
@@ -45,25 +59,29 @@ const ScrollManager = ({ navigationType, location }) => {
     }
 
     const entryKey = location.key;
-    const persist = () => {
-      // History changes before React cleans up the previous route effect. A
-      // layout-driven scroll event from that transition must not overwrite the
-      // destination entry with the previous route's coordinates.
+    const remember = () => {
       const currentEntryKey = window.history.state?.key ?? 'default';
-      if (currentEntryKey !== entryKey) return;
-
-      writeScrollPosition(window.history, {
-        x: Math.max(0, window.scrollX),
-        y: Math.max(0, window.scrollY),
-      });
+      if (currentEntryKey !== entryKey) return null;
+      return rememberScrollPosition(entryKey);
+    };
+    const persist = () => {
+      const position = remember();
+      if (position) writeScrollPosition(window.history, position);
     };
 
     // A new SPA entry needs an initial checkpoint even when top-to-top scrolling
-    // emits no event. POP keeps its saved value untouched until a later document
-    // scroll occurs.
+    // emits no event. Scroll events update the in-memory entry continuously, but
+    // the History API is touched only at stable boundaries. This avoids exhausting
+    // browser pushState/replaceState frequency limits during smooth scrolling.
     if (navigationType !== 'POP') persist();
-    window.addEventListener('scroll', persist, { passive: true });
-    return () => window.removeEventListener('scroll', persist);
+    window.addEventListener('scroll', remember, { passive: true });
+    window.addEventListener('scrollend', persist, { passive: true });
+    window.addEventListener('pagehide', persist);
+    return () => {
+      window.removeEventListener('scroll', remember);
+      window.removeEventListener('scrollend', persist);
+      window.removeEventListener('pagehide', persist);
+    };
   }, [
     location.hash,
     location.key,

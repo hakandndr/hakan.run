@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 18. High-frequency state persistence can disable the navigation API it supports
+
+- Problem: Writing scroll coordinates with `history.replaceState` on every smooth-scroll event consumes the same browser-controlled frequency budget required by later `pushState` navigation.
+- Evidence / context: One section transition generated one PUSH and 49 replacements. Under a standards-permitted History API quota, the first target completed but the next hash transition lost its router entry and ScrollManager consumption.
+- Reusable rule: Track continuous motion in memory and persist only at semantic boundaries; guard every update with the owning history-entry key.
+- Applies when: Session-history state stores scroll, filters, playback position or other continuously changing presentation state.
+- Exceptions / caveats: A single discrete user action may checkpoint immediately, but arbitrary throttling timers are not a substitute for choosing a stable lifecycle boundary.
+
 ## 17. Required presence and non-empty text are different contracts
 
 - Problem: A global non-empty rule rejected valid statistic suffixes whose empty string intentionally means “display no suffix.”
