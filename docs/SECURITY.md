@@ -1,5 +1,20 @@
 # Security
 
+## Phase 2A local lifecycle boundary — 2026-09-10
+
+The new scroll checkpoint contains only viewport coordinates in the current browser
+history entry. It carries no identity, content, authorization, secret or cross-entry
+storage authority. Existing React Router state is preserved when the namespaced
+`__hakanRunScroll` value is written, and only the coordinator that owns the current
+entry key may update it. The value is validated as finite, non-negative numbers
+before use.
+
+`BootIntro` is `aria-hidden`, pointer-transparent fixed system presentation. It does
+not read APP_DB, browser storage, identity or editable copy and cannot authorize or
+delay READY. The strict `PublishedSiteSnapshot` remains the only path to editable
+public content. No Access, Turnstile, secret, binding, database, analytics policy or
+production boundary changed in this local implementation.
+
 ## Phase 1.5 staging content publication — 2026-09-10
 
 The authorized staging-only operation used Cloudflare Access and the Worker's

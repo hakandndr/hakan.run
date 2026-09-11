@@ -1,5 +1,38 @@
 # Operations
 
+## Phase 2A deterministic lifecycle verification — 2026-09-10
+
+Do not use staging reloads for this gate: the deployed public tracker records a PAGE
+event on each full reload. Serve the production artifact locally on port 4173 and
+stub both the complete twelve-section content response and PAGE ingestion in the
+focused Playwright helpers.
+
+```powershell
+npm run build --prefix apps/web
+npm run start --prefix apps/web
+npx --no-install playwright test tests/scroll-restoration.spec.ts tests/boot-intro.spec.ts --project=chromium --workers=1 --reporter=line
+node --test apps/web/src/content-source/published-site.test.js apps/web/src/content-source/schema.test.js apps/web/src/boss/preview-contract.test.js
+npm run lint --prefix apps/web
+npm run build:staging --prefix apps/web
+npm run verify:artifact:staging --prefix apps/web
+npm run build --prefix apps/web
+npm run verify:artifact --prefix apps/web
+git diff --check
+```
+
+The 2026-09-10 local run passed focused Chromium 9/9 and pure snapshot contracts
+22/22. The browser cases cover normal reload, CDP cache-bypassing hard reload,
+repeated hard reload while LOADING is held, stable history state during transient
+zero, user scroll ownership after READY, PUSH/REPLACE, POP, one cross-route hash
+action, BootIntro presentation and reduced motion, stale-copy exclusion, and the
+MY EXPERTISE single-open regression. Web lint, production and staging builds, both
+indexing-policy checks and `git diff --check` passed.
+
+Playwright-managed preview shutdown is unreliable on this Windows host. The final
+evidence used an explicit local preview, then terminated it explicitly. Test routes
+isolate analytics writes; no staging or production endpoint participates in these
+focused browser cases. These checks authorize no commit, push or deployment.
+
 ## Phase 1.5 staging content verification — 2026-09-10
 
 The staging APP_DB content completion used the existing Access-protected Boss

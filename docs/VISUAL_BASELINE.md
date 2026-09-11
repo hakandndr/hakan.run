@@ -4,6 +4,16 @@
 
 This document is the canonical technical specification for the public visual system inherited from legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb`. It is derived from source inspection and deterministic Chromium captures on Windows. It records existing behavior; it does not approve a redesign or claim that live production was inspected.
 
+## Approved Phase 2A entry exception — local, not deployed
+
+The owner-approved Phase 2A candidate replaces the historical session-gated
+`TerminalLoader` runtime behavior with a presentation-only `BootIntro`. The five
+fixed terminal lines retain the entry motif, but the overlay is `aria-hidden`,
+pointer-transparent, independent of content/READY/scroll, present on each fresh
+document, and effectively immediate under reduced motion. The historical baseline
+descriptions below remain evidence of the inherited design, not current runtime
+authority. No broad redesign or historical screenshot re-baselining was performed.
+
 ## Preservation Contract
 
 The existing public design is authoritative during infrastructure and framework work. A future implementation must preserve brand identity, hierarchy, typography intent, major spacing geometry, section order, navigation, responsive behavior, interaction semantics, card proportions, major component geometry, motion intent, and content completeness. Approximate similarity is insufficient. Every intentional deviation requires explicit owner approval and documentation.

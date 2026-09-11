@@ -16,7 +16,10 @@ function App() {
       <KonamiEasterEgg />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<Layout navigationType={navigationType} />}>
+          <Route
+            path="/"
+            element={<Layout navigationType={navigationType} routeLocation={location} />}
+          >
             <Route index element={<Home />} />
             <Route path="contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />

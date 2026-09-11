@@ -1,5 +1,39 @@
 # hakan.run Modernization Handoff
 
+## Phase 2A deterministic public lifecycle — local, 2026-09-10
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `f36a59c95a4b03f5bcbc71666c7146ce3265acf0` |
+| Current phase | Phase 2A local implementation and focused verification complete; owner review pending |
+| Completed | History-entry scroll authority, one READY-bound coordinator, presentation-only BootIntro, reduced-motion handling, focused scroll/intro/accordion coverage, strict snapshot regression, lint and production/staging build checks |
+| Exact next action | Owner reviews this uncommitted Phase 2A diff and separately decides whether to authorize a commit |
+| Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, DNS, Access, Turnstile, broader renderer rewrite or historical visual suite |
+| Push state | Local HEAD and upstream both remain `f36a59c95a4b03f5bcbc71666c7146ce3265acf0`; all Phase 2A changes are uncommitted |
+| Deploy state | No deployment occurred; staging remains on the already deployed Phase 1 checkpoint |
+| Infrastructure state | No direct provider, configuration or database operation occurred during local completion. The already completed pre-interruption live reproduction used two real staging reloads and therefore may have emitted two ordinary staging PAGE analytics events through existing runtime behavior; no later live reload was performed |
+
+`index.html` changes native history restoration to `manual` before the body exists.
+Each browser history entry owns one `{ x, y }` value under
+`history.state.__hakanRunScroll`. The single `ScrollManager` receives the route
+snapshot captured by the animated route frame and runs its layout effect only after
+the strict published snapshot is READY and the destination DOM has committed. POP
+and reload restore once; PUSH/REPLACE perform one top or available hash-target
+action. A listener may update only the currently owned history entry, so loading-
+shell zero and stale outgoing-route events cannot replace a stable position.
+
+`BootIntro` is an always-new-document, fixed, pointer-transparent, `aria-hidden`
+presentation sibling of the bootstrap state. CSS controls its 1400 ms visual
+sequence; it neither delays nor signals READY and contains no editable marketing
+copy. Reduced motion makes it effectively immediate. Historical
+`TerminalLoader.jsx` remains unreachable and was not restored to the runtime.
+
+Final local evidence: focused Chromium 9/9, strict snapshot/schema/preview 22/22,
+web lint passed, production build and artifact policy passed, staging build and
+noindex artifact policy passed, and `git diff --check` passed. No commit, push,
+deployment or broader visual run occurred.
+
 ## Phase 1.5 staging content authority completion — 2026-09-10
 
 | Field | Current value |

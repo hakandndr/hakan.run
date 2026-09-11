@@ -2,6 +2,15 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Phase 2A — Deterministic public lifecycle completion
+
+- Objective: Preserve deep scroll positions across the strict asynchronous public bootstrap and add the approved presentation-only BootIntro without creating a second content or readiness authority.
+- Dependencies: Deployed Phase 1 strict `PublishedSiteSnapshot` boundary and completed staging content authority.
+- Main risks: Persisting transient LOADING zero, competing native/application restoration, stale animated routes writing into a destination entry, presentation timing becoming a correctness gate, and visual/accordion regression.
+- Acceptance gates: Manual native restoration selected before body creation; one history-entry authority; one READY-commit coordinator; exact reload/POP and PUSH/REPLACE behavior; no timer/retry/storage workaround; BootIntro independent of content/readiness/scroll; reduced motion; stale-copy exclusion; MY EXPERTISE regression; focused strict-contract/lint/build evidence.
+- Authorization boundaries: Local BUILD is complete. COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
+- Status: Implemented and focused-verified locally at uncommitted HEAD `f36a59c`; owner review pending. No staging code deployment occurred.
+
 ## Phase 1D — Clean public-runtime foundation
 
 - Objective: Make APP_DB published content the sole public runtime authority through an atomic snapshot and explicit bootstrap boundary.

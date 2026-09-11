@@ -2965,3 +2965,79 @@ directory. Exact next action is owner review, followed only by separately author
 commit, push and staging deployment decisions. Commit identity was not exercised;
 any later commit must use only `Hakan Dundar <hakan@dndr.net>` as author and
 committer.
+
+### 2026-09-10 — Phase 2A deterministic public lifecycle completion
+
+Objective: resume the interrupted local Phase 2A working tree without repeating live
+staging reproduction, finish deterministic scroll ownership and the presentation-
+only BootIntro, then run only focused verification. Work resumed on dirty
+`develop/hakan-run-v2` at committed and upstream-matching
+`f36a59c95a4b03f5bcbc71666c7146ce3265acf0`. The preserved interruption state had
+five modified files (`index.html`, `ScrollManager.jsx`, `index.css`,
+`PublicBootstrap.jsx`, and the scroll specification) plus three new paths
+(`BootIntro.jsx`, the BootIntro specification, and the focused published-content
+helper). BUILD was authorized locally. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER,
+ACCESS, DNS, SECRET, Turnstile, production work, the broader renderer rewrite and
+the historical visual suite were prohibited.
+
+The established live evidence was accepted without repetition: the stable staging
+document was about 6107 px high at a 1600–1800 px position, the reload LOADING shell
+was about 1296 px high with `scrollY = 0`, and READY returned to about 6107 px while
+remaining at zero. The already completed normal and cache-bypassing live reloads
+may each have emitted one ordinary staging PAGE analytics event through the deployed
+tracker. No direct provider/database command was used, no row was inspected or
+changed, and no additional live staging reload was performed after that boundary was
+recognized.
+
+The interrupted implementation had a coherent authority direction but was not yet
+complete. Two BootIntro assertions assumed text shapes not present in the shared
+fixture/DOM. More importantly, focused tests found that an outgoing route listener
+could observe a new history entry, and that Framer Motion's wait-mode route frame
+could apply restoration against the shorter outgoing document or issue a preliminary
+top action. The final correction binds one `ScrollManager` to the animated route
+frame's captured location snapshot. The old frame cannot react to the new global
+location; the destination frame restores only in `useLayoutEffect` after its full
+READY DOM commit. Persistence is additionally guarded by the current React Router
+history-entry key, including its implicit initial `default` key.
+
+Native restoration is selected as manual synchronously in the document head. Each
+history entry is merged with `__hakanRunScroll: { x, y }`; finite non-negative values
+are the only accepted restore input. POP/reload restores once. PUSH/REPLACE performs
+one top action or one available hash-target action. A passive post-READY listener
+updates only its own current entry. The coordinator does not exist during LOADING or
+ERROR, so bootstrap zero cannot overwrite a stable checkpoint. No sessionStorage,
+localStorage, timer, arbitrary delay, retry, repeated animation frame, observer,
+polling, unload persistence or height-guess workaround was introduced.
+
+`BootIntro.jsx` supplies the five approved fixed system lines as a fixed,
+pointer-transparent, `aria-hidden` overlay. CSS supplies the 1400 ms presentation
+sequence; READY, ERROR and retry never wait on or read it. Reduced-motion CSS removes
+the practical delay/duration. It contains no editable marketing values, and the
+unreachable historical `TerminalLoader.jsx` was not reconnected. The MY EXPERTISE
+implementation was not changed.
+
+Runtime changes are `apps/web/index.html`, `src/App.jsx`, new
+`src/components/BootIntro.jsx`, `src/components/Layout.jsx`,
+`src/components/ScrollManager.jsx`, `src/index.css`,
+`src/public/PublicBootstrap.jsx`, and `src/public/PublicRenderer.jsx`. Focused test
+changes are `tests/scroll-restoration.spec.ts`, new `tests/boot-intro.spec.ts`, and
+new `tests/helpers/published-content.ts`. Documentation continuity updates are
+README, HANDOFF, this append-only journal, CURRENT_STATE, ARCHITECTURE, SECURITY,
+OPERATIONS, DECISIONS, ROADMAP, LESSONS and VISUAL_BASELINE.
+
+Final evidence: the production build completed 1716 modules and passed production
+artifact policy; the staging build completed 1716 modules and passed noindex,
+robots/sitemap artifact policy; the final explicit production rebuild and artifact
+check passed. Focused Chromium passed 9/9 in 5.5 seconds with content and analytics
+network writes stubbed locally. Snapshot/schema/preview contracts passed 22/22. Web
+lint and `git diff --check` passed. Initial focused red evidence included missing
+history persistence, POP restoration returning zero, a 1200-to-402 clamp when the
+coordinator ran above the animated route, and the preliminary cross-route top action;
+each was corrected at the ownership boundary rather than with timing heuristics.
+Playwright-managed preview shutdown was again unreliable on Windows, so final
+evidence used an explicit preview and explicit termination.
+
+No commit identity was exercised. Local HEAD/upstream remain `f36a59c`; no commit,
+push, deployment, migration, provider configuration or production action occurred.
+Exact next action is owner review of this uncommitted Phase 2A change set, followed
+only by a separately authorized commit decision.

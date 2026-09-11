@@ -10,18 +10,24 @@ For the implemented site, start with the [documentation index](./docs/README.md)
 
 ## Modernization status
 
-The modernization branch now has a locally implemented clean public-runtime boundary.
+The modernization branch has a deployed staging clean public-runtime boundary.
 Public paths render only after one complete, validated, immutable twelve-section
 snapshot has been read from `GET /api/content` and therefore from `APP_DB`. Loading
 shows a neutral dark shell; any authority or contract failure shows an explicit
 error and never source-bundled copy. Public, Boss and preview have separate entry
-trees. This Phase 1 work is uncommitted and not deployed.
+trees. The Phase 1 checkpoint is committed, pushed and deployed to staging; production
+is untouched.
 
 [CMS V2](./docs/CONTENT-CMS-V2.md) provides the private twelve-section editor and
 saved/unsaved preview. The authorized Phase 1.5 publication completed the missing
 canonical fields in staging APP_DB, and a fresh public API readback passes the strict
 snapshot contract. Production content was not changed; commit, push and staging code
-deployment remain separate authorization gates.
+deployment remain separate authorization gates for subsequent work.
+
+The current uncommitted Phase 2A candidate adds deterministic history-entry scroll
+restoration after READY and a CSS-only presentation `BootIntro`. It uses no timer,
+retry, session/local storage or fallback content authority, and its focused local
+contract passes. It is not committed, pushed or deployed.
 
 ## Legacy technology reference
 

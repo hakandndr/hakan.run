@@ -9,7 +9,16 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Continue overlaying published sections; deep-merge missing fields; cache the last source snapshot; delay the loader until the request usually completes.
 - Rationale: Atomic validation makes APP_DB the only public runtime truth and makes authority failure visible without timing heuristics.
 - Consequences: Public, Boss and preview need separate entry trees; theme tokens apply before READY; missing renderer fields block publication instead of receiving defaults; historical source content may remain only while unreachable from the public bundle.
-- Status: Approved and implemented locally; not deployed. This supersedes D-026 only where D-026 relied on source-bundled content for the initial document layout. Browser/SPA scroll ownership remains unchanged.
+- Status: Approved, committed and deployed to staging at the Phase 1 checkpoint. This supersedes D-026 where D-026 relied on source-bundled content for the initial document layout; D-028 supersedes its native-restoration model for the resulting asynchronous boundary.
+
+## D-028 — History entries own restoration; BootIntro is presentation only
+
+- Decision: Disable native scroll restoration before body creation. Store one validated `{ x, y }` checkpoint in each browser history entry and let one destination-frame coordinator restore it in a post-READY layout effect. BootIntro is a CSS-only presentation sibling with no content, readiness or scroll authority.
+- Context: The strict asynchronous LOADING shell is only viewport-height, so native restoration clamps a deep position to zero and does not replay when READY supplies the complete document. Animated outgoing routes can also observe a newer global location or accept a restore while their shorter DOM is still present.
+- Alternatives considered: Reintroduce session storage; retain native restoration with guessed shell height; use timers, retries, animation-frame loops or observers; gate READY on the intro duration; allow route components to manage their own targets.
+- Rationale: The history entry is the browser object whose lifetime already matches reload and POP semantics. Binding one coordinator to the committed destination frame gives an exact lifecycle boundary without elapsed-time guesses. Presentation can then remain independent of application correctness.
+- Consequences: `history.state.__hakanRunScroll` is the sole restoration checkpoint. LOADING/ERROR never mount the coordinator; stale route-key writes are ignored; POP/reload restore once; PUSH/REPLACE perform one available hash or top action. BootIntro is fixed, pointer-transparent, `aria-hidden`, reduced-motion aware and contains only fixed system copy. No timer/retry/session/local-storage workaround is permitted.
+- Status: Approved; implemented and focused-validated locally in Phase 2A, uncommitted and not deployed.
 
 ## D-001 — Preserve the existing visual language
 
@@ -260,5 +269,6 @@ Each entry records an approved durable direction. Planned decisions do not imply
   through one hook, and layout-dependent document animation must not compete with
   browser scroll restoration. Focused desktop/mobile tests cover refresh, delayed
   bootstrap, rapid reload, user input, route reset and hash navigation.
-- Status: Approved architectural requirement; implemented and validated locally, not
-  committed or deployed.
+- Status: Superseded by D-027 and D-028 for the strict asynchronous public bootstrap.
+  Its single SPA authority principle remains; its synchronous built-in layout and
+  browser-native reload/POP premises no longer describe current staging.

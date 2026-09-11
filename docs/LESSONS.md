@@ -146,3 +146,20 @@
   be represented at load may need an explicit restoration state machine, but that
   state machine must distinguish restoring and stable states and must never overwrite
   a stable checkpoint with transient layout data.
+
+## 15. Asynchronous documents need entry ownership, not timing guesses
+
+- Problem: A strict asynchronous bootstrap can be intentionally short during LOADING,
+  while browser restoration and animated route exits occur before the destination
+  document can accept its saved coordinate.
+- Evidence / context: Live staging clamped a deep position to zero against the neutral
+  shell. Locally, an outgoing animated frame could also observe the new global route,
+  and a POP restore against the shorter outgoing document clamped 1200 to 402.
+- Reusable rule: Select one restoration authority before body creation, store state on
+  the browser history entry it belongs to, bind the coordinator to the destination
+  frame's captured route, and restore in a layout effect after authoritative content
+  and the complete destination DOM commit.
+- Applies when: SPAs combine asynchronous authority validation, history restoration,
+  animated route transitions and variable document heights.
+- Exceptions / caveats: Presentation overlays may animate independently, but their
+  duration must never gate readiness, content authority or restoration correctness.

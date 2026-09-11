@@ -1,5 +1,36 @@
 # Current State
 
+## Phase 2A deterministic public lifecycle — local, not deployed, 2026-09-10
+
+The asynchronous strict content boundary remains authoritative, but native browser
+restoration is no longer expected to succeed against its viewport-height LOADING
+shell. A synchronous head script selects manual restoration. The current history
+entry owns `{ x, y }` under `history.state.__hakanRunScroll`; there is no second
+session or local-storage checkpoint.
+
+Exactly one route-frame `ScrollManager` receives the frame's immutable location
+snapshot. Its `useLayoutEffect` runs only after READY and the destination DOM commit.
+It restores reload/POP once, performs one explicit PUSH/REPLACE top or available
+hash action, and then records document scroll only while the same history entry is
+current. The LOADING shell does not mount the coordinator, and an outgoing animated
+route cannot write into the destination entry. No timer, delay, retry, polling,
+observer, animation-frame restoration loop or height-guess shell is involved.
+
+The new `BootIntro` is a fixed, pointer-transparent and accessibility-hidden visual
+overlay. Its five fixed system lines animate only through CSS and never own content,
+readiness or scrolling. READY may commit independently of the animation; reduced
+motion makes the overlay effectively immediate. The public renderer never exposes
+editable content while the strict snapshot remains LOADING, and the legacy
+`TerminalLoader.jsx` remains unreachable.
+
+Focused Chromium evidence passes 9/9, including normal and cache-bypassing reloads,
+stable state through repeated hard reload, post-READY user ownership, PUSH/REPLACE,
+POP, cross-route hash navigation, BootIntro, reduced motion and the unchanged
+MY EXPERTISE single-open accordion. Strict snapshot/schema/preview tests pass 22/22;
+lint, production/staging builds, both artifact policies and `git diff --check` pass.
+The work remains uncommitted and undeployed at `f36a59c`; deployed staging is still
+the completed Phase 1 checkpoint.
+
 ## Clean public-runtime foundation — local, not deployed, 2026-09-10
 
 The public renderer no longer begins with `siteContent` and no longer overlays a

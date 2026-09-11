@@ -49,25 +49,43 @@ intentional absence of a displayed suffix rather than missing content.
 
 ## Implemented public scroll lifecycle — local, not deployed
 
-The public application is a static dependency of `main.jsx` and is committed
-synchronously on a fresh document. This gives the browser the complete built-in
-layout before its load/restoration boundary. The separately protected Boss content
-preview remains dynamically imported and never mounts public providers or tracking.
+The strict public snapshot remains asynchronous. `index.html` synchronously sets
+`history.scrollRestoration = 'manual'` in the document head, before the neutral body
+shell exists. Native restoration and application restoration therefore cannot race.
 
-Scroll behavior has three non-overlapping authorities:
+Each browser history entry is the sole persistence boundary. Its state is merged,
+not replaced, with this namespaced value:
 
-1. The browser owns document load, reload, hard reload, history POP restoration and
-   direct visitor scrolling.
-2. `ScrollManager` owns explicit public SPA PUSH/REPLACE navigation after the
-   destination `Layout` commits. It performs one hash-target scroll or one top reset.
-3. Public controls express navigation intent through `usePublicNavigation`; they do
-   not query for destination elements or manipulate scroll directly.
+```js
+{
+  __hakanRunScroll: { x: number, y: number }
+}
+```
 
-The public runtime stores no document scroll checkpoint and has no restoration
-state machine, retry timer, observer or polling loop. The Services disclosure keeps
-its visual transition through CSS grid rows, avoiding the Framer Motion `height:
-auto` measurement that previously wrote temporary document scroll positions during
-initial layout. See decision D-026.
+One `ScrollManager` belongs to the committed animated route frame and receives that
+frame's captured location rather than reading a newer global location during exit.
+It is reachable only after `PublicBootstrap` has constructed the strict immutable
+`PublishedSiteSnapshot` and mounted the READY application. Its `useLayoutEffect`
+therefore runs after the full destination DOM commit:
+
+1. reload/POP reads the current history entry and restores its position once;
+2. PUSH/REPLACE performs exactly one top action, or one hash action when the target
+   exists in the committed destination;
+3. a passive listener records subsequent document scroll only when the captured
+   route key still owns the current history entry.
+
+LOADING and ERROR do not mount the coordinator, so their transient zero cannot be
+persisted. The history-entry key guard also rejects layout scroll events from an
+outgoing route after the browser has switched entries. Public controls still express
+navigation intent through `usePublicNavigation` and do not perform restoration.
+There is no session/local storage, timer, retry, requestAnimationFrame loop,
+MutationObserver, polling, unload persistence or geometry-guess shell.
+
+`BootIntro` is a sibling presentation layer owned by `PublicBootstrap`, not part of
+the snapshot state machine. It is fixed, pointer-transparent and `aria-hidden`.
+Fixed system copy and CSS-only timing create the approved boot visual while READY,
+ERROR and retry remain independent. Reduced-motion CSS removes the practical
+duration and delay. It has no content, readiness or scroll authority.
 
 ## Implemented CMS V2 — local, not deployed
 

@@ -1,43 +1,27 @@
 import { expect, test, type Page } from '@playwright/test';
+import {
+  fulfillPublishedContent,
+  isolatePublicWrites,
+  publishedContentResponse,
+  waitForPublishedSite,
+} from './helpers/published-content';
 
-const emptyContent = {
-  status: 200,
-  contentType: 'application/json; charset=utf-8',
-  body: JSON.stringify({ contract: 1, count: 0, publishedAt: null, sections: [] }),
-};
+const target = 1200;
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.sessionStorage.setItem('booted', '1'));
-  await page.route('**/api/content', route => route.fulfill(emptyContent));
-});
-
-const waitForScrollableDocument = async (page: Page) => {
-  await page.waitForFunction(
-    () => document.documentElement.scrollHeight - window.innerHeight > 400,
-    null,
-    { polling: 10 },
-  );
-};
-
-const scrollTarget = async (page: Page) => {
-  await waitForScrollableDocument(page);
-  const reachable = await page.evaluate(
-    () => document.documentElement.scrollHeight - window.innerHeight,
-  );
-  return Math.min(900, Math.floor(reachable / 2));
-};
-
-const scrollToTarget = async (page: Page) => {
-  const target = await scrollTarget(page);
-  await page.evaluate(y => window.scrollTo(0, y), target);
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(target);
-  return target;
-};
-
-const expectScrollNear = async (page: Page, target: number) => {
-  await expect
-    .poll(() => page.evaluate(y => Math.abs(Math.round(window.scrollY) - y), target))
-    .toBeLessThanOrEqual(8);
+const installScrollCallLog = async (page: Page) => {
+  await page.addInitScript(() => {
+    const nativeScrollTo = window.scrollTo.bind(window);
+    const nativeScrollIntoView = Element.prototype.scrollIntoView;
+    window.__scrollCalls = [];
+    window.scrollTo = (...args) => {
+      window.__scrollCalls.push({ kind: 'scrollTo', args });
+      nativeScrollTo(...args);
+    };
+    Element.prototype.scrollIntoView = function (...args) {
+      window.__scrollCalls.push({ kind: 'scrollIntoView', id: this.id, args });
+      nativeScrollIntoView.apply(this, args);
+    };
+  });
 };
 
 const hardReload = async (page: Page) => {
@@ -48,95 +32,144 @@ const hardReload = async (page: Page) => {
   await session.detach();
 };
 
-test('the public document is scrollable at load without an async Application chunk', async ({
-  page,
-}) => {
-  let applicationChunkRequested = false;
-  await page.route(/\/assets\/Application-[^/]+\.js$/, async route => {
-    applicationChunkRequested = true;
-    await new Promise(resolve => setTimeout(resolve, 400));
-    await route.continue();
-  });
+const scrollAndSave = async (page: Page, y = target) => {
+  await page.evaluate(value => window.scrollTo(0, value), y);
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(y);
+  await expect.poll(() => page.evaluate(() => window.history.state?.__hakanRunScroll?.y)).toBe(y);
+};
 
-  await page.goto('/', { waitUntil: 'load' });
+const expectScroll = async (page: Page, y = target) => {
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(y);
+};
 
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollHeight - window.innerHeight,
-    ),
-  ).toBeGreaterThan(400);
-  expect(applicationChunkRequested).toBe(false);
+test.beforeEach(async ({ page }) => {
+  await isolatePublicWrites(page);
+  await page.route('**/api/content', fulfillPublishedContent);
 });
 
-test('a normal refresh restores the previous homepage position', async ({ page }) => {
+test('normal refresh restores once from the current history entry', async ({ page }) => {
   await page.goto('/');
-  const target = await scrollToTarget(page);
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
 
   await page.reload({ waitUntil: 'load' });
+  await waitForPublishedSite(page);
 
-  await expectScrollNear(page, target);
+  await expectScroll(page);
+  expect(await page.evaluate(() => window.history.scrollRestoration)).toBe('manual');
 });
 
-test('rapid repeated hard refreshes preserve the last stable position', async ({ page }) => {
-  await page.addInitScript(() => {
-    const nativeRequestAnimationFrame = window.requestAnimationFrame.bind(window);
-    window.requestAnimationFrame = callback =>
-      nativeRequestAnimationFrame(timestamp => {
-        setTimeout(() => callback(timestamp), 250);
-      });
+test('hard refresh restores once from the current history entry', async ({ page }) => {
+  await page.goto('/');
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
+
+  await hardReload(page);
+  await waitForPublishedSite(page);
+
+  await expectScroll(page);
+});
+
+test('repeated hard refresh never replaces a stable position with transient zero', async ({ page }) => {
+  let requests = 0;
+  let releaseReload: (() => void) | undefined;
+  const reloadGate = new Promise<void>(resolve => { releaseReload = resolve; });
+  await page.unroute('**/api/content');
+  await page.route('**/api/content', async route => {
+    requests += 1;
+    if (requests === 2) await reloadGate;
+    await route.fulfill(publishedContentResponse);
   });
 
   await page.goto('/');
-  const target = await scrollToTarget(page);
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
+
+  await page.reload({ waitUntil: 'load' });
+  await expect(page.locator('[data-public-bootstrap="loading"]')).toBeVisible();
+  expect(await page.evaluate(() => Math.round(window.scrollY))).toBe(0);
+  expect(await page.evaluate(() => window.history.state.__hakanRunScroll.y)).toBe(target);
+
+  releaseReload?.();
+  await waitForPublishedSite(page);
+  await expectScroll(page);
+  expect(await page.evaluate(() => window.history.state.__hakanRunScroll.y)).toBe(target);
 
   await hardReload(page);
-  await waitForScrollableDocument(page);
-  await hardReload(page);
-  await waitForScrollableDocument(page);
-  await hardReload(page);
-  await waitForScrollableDocument(page);
-
-  await expectScrollNear(page, target);
+  await waitForPublishedSite(page);
+  await expectScroll(page);
+  expect(await page.evaluate(() => window.history.state.__hakanRunScroll.y)).toBe(target);
 });
 
-test('user scrolling after refresh remains authoritative', async ({ page }) => {
+test('direct user scrolling after READY is never replayed over', async ({ page }) => {
   await page.goto('/');
-  await scrollToTarget(page);
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
   await page.reload({ waitUntil: 'load' });
-  await waitForScrollableDocument(page);
+  await waitForPublishedSite(page);
+  await expectScroll(page);
 
-  const userTarget = 240;
   await page.dispatchEvent('body', 'pointerdown');
-  await page.evaluate(y => window.scrollTo(0, y), userTarget);
-  const userPosition = await page.evaluate(() => Math.round(window.scrollY));
-  expect(userPosition).toBe(userTarget);
+  await scrollAndSave(page, 240);
 
-  await page.waitForTimeout(500);
-  expect(await page.evaluate(() => Math.round(window.scrollY))).toBe(userPosition);
+  expect(await page.evaluate(() => Math.round(window.scrollY))).toBe(240);
+  expect(await page.evaluate(() => window.history.state.__hakanRunScroll.y)).toBe(240);
 });
 
-test('an in-app route change starts at the top', async ({ page }) => {
+test('PUSH and REPLACE each perform one intended top scroll', async ({ page }) => {
+  await installScrollCallLog(page);
   await page.goto('/');
-  await scrollToTarget(page);
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
+  await page.evaluate(() => { window.__scrollCalls = []; });
 
   await page.locator('a[href="/contact"]').first().click();
-
   await expect(page).toHaveURL(/\/contact$/);
-  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(0);
+  await expectScroll(page, 0);
+  expect(await page.evaluate(() => window.__scrollCalls)).toEqual([
+    { kind: 'scrollTo', args: [{ top: 0, left: 0, behavior: 'auto' }] },
+  ]);
+
+  await page.goto('/admin');
+  await expect(page).toHaveURL(/\/$/);
+  await waitForPublishedSite(page);
+  const replaceCalls = await page.evaluate(() => window.__scrollCalls);
+  expect(replaceCalls.filter(call => call.kind === 'scrollTo')).toHaveLength(1);
 });
 
-test('cross-route section navigation scrolls once without retry polling', async ({ page }) => {
-  await page.goto('/contact');
+test('POP restores the destination entry while hash PUSH scrolls exactly once', async ({ page }) => {
+  await installScrollCallLog(page);
+  await page.goto('/');
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
 
+  await page.locator('a[href="/contact"]').first().click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expectScroll(page, 0);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expectScroll(page);
+
+  await page.locator('a[href="/contact"]').first().click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(page.locator('form')).toBeVisible();
+  await expectScroll(page, 0);
+  await page.evaluate(() => { window.__scrollCalls = []; });
   await page.locator('a[href="/#services"]:visible').first().click();
-
   await expect(page).toHaveURL(/\/#services$/);
-  await expect
-    .poll(() =>
-      page.evaluate(() => {
-        const top = document.getElementById('services')?.getBoundingClientRect().top;
-        return top !== undefined && Math.abs(top) <= 80;
-      }),
-    )
-    .toBe(true);
+  await waitForPublishedSite(page);
+  await expect.poll(() => page.evaluate(() => {
+    const section = document.getElementById('services');
+    return section ? Math.abs(section.getBoundingClientRect().top) : Number.MAX_SAFE_INTEGER;
+  })).toBeLessThanOrEqual(80);
+  expect(await page.evaluate(() => window.__scrollCalls)).toEqual([
+    { kind: 'scrollIntoView', id: 'services', args: [{ behavior: 'smooth' }] },
+  ]);
 });
+
+declare global {
+  interface Window {
+    __scrollCalls: Array<{ kind: string; id?: string; args: unknown[] }>;
+  }
+}

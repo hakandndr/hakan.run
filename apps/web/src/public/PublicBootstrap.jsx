@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Application from '@/Application';
+import BootIntro from '@/components/BootIntro';
 import { loadPublishedSiteSnapshot } from '@/content-source/published-site';
 import { applyPublishedVisualTokens } from '@/contexts/ContentContext';
 
@@ -71,13 +72,18 @@ const PublicBootstrap = () => {
     return () => { cancelled = true; };
   }, [attempt]);
 
-  if (state.status === PUBLIC_BOOTSTRAP_STATE.ready) {
-    return <Application snapshot={state.snapshot} />;
-  }
-  if (state.status === PUBLIC_BOOTSTRAP_STATE.error) {
-    return <PublicFailure onRetry={() => setAttempt((value) => value + 1)} />;
-  }
-  return <NeutralPublicShell />;
+  const publicSurface = state.status === PUBLIC_BOOTSTRAP_STATE.ready
+    ? <Application snapshot={state.snapshot} />
+    : state.status === PUBLIC_BOOTSTRAP_STATE.error
+      ? <PublicFailure onRetry={() => setAttempt((value) => value + 1)} />
+      : <NeutralPublicShell />;
+
+  return (
+    <>
+      <BootIntro />
+      {publicSurface}
+    </>
+  );
 };
 
 export default PublicBootstrap;
