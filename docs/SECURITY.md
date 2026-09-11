@@ -26,6 +26,12 @@ source-controlled presentation constant, and the childless LOADING canvas expose
 content or fallback geometry. ERROR, validation, retry and session-marker behavior
 remain unchanged. No database, Boss, binding, Access or production boundary changed.
 
+The pre-React first-paint cleanup deletes static placeholder nodes and their inline
+CSS from `index.html`. It does not move content into HTML, add a browser state value,
+or weaken the fail-closed snapshot boundary. An empty root exposes less unauthoritative
+surface while the public module loads; `html`, `body` and `#root` retain only the
+source-controlled `#090909` canvas.
+
 ## Phase 1.5 staging content publication — 2026-09-10
 
 The authorized staging-only operation used Cloudflare Access and the Worker's

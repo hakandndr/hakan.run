@@ -197,3 +197,19 @@
   or neutral loading boundary may still be visible.
 - Exceptions / caveats: An intentionally theme-aware intro is a separate visual
   decision; it must not be inferred from the site's mutable content theme.
+
+## 18. React cleanup cannot prevent an earlier static paint
+
+- Problem: Correcting a React LOADING component does not affect HTML already painted
+  before the entry module downloads and calls `createRoot`.
+- Evidence / context: The static document contained a full `.bootstrap-shell` tree.
+  Its inline rules painted a 79 px border bar and five translucent rectangles at
+  fixed viewport-relative coordinates. `root.replaceChildren()` deleted them later,
+  which explains both the pre-intro flash and the refresh flash.
+- Reusable rule: Audit source and built `index.html` as an independent rendering
+  layer. If first paint must be neutral, begin with an empty root and base surface
+  color; delete placeholder DOM and paint rules instead of scheduling cleanup.
+- Applies when: An SPA artifact shows geometry before or independently of its runtime
+  loading component.
+- Exceptions / caveats: Static application shells can be valid product decisions,
+  but they must be intentional and cannot satisfy a zero-geometry contract.

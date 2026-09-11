@@ -3111,3 +3111,39 @@ the final result. Web lint passed. Final production build and `git diff --check`
 results are recorded after documentation completion. No broad historical visual
 suite, live endpoint, content/database mutation, commit, push or deploy occurred.
 Exact next action is owner review of this uncommitted local correction.
+
+### 2026-09-11 — Phase 2A zero-geometry document first paint
+
+Objective: trace and remove the remaining deterministic gray geometry that appeared
+before BootIntro or while BootIntro was session-suppressed. Work began clean on
+`develop/hakan-run-v2` at deployed and upstream-matching
+`7f506e32e10b158184865dedd6945e51b07ab03f`. Only local diagnosis, cleanup and
+focused verification were authorized. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER,
+Boss, content and production work were prohibited.
+
+The exact source was pre-React `apps/web/index.html`, not `PublicBootstrap` or global
+CSS. Its static `#root` contained `.bootstrap-shell`, a 79 px bordered header bar,
+one 160 by 16 badge rectangle, two 680 by 64 title rectangles, one 1072 by 12 line
+and one 430 by 12 line at a 1440 by 900 viewport. Inline rules painted them with
+white at 3.5–6 percent opacity. A JavaScript-blocked staging artifact measurement
+proved the nodes, coordinates and computed colors; relevant pseudo-elements had no
+content or background. `main.jsx` called `root.replaceChildren()` only after the
+entry and public chunks loaded, so the already-painted static tree explained why the
+previous React LOADING cleanup could not remove the earlier flash.
+
+The static shell nodes and all seven shell-specific inline rules were deleted.
+`#root` is empty in source and the generated artifact; the only pre-React style is
+uniform `#090909` across `html`, `body` and `#root`. No opacity, visibility, display,
+z-index, overlay, timing or JavaScript cleanup workaround was added. Runtime code,
+BootIntro, session semantics, ScrollManager, PublishedSiteSnapshot, Footer, services,
+routes, Boss, content and provider configuration were unchanged.
+
+`tests/boot-intro.spec.ts` now reads the served built document, rejects legacy shell,
+skeleton and placeholder residue, blocks entry JavaScript, proves an empty root and
+uniform surfaces, and inspects `::before`/`::after` for absent content/background.
+The staging build completed 1716 modules and passed indexing artifact verification.
+Focused Chromium against that artifact passed 14/14 in 8.4 seconds: eight first-
+paint/BootIntro/Footer/MY EXPERTISE cases and all six scroll cases. Final lint and
+`git diff --check` results were recorded after documentation completion. No commit,
+push, deployment, database/provider mutation or live endpoint operation occurred.
+Exact next action is owner review of this uncommitted local correction.

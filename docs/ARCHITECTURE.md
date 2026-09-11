@@ -16,8 +16,10 @@ section schemas reject invalid types, unsafe destinations, retired integrations 
 the legacy `formEndpoint`; the public completeness layer additionally requires every
 field that the preserved renderer previously obtained from source defaults.
 
-The document lifecycle has three visible states. Static `index.html` supplies a
-blank, childless `#090909` LOADING canvas. `PublicBootstrap` makes one request and either
+The document lifecycle has three visible states. Static `index.html` supplies an
+empty `#root`; its only paint contract is uniform `#090909` on `html`, `body` and
+`#root`. It contains no bootstrap shell DOM or shell-specific CSS. After the public
+chunk mounts, `PublicBootstrap` makes one request and either
 applies validated visual tokens before committing READY or commits the explicit
 ERROR surface. Only the user's Retry action starts another request. Public content
 is not mounted during LOADING or ERROR.
@@ -92,6 +94,11 @@ scroll authority. The overlay uses immutable presentation color `#090909`; it do
 not subscribe to the published `--color-bg` token and therefore cannot change while
 visual tokens are applied. When the intro is suppressed, LOADING remains the same
 childless full-viewport canvas with no skeleton, header line or layout approximation.
+
+`main.jsx` still clears the root before `createRoot`, but correctness no longer
+depends on that JavaScript cleanup: the source and built document root begin empty.
+The deleted historical static shell used a 79 px border bar and five translucent
+rectangles. No pseudo-element, opacity or overlay replaces it.
 
 Footer logo text remains published content. Source-controlled rendering isolates
 the slash and paints it white, matching the Header's canonical `<h/>` treatment

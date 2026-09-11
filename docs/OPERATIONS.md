@@ -1,5 +1,30 @@
 # Operations
 
+## Phase 2A zero-geometry first-paint verification — 2026-09-11
+
+The deployed base is commit `7f506e3`, staging Worker version
+`5392a1cd-dd06-4381-a325-116958c225e3`. The local correction deletes the static
+`.bootstrap-shell` DOM and all seven shell-specific inline rules from `index.html`.
+The root is empty before JavaScript; only the `html`, `body` and `#root` uniform
+`#090909` rule remains.
+
+```powershell
+npm run build:staging --prefix apps/web
+npm run verify:artifact:staging --prefix apps/web
+npm run start --prefix apps/web
+npx --no-install playwright test tests/boot-intro.spec.ts tests/scroll-restoration.spec.ts --project=chromium --workers=1 --reporter=line
+npm run lint --prefix apps/web
+git diff --check
+```
+
+The generated staging `index.html` was inspected directly: empty root, no legacy
+class/text, no translucent placeholder rule, and correct noindex policy. With entry
+JavaScript blocked, Chromium found zero root descendants, `rgb(9, 9, 9)` on all three
+document surfaces, and no `::before`/`::after` content or background image. Focused
+Chromium passed 14/14 in 8.4 seconds, including eight first-paint/BootIntro/Footer/
+MY EXPERTISE cases and all six scroll cases. No live endpoint or historical visual
+suite participated. Final lint and diff results are recorded at handoff.
+
 ## Phase 2A immutable intro and blank LOADING verification — 2026-09-11
 
 This local-only correction starts from deployed commit `874b7e8`. It fixes the

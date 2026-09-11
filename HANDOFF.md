@@ -1,17 +1,17 @@
 # hakan.run Modernization Handoff
 
-## Phase 2A immutable intro canvas follow-up — local, 2026-09-11
+## Phase 2A zero-geometry first-paint follow-up — local, 2026-09-11
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2` / `874b7e86960a8275f56273f79a99dcc97336a527` |
-| Current phase | Narrow immutable BootIntro/blank-LOADING correction implemented and verified locally; owner review pending |
-| Completed | Stable `#090909` BootIntro canvas, childless blank LOADING shell, focused intro/bootstrap/footer/MY EXPERTISE and scroll regression, lint and production build |
+| Branch / HEAD | `develop/hakan-run-v2` / `7f506e32e10b158184865dedd6945e51b07ab03f` |
+| Current phase | Pre-React first-paint shell diagnosed, deleted and verified locally; owner review pending |
+| Completed | Empty static `#root`, base-only inline first-paint CSS, generated staging artifact inspection, pre-React pseudo-element proof, focused intro/bootstrap/footer/MY EXPERTISE and scroll regression |
 | Exact next action | Owner reviews this uncommitted local correction and separately decides whether to authorize commit, push or staging deployment |
 | Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, Boss/content work, scroll changes or historical visual suite |
-| Push state | Local HEAD and upstream remain `874b7e86960a8275f56273f79a99dcc97336a527`; this correction is uncommitted |
-| Deploy state | Correction is not deployed; staging remains on Worker version `ab036105-38ba-4851-865d-7797a472f14e` from `874b7e8` |
+| Push state | Local HEAD and upstream remain `7f506e32e10b158184865dedd6945e51b07ab03f`; this correction is uncommitted |
+| Deploy state | Correction is not deployed; staging remains on Worker version `5392a1cd-dd06-4381-a325-116958c225e3` from `7f506e3` |
 | Infrastructure state | Unchanged; no provider, database, production or live staging operation occurred |
 
 `index.html` changes native history restoration to `manual` before the body exists.
@@ -33,10 +33,16 @@ application cannot recolour the overlay while it is visible. Historical
 `TerminalLoader.jsx` remains unreachable. The LOADING surface is now a childless,
 full-viewport `#090909` canvas; it contains no header line, skeleton or fake geometry.
 
+The remaining flash was earlier than that React lifecycle: `apps/web/index.html`
+still embedded `.bootstrap-shell`, one 79 px header bar and five gray placeholder
+lines, with matching inline paint rules. `main.jsx` removed them only after its
+module and public chunk loaded. The static root is now empty and the document inline
+style contains only the uniform `html`, `body` and `#root` `#090909` canvas.
+
 Footer preserves its published logo text while rendering the slash as an explicit
 white span, matching the Header mark. Final local evidence for this correction:
-focused Chromium 13/13 and web lint passed; production build and final diff checks
-are recorded in Operations. No commit, push, deployment or broad visual run occurred.
+focused Chromium 14/14 against the staging artifact passed; final lint/build/diff
+results are recorded in Operations. No commit, push, deployment or broad visual run occurred.
 
 ## Phase 1.5 staging content authority completion — 2026-09-10
 

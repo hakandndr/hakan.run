@@ -4,16 +4,16 @@
 
 This document is the canonical technical specification for the public visual system inherited from legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb`. It is derived from source inspection and deterministic Chromium captures on Windows. It records existing behavior; it does not approve a redesign or claim that live production was inspected.
 
-## Approved Phase 2A entry exception — deployed behavior with local canvas correction
+## Approved Phase 2A entry exception — deployed runtime with local first-paint correction
 
 The owner-approved Phase 2A runtime replaces the historical `TerminalLoader` with a
 presentation-only `BootIntro`. The five fixed terminal lines retain the entry motif,
 but the overlay is `aria-hidden`, pointer-transparent and independent of
 content/READY/scroll. First-entry-only tab-session behavior and Footer slash parity
-are deployed from `874b7e8`. The current local correction fixes the intro canvas at
-immutable `#090909`, so published token application cannot recolour it, and reduces
-LOADING to a childless full-viewport `#090909` canvas. No skeleton, header line or
-content-like geometry is visible when the intro is suppressed. Footer renders the
+and immutable intro/blank React LOADING are deployed from `7f506e3`. The current
+local correction deletes the pre-React static shell and its inline drawing rules.
+Before JavaScript, the empty root and document surfaces paint only uniform `#090909`;
+no skeleton, header line, pseudo-element or content-like geometry exists. Footer renders the
 slash in its published `<h/>` mark white, matching Header. The historical descriptions below remain
 evidence of the inherited design, not current runtime authority. No broad redesign
 or historical screenshot re-baselining was performed.

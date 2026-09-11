@@ -9,6 +9,42 @@ test.beforeEach(async ({ page }) => {
   await isolatePublicWrites(page);
 });
 
+test('built document paints only a uniform canvas before React executes', async ({ page, request }) => {
+  const response = await request.get('/');
+  expect(response.ok()).toBe(true);
+  const html = await response.text();
+  expect(html).not.toContain('bootstrap-shell');
+  expect(html).not.toContain('data-public-bootstrap="loading"');
+  expect(html).not.toMatch(/skeleton|placeholder/i);
+
+  await page.route('**/*.js', route => route.abort());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+
+  await expect(page.locator('#root')).toBeEmpty();
+  await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(9, 9, 9)');
+  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(9, 9, 9)');
+  await expect(page.locator('#root')).toHaveCSS('background-color', 'rgb(9, 9, 9)');
+
+  const pseudoPaint = await page.evaluate(() =>
+    ['html', 'body', '#root'].flatMap(selector => {
+      const element = document.querySelector(selector);
+      return ['::before', '::after'].map(pseudo => {
+        const style = window.getComputedStyle(element, pseudo);
+        return {
+          selector: `${selector}${pseudo}`,
+          content: style.content,
+          backgroundImage: style.backgroundImage,
+        };
+      });
+    }),
+  );
+  expect(pseudoPaint).toEqual(pseudoPaint.map(paint => ({
+    ...paint,
+    content: 'none',
+    backgroundImage: 'none',
+  })));
+});
+
 test('BootIntro is a presentation-only fresh-load overlay with no editable copy', async ({ page }) => {
   let releaseContent: (() => void) | undefined;
   const contentGate = new Promise<void>(resolve => { releaseContent = resolve; });
