@@ -1,5 +1,38 @@
 # Operations
 
+## Pre-Phase 2C console and accessibility verification — 2026-09-11
+
+The baseline is committed, upstream-matching and staging-deployed SHA `e4ea9db`.
+Staging diagnosis used clean Chromium and installed Chrome 152 with every non-GET
+request fulfilled in-browser, so no analytics, content or submission write reached
+the Worker. Chrome 152 reproduced three label-association Issues and two missing
+autocomplete Issues. It emitted no runtime exception, CSP, deprecation or Quirks
+Issue. Both the main document and active Turnstile iframe reported `CSS1Compat` and
+an HTML doctype.
+
+After the local correction, a Chrome 152 CDP readback against the built Contact page
+reported zero Audits issues, zero runtime exceptions and zero versioned-bundle
+console errors. Its DOM readback showed `--name` -> `#contact-name` with `name`,
+`--email` -> `#contact-email` with `email`, and `--message` -> `#contact-message`
+with no autocomplete token.
+
+Focused verification:
+
+```powershell
+npx playwright test tests/contact.spec.ts --project=chromium --grep "contact form" --workers=1 --reporter=line
+npx playwright test tests/public-renderer-phase2b.spec.ts tests/hash-navigation.spec.ts --project=chromium --workers=1 --reporter=line
+npm run lint --prefix apps/web
+npm run build --prefix apps/web
+git diff --check
+```
+
+Results are Contact 6/6, Phase 2B plus hash navigation 9/9, lint pass and production
+build pass with 1716 modules. The first broad Contact-file attempt was invalid for
+this gate because it did not stub the strict published snapshot; after adding that
+required fixture, its unrelated historical known-project test exposed the current
+public-router disposal behavior. The final command selects the six Contact-form
+tests that belong to this task. No broad visual suite or live submission ran.
+
 ## Phase 2B clean renderer verification — 2026-09-11
 
 The local work starts at committed, upstream-matching and staging-deployed SHA

@@ -3264,3 +3264,47 @@ checkpoint remain `2f2acb3`; Phase 2B is uncommitted and undeployed. No database
 analytics, DNS, Access, Turnstile, provider or production state changed. The exact
 next action is owner visual review of Header, Hero and MY EXPERTISE, followed only
 by separately authorized commit, push or staging deployment decisions.
+
+### 2026-09-11 — Pre-Phase 2C console and accessibility hygiene
+
+Objective: attribute owner-observed Chrome console/Issues entries and correct only
+application-owned Contact semantics before Phase 2C. Work began clean on
+`develop/hakan-run-v2` at committed, upstream-matching and staging-deployed SHA
+`e4ea9db6f3789e1d2288409ecc66c91ca1aabbcf`. Local source edits, focused browser
+checks, lint and BUILD were authorized. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER,
+production, content, Boss, CSP and Phase 2C work remained prohibited.
+
+Chrome 152's Audits domain reproduced exactly five application entries: three
+`FormLabelHasNeitherForNorNestedInputError` nodes for the visible `--name`,
+`--email` and `--message` labels, plus two
+`FormInputAssignedAutocompleteValueToIdOrNameAttributeError` nodes for name and
+email. `Contact.jsx` now connects those unchanged visible labels to stable ids and
+adds only the standard `name` and `email` autocomplete tokens. Message intentionally
+has no token. The honeypot, Turnstile container/hook, submission payload, terminal
+styles and public copy are unchanged.
+
+The reported `startTime` exception resolved only to `<anonymous>` / `VM...`, not a
+versioned application asset. It did not reproduce in clean Chromium, clean Chrome
+152 or the owner's current staging-tab log. The live main document and Turnstile
+iframe both reported `CSS1Compat` with an HTML doctype. Source scans of the active
+application document, Turnstile loader/challenge and Cloudflare Web Analytics found
+no eval, Protected Audience, Shared Storage or `StorageType.persist` use. Those
+remaining entries are stale or injected browser context, so no application or CSP
+workaround was made.
+
+The first whole-file Contact run passed 3/8 because the test did not stub the strict
+Phase 2B `/api/content` bootstrap. Adding the canonical published fixture corrected
+that setup. A second whole-file run passed 7/8 and exposed only the unrelated
+historical known-project expectation, which conflicts with the current public-router
+disposal state. The task-scoped Contact form run passed 6/6. Phase 2B Header/Hero/
+Expertise and sequential hash navigation passed 9/9. Corrected Chrome 152 CDP
+readback reported zero Issues, runtime exceptions and versioned-bundle console
+errors. Web lint passed; production build completed 1716 modules and passed artifact
+policy. `git diff --check` passed after documentation completion.
+
+Changed runtime/test paths are `apps/web/src/pages/Contact.jsx` and
+`tests/contact.spec.ts`; continuity documentation is updated in the same change set.
+No commit identity was exercised. No request mutated APP_DB, ANALYTICS_DB, content,
+drafts, Access, Turnstile, DNS, provider configuration or production. Exact next
+action is owner review and a separately authorized commit/push/staging deployment
+decision; Phase 2C must not begin yet.

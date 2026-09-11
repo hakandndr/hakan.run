@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 20. A browser warning is not application evidence until its execution context is owned
+
+- Problem: DevTools can present application nodes, third-party frames, extension worlds and anonymous evaluated scripts in one console and Issues surface.
+- Evidence / context: Chrome 152 reproduced the Contact label/autocomplete findings against application DOM nodes but not an anonymous `VM` `startTime` exception or external eval/deprecation/Quirks categories. Both active documents were Standards Mode, and the loaded sources did not use the named APIs.
+- Reusable rule: Reproduce in a clean current browser, capture the frame/script/node source, and change code only for sources inside the application's authority.
+- Applies when: Console errors, CSP reports, deprecations or browser Issues appear beside embedded providers or developer extensions.
+- Exceptions / caveats: A third-party dependency may still need replacement when its verified behavior harms the product, but application security policy should never be weakened merely to hide its warning.
+
 ## 19. Explicit renderer slices expose authority without forcing a full rewrite
 
 - Problem: A shared content hook hides which section owns which data and makes a section-by-section clean-room migration prone to parallel implementations or accidental defaults.

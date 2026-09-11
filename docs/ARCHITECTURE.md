@@ -1,5 +1,19 @@
 # Architecture
 
+## Pre-Phase 2C form semantics boundary — local
+
+The Contact form keeps the existing renderer, submission flow and Turnstile hook.
+Its three visitor-facing controls now have explicit label-to-control associations;
+name and email also declare their standard autocomplete semantics. This is document
+semantics only. It adds no content, navigation, readiness, storage, network or
+security authority and does not change the Worker contract.
+
+Browser console and Issues observations are attributed by execution context before
+code changes. A versioned application URL is application evidence; an anonymous
+`VM` context is injected runtime code, and a cross-origin frame remains owned by
+that frame's provider. No CSP or application architecture is changed to suppress an
+external diagnostic.
+
 ## Phase 2B clean public renderer boundary — local
 
 The public renderer now has an explicit snapshot-to-section dependency direction:

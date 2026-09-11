@@ -1,5 +1,18 @@
 # Security
 
+## Pre-Phase 2C console hygiene — local, 2026-09-11
+
+No Content Security Policy directive changed and `unsafe-eval` was not added. Clean
+Chrome 152 emitted no CSP violation for the application, Turnstile loader or active
+challenge frame. The reported eval/deprecation/Quirks entries did not reproduce in
+that isolated application context and are not treated as authority to weaken the
+site policy.
+
+Turnstile loading, token callbacks, reset behavior and server-side enforcement are
+unchanged. The Contact edit is limited to HTML label/id/autocomplete semantics. No
+secret, binding, database path, analytics request, Access rule or provider setting
+changed; diagnostic live runs fulfilled every non-GET request locally.
+
 ## Phase 2B renderer isolation — local, 2026-09-11
 
 The Header, Hero and Expertise rewrite adds no trust or storage boundary. Each

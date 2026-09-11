@@ -1,37 +1,32 @@
 # Current State
 
-## Phase 2B clean public renderer boundary — local, 2026-09-11
+## Pre-Phase 2C console and accessibility hygiene — local, 2026-09-11
 
-The committed and deployed checkpoint is `2f2acb352039284801f9d872a4d05b3f962e28f2`.
-Phase 2B is an uncommitted local renderer change on that clean base. The strict
-APP_DB to `/api/content` to immutable `PublishedSiteSnapshot` authority chain is
-unchanged.
+The committed, upstream-matching and staging-deployed checkpoint is
+`e4ea9db6f3789e1d2288409ecc66c91ca1aabbcf`. The owner has accepted the Phase 2B
+visuals, hash navigation, scroll behavior and renderer on staging. This narrow
+cleanup is uncommitted and local; Phase 2C has not started.
 
-`Application` now passes the snapshot explicitly into `App`. The home route renders
-`PublicHome`, and the route layout renders `PublicPageShell`. That shell supplies
-the validated `header` slice to `PublicHeader`; `PublicHome` supplies the validated
-`hero` and contact social-link slices to `PublicHero`, and the validated `services`
-slice to `PublicExpertise`. These components contain presentation markup and local
-interaction state only. They do not import the content context or know about fetch,
-APP_DB, Boss, drafts or publication lifecycle.
+Chrome 152 identified five application-owned form Issues on `/contact`: the three
+visible labels were not associated with their controls, and the `name` and `email`
+controls lacked the autocomplete values implied by their names. The labels now use
+`htmlFor` with stable control ids. Name and email use the standard `name` and
+`email` tokens; message has no token because there is no semantically matching
+autocomplete field. The terminal presentation and public copy are unchanged.
 
-The former `components/Header.jsx`, `components/Hero.jsx`,
-`components/Services.jsx` and `pages/Home.jsx` implementations are deleted. Import
-and artifact scans show no parallel implementation. `ContentContext` remains only
-as a temporary compatibility boundary for Stats, Portfolio, About, CTA, Footer,
-Contact and other not-yet-migrated public sections; their behavior was not rewritten
-in this phase.
+The reported anonymous `VM` `startTime` exception does not originate from a
+versioned hakan.run bundle and did not reproduce in clean Chromium, Chrome 152 or
+the current staging-tab log. The active main document and Turnstile iframe are both
+Standards Mode. Active application, Turnstile and Cloudflare Web Analytics sources
+contained no eval, Protected Audience, Shared Storage or `StorageType.persist`
+usage. Those remaining Issues categories are stale or injected browser context, not
+application code, and no workaround was added.
 
-Header and Hero express destinations through `usePublicNavigation`. Only
-`ScrollManager` performs target or restoration scrolling. Expertise uses one
-`activeIndex` owner, semantic row buttons, `aria-expanded`/`aria-hidden`, and
-CSS-only presentation transitions. The first row begins RUNNING, at most one row is
-RUNNING, and opening another row closes the previous row.
-
-Focused Chromium passes Phase 2B 4/4, hash navigation 5/5, deterministic scroll
-restoration 6/6, and the corrected BootIntro/first-paint/MY EXPERTISE set 8/8. The
-production build completes 1716 modules and lint passes. No live environment,
-content, database, Boss, provider or production state changed.
+Focused Contact behavior passes 6/6 and the Phase 2B plus sequential hash smoke
+passes 9/9. Corrected local Chrome 152 readback contains zero Audits issues, runtime
+exceptions or versioned-bundle console errors. Lint and the 1716-module production
+build pass. Turnstile, CSP, ScrollManager, content authority, public copy and every
+live environment remain unchanged.
 
 ## Phase 2A public lifecycle — deployed baseline plus local hash correction, 2026-09-11
 

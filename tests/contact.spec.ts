@@ -1,4 +1,8 @@
 import { test, expect, Page } from '@playwright/test';
+import {
+  fulfillPublishedContent,
+  isolatePublicWrites,
+} from './helpers/published-content';
 
 // The contact form against the Worker contract, with the Worker stubbed.
 //
@@ -58,6 +62,23 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('contact form', () => {
+  test.beforeEach(async ({ page }) => {
+    await isolatePublicWrites(page);
+    await page.route('**/api/content', fulfillPublishedContent);
+  });
+
+  test('associates visible labels and exposes only semantically valid autocomplete tokens', async ({ page }) => {
+    await stubConfig(page, null);
+    await page.goto('/contact');
+
+    await expect(page.getByLabel('--name')).toHaveAttribute('name', 'name');
+    await expect(page.getByLabel('--name')).toHaveAttribute('autocomplete', 'name');
+    await expect(page.getByLabel('--email')).toHaveAttribute('name', 'email');
+    await expect(page.getByLabel('--email')).toHaveAttribute('autocomplete', 'email');
+    await expect(page.getByLabel('--message')).toHaveAttribute('name', 'message');
+    await expect(page.getByLabel('--message')).not.toHaveAttribute('autocomplete', /.+/);
+  });
+
   test('submits to the Worker endpoint, not to any third party', async ({ page }) => {
     await stubConfig(page, 'test-site-key');
     await stubTurnstileScript(page);

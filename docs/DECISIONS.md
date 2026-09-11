@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-030 — Browser diagnostics require source ownership evidence
+
+- Decision: Change application code only when a browser diagnostic resolves to an application document, node or versioned bundle. Anonymous `VM` scripts, extension worlds and third-party frames remain externally owned unless reproducible evidence connects them to the application.
+- Context: Chrome reported valid Contact form semantics issues beside an anonymous `startTime` exception and several eval/deprecation/Quirks categories. A clean Chrome 152 run reproduced only the five form issues; the active documents were Standards Mode and the loaded application/Turnstile/analytics sources did not use the named deprecated APIs or eval.
+- Alternatives considered: Weaken CSP, add defensive timing code for an unowned exception, or modify the Turnstile integration to silence browser tooling.
+- Rationale: Suppressing a symptom without source ownership can reduce security and create unrelated regressions while leaving the actual producer unchanged.
+- Consequences: Diagnostics must record execution URL/frame and reproduce in an isolated browser before driving runtime changes. External warnings are documented, not patched through application policy.
+- Status: Approved by the task guardrails and applied to this cleanup.
+
 ## D-029 — Public sections receive explicit immutable snapshot slices
 
 - Decision: Rewritten public renderer sections receive only their validated `PublishedSiteSnapshot` slices as props. They do not read a mutable content context, own defaults, fetch content or know about CMS lifecycle.

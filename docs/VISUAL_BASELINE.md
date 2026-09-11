@@ -189,7 +189,7 @@ The exact Tailwind defaults are `sm 640px`, `md 768px`, `lg 1024px`, `xl 1280px`
 
 ## Accessibility Baseline
 
-- The public pages preserve a single visible H1, semantic section headings, links, form labels, native form validation, and a global visible `:focus-visible` accent outline.
+- The public pages preserve a single visible H1, semantic section headings, links, native form validation, and a global visible `:focus-visible` accent outline. Contact's visible terminal labels are explicitly associated with their controls without changing their presentation.
 - Desktop navigation is semantic `nav`; mobile menu links and its text-labeled toggle work with keyboard activation because the toggles are native buttons.
 - Mobile toggles expose explicit labels, expansion state and the controlled menu identifier while retaining their bracket text.
 - Expertise accordion triggers are native buttons with `aria-expanded`, `aria-controls` and corresponding description visibility state.

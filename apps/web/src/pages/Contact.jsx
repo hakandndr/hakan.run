@@ -182,24 +182,28 @@ const Contact = () => {
                   />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block font-mono text-[10px] text-accent-purple/70 uppercase tracking-widest mb-1.5">
+                      <label htmlFor="contact-name" className="block font-mono text-[10px] text-accent-purple/70 uppercase tracking-widest mb-1.5">
                         --name
                       </label>
                       <input
+                        id="contact-name"
                         type="text"
                         name="name"
+                        autoComplete="name"
                         required
                         placeholder="your_name"
                         className="w-full border border-white/[0.08] rounded px-4 py-3 font-mono text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-purple/50 focus:ring-1 focus:ring-accent-purple/30 transition-all duration-200" style={{ backgroundColor: '#0D0D0D' }}
                       />
                     </div>
                     <div>
-                      <label className="block font-mono text-[10px] text-accent-purple/70 uppercase tracking-widest mb-1.5">
+                      <label htmlFor="contact-email" className="block font-mono text-[10px] text-accent-purple/70 uppercase tracking-widest mb-1.5">
                         --email
                       </label>
                       <input
+                        id="contact-email"
                         type="email"
                         name="email"
+                        autoComplete="email"
                         required
                         placeholder="user@domain.com"
                         className="w-full border border-white/[0.08] rounded px-4 py-3 font-mono text-sm text-white placeholder-gray-700 focus:outline-none focus:border-accent-purple/50 focus:ring-1 focus:ring-accent-purple/30 transition-all duration-200" style={{ backgroundColor: '#0D0D0D' }}
@@ -208,10 +212,11 @@ const Contact = () => {
                   </div>
 
                   <div>
-                    <label className="block font-mono text-[10px] text-accent-purple/70 uppercase tracking-widest mb-1.5">
+                    <label htmlFor="contact-message" className="block font-mono text-[10px] text-accent-purple/70 uppercase tracking-widest mb-1.5">
                       --message
                     </label>
                     <textarea
+                      id="contact-message"
                       name="message"
                       required
                       rows={5}

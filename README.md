@@ -34,12 +34,14 @@ History API state only at stable checkpoints. This prevents smooth scrolling fro
 exhausting browser history frequency limits and preserves indefinite hash-to-hash
 PUSH navigation, reload restoration and Back/Forward semantics.
 
-Phase 2B is implemented and focused-verified locally. `PublicHeader`, `PublicHero`
+Phase 2B is committed, pushed, deployed and owner-accepted on staging. `PublicHeader`, `PublicHero`
 and `PublicExpertise` consume explicit slices from the immutable snapshot through
 `PublicPageShell` and `PublicHome`; their former Context-reading implementations
 are deleted. Context remains temporary only for the page sections not yet migrated.
-Navigation and scroll ownership are unchanged, and no Phase 2B code is committed,
-pushed or deployed yet.
+Navigation and scroll ownership are unchanged. A narrow pre-Phase 2C local cleanup
+associates the existing Contact labels with their controls and declares standard
+name/email autocomplete semantics; it does not change visual design, copy, Turnstile,
+CSP, storage or submission behavior and is not committed or deployed.
 
 ## Legacy technology reference
 

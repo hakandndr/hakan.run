@@ -6,11 +6,11 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 - Objective: Preserve the approved visual product while replacing the Header, Hero and MY EXPERTISE implementation with explicit immutable snapshot-slice consumers.
 - Dependencies: Deployed strict `PublishedSiteSnapshot`, deterministic navigation/scroll lifecycle and approved visual baseline.
-- Scope: `PublicPageShell`, `PublicHome`, Header, Hero, Expertise and the minimum integration/test surface. Portfolio, Stats, About, CTA, Footer and Contact remain unchanged.
+- Scope: `PublicPageShell`, `PublicHome`, Header, Hero, Expertise and the minimum integration/test surface. Portfolio, Stats, About, CTA and Footer remain unchanged; a later approved hygiene pass changes only Contact label/autocomplete semantics without starting its clean renderer rewrite.
 - Main risks: Parallel old/new renderers, a hidden content fallback, component-owned scrolling, animation-controlled correctness and unreviewed visual drift.
 - Acceptance gates: One active implementation per migrated section; no context/default/fetch/CMS dependency in those sections; focused desktop/mobile behavior; hash/reload/Back-Forward/BootIntro regression; clean artifact graph; owner visual review.
 - Authorization boundaries: Local implementation and focused BUILD only. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER and production actions remain separately unauthorized.
-- Status: Implemented and focused-verified locally at committed base `2f2acb3`; owner visual review pending before any commit or deployment decision.
+- Status: Complete, committed, pushed and owner-accepted on staging at `e4ea9db`. A narrow pre-Phase 2C Contact accessibility cleanup is focused-verified locally and remains uncommitted/undeployed; Phase 2C has not started.
 
 ## Phase 2A — Deterministic public lifecycle completion
 
