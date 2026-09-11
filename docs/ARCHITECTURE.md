@@ -1,6 +1,6 @@
 # Architecture
 
-## Implemented clean public-runtime boundary — local, not deployed
+## Implemented clean public-runtime boundary — staging deployed
 
 The public content flow is a single authority chain:
 
@@ -47,7 +47,7 @@ revision; no schema or direct SQL migration was used. A statistic suffix remains
 required field, but an explicit empty string is valid because it represents the
 intentional absence of a displayed suffix rather than missing content.
 
-## Implemented public scroll lifecycle — local, not deployed
+## Implemented public scroll lifecycle — staging deployed
 
 The strict public snapshot remains asynchronous. `index.html` synchronously sets
 `history.scrollRestoration = 'manual'` in the document head, before the neutral body
@@ -78,14 +78,22 @@ LOADING and ERROR do not mount the coordinator, so their transient zero cannot b
 persisted. The history-entry key guard also rejects layout scroll events from an
 outgoing route after the browser has switched entries. Public controls still express
 navigation intent through `usePublicNavigation` and do not perform restoration.
-There is no session/local storage, timer, retry, requestAnimationFrame loop,
-MutationObserver, polling, unload persistence or geometry-guess shell.
+There is no session/local storage for scroll, timer, retry, requestAnimationFrame
+loop, MutationObserver, polling, unload persistence or geometry-guess shell.
 
 `BootIntro` is a sibling presentation layer owned by `PublicBootstrap`, not part of
 the snapshot state machine. It is fixed, pointer-transparent and `aria-hidden`.
 Fixed system copy and CSS-only timing create the approved boot visual while READY,
 ERROR and retry remain independent. Reduced-motion CSS removes the practical
-duration and delay. It has no content, readiness or scroll authority.
+duration and delay. A tab-scoped `hakan.run:boot-intro-seen` boolean is its sole
+presentation eligibility state: the first public entry claims it, reload omits the
+intro, and SPA navigation does not remount it. The flag has no content, readiness or
+scroll authority. The overlay uses `var(--color-bg, #090909)` to match the public
+document rather than a separate terminal background.
+
+Footer logo text remains published content. Source-controlled rendering isolates
+the slash and paints it white, matching the Header's canonical `<h/>` treatment
+without creating a second content value.
 
 ## Implemented CMS V2 — local, not deployed
 

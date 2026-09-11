@@ -163,3 +163,21 @@
   animated route transitions and variable document heights.
 - Exceptions / caveats: Presentation overlays may animate independently, but their
   duration must never gate readiness, content authority or restoration correctness.
+
+## 16. Replay eligibility is presentation state, not application readiness
+
+- Problem: A CSS-only intro remounted on every new document because animation timing
+  can hide an element after entry but cannot remember that the entry presentation
+  already ran.
+- Evidence / context: The public intro was correctly independent of READY and scroll,
+  but normal reload created a new React tree and replayed it. SPA navigation happened
+  not to remount the owner, which was an implementation effect rather than an explicit
+  first-entry contract.
+- Reusable rule: When a presentation is intentionally once per tab session, persist
+  one namespaced boolean at the presentation boundary. Keep that value out of content,
+  readiness, navigation and restoration state, and fail open to the harmless visual
+  if browser storage is unavailable.
+- Applies when: Optional onboarding, splash or boot presentation should survive
+  document reloads without becoming a correctness gate.
+- Exceptions / caveats: Do not use presentation storage as a substitute for durable
+  product state, authentication, consent or history-entry scroll checkpoints.

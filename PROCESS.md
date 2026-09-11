@@ -3041,3 +3041,41 @@ No commit identity was exercised. Local HEAD/upstream remain `f36a59c`; no commi
 push, deployment, migration, provider configuration or production action occurred.
 Exact next action is owner review of this uncommitted Phase 2A change set, followed
 only by a separately authorized commit decision.
+
+### 2026-09-10 — Phase 2A first-entry intro and footer parity follow-up
+
+Objective: correct three owner-reviewed staging presentation issues without broad
+redesign or any production, provider, database, Boss, deployment or Git-publication
+work. Work started clean on `develop/hakan-run-v2` at committed and upstream-matching
+`9409630868f0cb4438c0eab967c104c08bf229c2`. Local BUILD was authorized. COMMIT,
+PUSH, DEPLOY and production remained prohibited.
+
+The BootIntro overlay owned a separate `#0C0D0D` background while the authoritative
+public background is `--color-bg` with `#090909` fallback. The component also mounted
+unconditionally for every new public document; CSS animation could end one display
+but could not express first-entry eligibility across reload. Finally, Footer painted
+the complete published logo string with the accent class, whereas Header's SVG gives
+the slash a white fill.
+
+`BootIntro.jsx` now uses `var(--color-bg, #090909)` and claims one namespaced
+`hakan.run:boot-intro-seen` boolean in tab-scoped `sessionStorage`. The first public
+entry shows the intro, normal reload omits it, and SPA navigation does not remount it.
+Storage denial fails open to the harmless visual and never blocks READY. This boolean
+has no content, scroll, navigation, identity or readiness authority. `Footer.jsx`
+isolates only the first slash in the published mark and renders it white; it does not
+alter the published value. `tests/boot-intro.spec.ts` adds exact background, first
+entry, reload, internal navigation and Footer slash assertions. No Boss behavior,
+content value, scroll implementation, old loader or fallback path changed.
+
+Changed implementation/test files are `apps/web/src/components/BootIntro.jsx`,
+`apps/web/src/components/Footer.jsx`, and `tests/boot-intro.spec.ts`. Documentation
+continuity updates are README, HANDOFF, CURRENT_STATE, ARCHITECTURE, SECURITY,
+OPERATIONS, DECISIONS, ROADMAP, LESSONS, VISUAL_BASELINE and this append-only entry.
+
+The production build completed 1716 modules and passed artifact verification. Web
+lint passed. With an explicit local preview, focused Chromium passed 11/11 in 7.3
+seconds: five BootIntro/Footer/MY EXPERTISE cases and all six deterministic scroll
+cases. `git diff --check` passed before documentation completion and was rerun on the
+complete working tree at handoff. No commit identity was exercised; no commit, push,
+deployment, migration, provider/database mutation or production action occurred.
+Exact next action is owner review of this uncommitted local follow-up.

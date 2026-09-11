@@ -1,18 +1,18 @@
 # hakan.run Modernization Handoff
 
-## Phase 2A deterministic public lifecycle — local, 2026-09-10
+## Phase 2A first-entry intro and footer parity follow-up — local, 2026-09-10
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2` / `f36a59c95a4b03f5bcbc71666c7146ce3265acf0` |
-| Current phase | Phase 2A local implementation and focused verification complete; owner review pending |
-| Completed | History-entry scroll authority, one READY-bound coordinator, presentation-only BootIntro, reduced-motion handling, focused scroll/intro/accordion coverage, strict snapshot regression, lint and production/staging build checks |
-| Exact next action | Owner reviews this uncommitted Phase 2A diff and separately decides whether to authorize a commit |
+| Branch / HEAD | `develop/hakan-run-v2` / `9409630868f0cb4438c0eab967c104c08bf229c2` |
+| Current phase | Narrow Phase 2A visual/lifecycle follow-up implemented and verified locally; owner review pending |
+| Completed | BootIntro main-background parity, first-entry-only tab-session eligibility, reload/navigation non-replay, footer `<h/>` slash parity, focused boot/footer/scroll regression, lint and production build |
+| Exact next action | Owner reviews this uncommitted follow-up and separately decides whether to authorize commit, push or staging deployment |
 | Prohibited actions | Commit, push, deploy, production mutation, database/provider mutation, DNS, Access, Turnstile, broader renderer rewrite or historical visual suite |
-| Push state | Local HEAD and upstream both remain `f36a59c95a4b03f5bcbc71666c7146ce3265acf0`; all Phase 2A changes are uncommitted |
-| Deploy state | No deployment occurred; staging remains on the already deployed Phase 1 checkpoint |
-| Infrastructure state | No direct provider, configuration or database operation occurred during local completion. The already completed pre-interruption live reproduction used two real staging reloads and therefore may have emitted two ordinary staging PAGE analytics events through existing runtime behavior; no later live reload was performed |
+| Push state | Local HEAD and upstream both remain `9409630868f0cb4438c0eab967c104c08bf229c2`; only this follow-up is uncommitted |
+| Deploy state | Follow-up is not deployed; staging remains on Phase 2A version `33d1fbea-0ff0-4179-9021-e6e2b08cf3fe` |
+| Infrastructure state | Unchanged in this follow-up; no provider, database, production or live-browser operation occurred |
 
 `index.html` changes native history restoration to `manual` before the body exists.
 Each browser history entry owns one `{ x, y }` value under
@@ -23,16 +23,18 @@ and reload restore once; PUSH/REPLACE perform one top or available hash-target
 action. A listener may update only the currently owned history entry, so loading-
 shell zero and stale outgoing-route events cannot replace a stable position.
 
-`BootIntro` is an always-new-document, fixed, pointer-transparent, `aria-hidden`
-presentation sibling of the bootstrap state. CSS controls its 1400 ms visual
-sequence; it neither delays nor signals READY and contains no editable marketing
-copy. Reduced motion makes it effectively immediate. Historical
-`TerminalLoader.jsx` remains unreachable and was not restored to the runtime.
+`BootIntro` now claims a single presentation-only flag named
+`hakan.run:boot-intro-seen` in tab-scoped `sessionStorage`. The flag is independent
+of content, READY and scroll state: the first public entry renders the fixed,
+pointer-transparent, `aria-hidden` overlay; subsequent reloads in that tab return
+`null`; SPA navigation never remounts it. Its background uses
+`var(--color-bg, #090909)`, exactly matching the main public background. Historical
+`TerminalLoader.jsx` remains unreachable.
 
-Final local evidence: focused Chromium 9/9, strict snapshot/schema/preview 22/22,
-web lint passed, production build and artifact policy passed, staging build and
-noindex artifact policy passed, and `git diff --check` passed. No commit, push,
-deployment or broader visual run occurred.
+Footer preserves its published logo text while rendering the slash as an explicit
+white span, matching the Header mark. Final local evidence: focused Chromium 11/11,
+web lint, production build/artifact policy and `git diff --check` passed. No commit,
+push, deployment or broad visual run occurred.
 
 ## Phase 1.5 staging content authority completion — 2026-09-10
 

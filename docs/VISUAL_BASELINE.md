@@ -4,15 +4,19 @@
 
 This document is the canonical technical specification for the public visual system inherited from legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb`. It is derived from source inspection and deterministic Chromium captures on Windows. It records existing behavior; it does not approve a redesign or claim that live production was inspected.
 
-## Approved Phase 2A entry exception — local, not deployed
+## Approved Phase 2A entry exception — staging core with local follow-up
 
-The owner-approved Phase 2A candidate replaces the historical session-gated
-`TerminalLoader` runtime behavior with a presentation-only `BootIntro`. The five
-fixed terminal lines retain the entry motif, but the overlay is `aria-hidden`,
-pointer-transparent, independent of content/READY/scroll, present on each fresh
-document, and effectively immediate under reduced motion. The historical baseline
-descriptions below remain evidence of the inherited design, not current runtime
-authority. No broad redesign or historical screenshot re-baselining was performed.
+The owner-approved Phase 2A runtime replaces the historical `TerminalLoader` with a
+presentation-only `BootIntro`. The five fixed terminal lines retain the entry motif,
+but the overlay is `aria-hidden`, pointer-transparent and independent of
+content/READY/scroll. The deployed core established that boundary. The current local
+follow-up shows it only on the first public entry in a tab session, not on reload or
+SPA navigation, and keeps reduced motion effectively immediate. Its background is
+the exact public background token (`--color-bg`, fallback `#090909`) rather than a
+separate blue-tinted terminal panel. Footer renders the slash in its published
+`<h/>` mark white, matching Header. The historical descriptions below remain
+evidence of the inherited design, not current runtime authority. No broad redesign
+or historical screenshot re-baselining was performed.
 
 ## Preservation Contract
 

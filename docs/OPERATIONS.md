@@ -1,5 +1,31 @@
 # Operations
 
+## Phase 2A first-entry intro follow-up verification — 2026-09-10
+
+The narrow local follow-up keeps the existing public content and scroll contracts
+unchanged. `BootIntro` claims `hakan.run:boot-intro-seen = 1` in tab-scoped
+`sessionStorage` on the first public document entry. The value controls presentation
+eligibility only: reload omits the intro, SPA navigation does not remount it, and a
+new tab session may present it again. If storage is unavailable, the harmless intro
+is shown and the public application remains unblocked.
+
+The final local checks were:
+
+```powershell
+npm run build --prefix apps/web
+npm run lint --prefix apps/web
+npx --no-install playwright test tests/boot-intro.spec.ts tests/scroll-restoration.spec.ts --project=chromium --workers=1 --reporter=line
+git diff --check
+```
+
+The production build completed 1716 modules and passed artifact verification. Web
+lint passed. Focused Chromium passed 11/11 in 7.3 seconds, covering first entry,
+reload non-replay, internal-navigation non-replay, main-background parity, reduced
+motion, Footer slash parity, the MY EXPERTISE regression and all six deterministic
+scroll cases. The test used an explicit local preview with content and analytics
+network boundaries; no staging or production endpoint was changed. Final `git diff
+--check` passed on the complete documented working tree.
+
 ## Phase 2A deterministic lifecycle verification — 2026-09-10
 
 Do not use staging reloads for this gate: the deployed public tracker records a PAGE

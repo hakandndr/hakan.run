@@ -1,6 +1,6 @@
 # Current State
 
-## Phase 2A deterministic public lifecycle — local, not deployed, 2026-09-10
+## Phase 2A public lifecycle — deployed baseline plus local follow-up, 2026-09-10
 
 The asynchronous strict content boundary remains authoritative, but native browser
 restoration is no longer expected to succeed against its viewport-height LOADING
@@ -16,20 +16,25 @@ current. The LOADING shell does not mount the coordinator, and an outgoing anima
 route cannot write into the destination entry. No timer, delay, retry, polling,
 observer, animation-frame restoration loop or height-guess shell is involved.
 
-The new `BootIntro` is a fixed, pointer-transparent and accessibility-hidden visual
-overlay. Its five fixed system lines animate only through CSS and never own content,
-readiness or scrolling. READY may commit independently of the animation; reduced
-motion makes the overlay effectively immediate. The public renderer never exposes
-editable content while the strict snapshot remains LOADING, and the legacy
-`TerminalLoader.jsx` remains unreachable.
+The deployed Phase 2A baseline is commit `9409630`, staging version
+`33d1fbea-0ff0-4179-9021-e6e2b08cf3fe`. A narrow uncommitted follow-up changes only
+presentation eligibility and footer mark rendering. `BootIntro` uses one tab-scoped
+`hakan.run:boot-intro-seen` flag: the first public entry claims and renders it,
+reload returns no intro, and internal navigation does not remount it. This flag has
+no content, READY or scroll authority. The overlay background is the main
+`var(--color-bg, #090909)`, and reduced motion remains effectively immediate.
+Historical `TerminalLoader.jsx` remains unreachable.
 
-Focused Chromium evidence passes 9/9, including normal and cache-bypassing reloads,
+Footer continues to read `logoText` from the published snapshot, but renders its
+slash in white to match the Header `<h/>` treatment. No service/accordion code,
+content schema, Boss behavior or scroll code changed.
+
+Focused Chromium evidence for the follow-up passes 11/11, including normal and cache-bypassing reloads,
 stable state through repeated hard reload, post-READY user ownership, PUSH/REPLACE,
 POP, cross-route hash navigation, BootIntro, reduced motion and the unchanged
 MY EXPERTISE single-open accordion. Strict snapshot/schema/preview tests pass 22/22;
 lint, production/staging builds, both artifact policies and `git diff --check` pass.
-The work remains uncommitted and undeployed at `f36a59c`; deployed staging is still
-the completed Phase 1 checkpoint.
+The follow-up remains uncommitted and undeployed at HEAD `9409630`.
 
 ## Clean public-runtime foundation — local, not deployed, 2026-09-10
 

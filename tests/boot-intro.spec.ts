@@ -23,6 +23,7 @@ test('BootIntro is a presentation-only fresh-load overlay with no editable copy'
   await expect(intro).toHaveAttribute('aria-hidden', 'true');
   await expect(intro).toHaveCSS('position', 'fixed');
   await expect(intro).toHaveCSS('pointer-events', 'none');
+  await expect(intro).toHaveCSS('background-color', 'rgb(9, 9, 9)');
   await expect(intro).toContainText('BIOS V2.0.26 — HAKAN.RUN');
   await expect(intro).toContainText('$ init hakan.run');
   await expect(intro).toContainText('> loading components... [OK]');
@@ -36,6 +37,38 @@ test('BootIntro is a presentation-only fresh-load overlay with no editable copy'
   await waitForPublishedSite(page);
   await expect(page.locator('h1')).toContainText('BUILD. DEPLOY.');
   await expect(page.locator('h1')).toContainText('RUN.');
+});
+
+test('BootIntro is claimed once per tab session and does not replay on reload or navigation', async ({ page }) => {
+  await page.route('**/api/content', route => route.fulfill(publishedContentResponse));
+
+  await page.goto('/');
+  const intro = page.locator('[data-boot-intro="presentation"]');
+  await expect(intro).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() =>
+    window.sessionStorage.getItem('hakan.run:boot-intro-seen'),
+  )).toBe('1');
+  await expect(intro).toBeHidden();
+
+  await page.locator('a[href="/contact"]').first().click();
+  await expect(page).toHaveURL(/\/contact$/);
+  await expect(page.locator('form')).toBeVisible();
+  await expect(intro).toHaveCount(1);
+  await expect(intro).toBeHidden();
+
+  await page.reload({ waitUntil: 'load' });
+  await expect(page.locator('form')).toBeVisible();
+  await expect(page.locator('[data-boot-intro="presentation"]')).toHaveCount(0);
+});
+
+test('footer canonical mark renders its slash in white', async ({ page }) => {
+  await page.route('**/api/content', route => route.fulfill(publishedContentResponse));
+  await page.goto('/');
+  await waitForPublishedSite(page);
+
+  const slash = page.locator('[data-footer-logo-slash]');
+  await expect(slash).toHaveText('/');
+  await expect(slash).toHaveCSS('color', 'rgb(255, 255, 255)');
 });
 
 test('reduced motion makes BootIntro effectively immediate without blocking READY', async ({ page }) => {

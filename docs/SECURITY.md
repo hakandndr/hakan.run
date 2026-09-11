@@ -15,6 +15,12 @@ delay READY. The strict `PublishedSiteSnapshot` remains the only path to editabl
 public content. No Access, Turnstile, secret, binding, database, analytics policy or
 production boundary changed in this local implementation.
 
+The narrow first-entry follow-up adds one tab-scoped session value,
+`hakan.run:boot-intro-seen = 1`. It is a non-sensitive presentation eligibility
+boolean only. It is never read by content, READY, authorization or scroll logic and
+is not a restoration checkpoint. Storage denial falls back to showing the harmless
+presentation and never blocks the public application.
+
 ## Phase 1.5 staging content publication — 2026-09-10
 
 The authorized staging-only operation used Cloudflare Access and the Worker's

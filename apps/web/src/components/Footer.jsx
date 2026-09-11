@@ -9,6 +9,19 @@ const SOCIAL_ICONS = {
   Twitter:   <Twitter   size={16} />,
 };
 
+const renderLogoText = (text) => {
+  const slashIndex = text.indexOf('/');
+  if (slashIndex === -1) return text;
+
+  return (
+    <>
+      {text.slice(0, slashIndex)}
+      <span data-footer-logo-slash className="text-white">/</span>
+      {text.slice(slashIndex + 1)}
+    </>
+  );
+};
+
 const renderBottomSignature = (text) => {
   const label = 'DNDR Labs';
   const labelIndex = text.indexOf(label);
@@ -56,7 +69,7 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center gap-1.5 mb-1 font-mono">
               <span className="text-accent-purple/50 text-xs select-none">~/</span>
-              <span className="font-bold text-accent-purple text-sm">{f.logoText}</span>
+              <span className="font-bold text-accent-purple text-sm">{renderLogoText(f.logoText)}</span>
               <span className="font-bold text-white text-sm tracking-widest uppercase">{f.siteName}</span>
             </div>
             <p className="font-mono text-xs text-gray-500 mb-5 leading-relaxed">

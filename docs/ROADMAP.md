@@ -7,9 +7,9 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Objective: Preserve deep scroll positions across the strict asynchronous public bootstrap and add the approved presentation-only BootIntro without creating a second content or readiness authority.
 - Dependencies: Deployed Phase 1 strict `PublishedSiteSnapshot` boundary and completed staging content authority.
 - Main risks: Persisting transient LOADING zero, competing native/application restoration, stale animated routes writing into a destination entry, presentation timing becoming a correctness gate, and visual/accordion regression.
-- Acceptance gates: Manual native restoration selected before body creation; one history-entry authority; one READY-commit coordinator; exact reload/POP and PUSH/REPLACE behavior; no timer/retry/storage workaround; BootIntro independent of content/readiness/scroll; reduced motion; stale-copy exclusion; MY EXPERTISE regression; focused strict-contract/lint/build evidence.
-- Authorization boundaries: Local BUILD is complete. COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
-- Status: Implemented and focused-verified locally at uncommitted HEAD `f36a59c`; owner review pending. No staging code deployment occurred.
+- Acceptance gates: Manual native restoration selected before body creation; one history-entry authority; one READY-commit coordinator; exact reload/POP and PUSH/REPLACE behavior; no timer/retry/storage scroll workaround; BootIntro independent of content/readiness/scroll; first-entry-only presentation; reduced motion; stale-copy exclusion; Header/Footer mark parity; MY EXPERTISE regression; focused strict-contract/lint/build evidence.
+- Authorization boundaries: Core Phase 2A is deployed to staging. The current follow-up has local BUILD authorization only; COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separately unauthorized.
+- Status: Core implementation is committed at `9409630` and deployed to staging as `33d1fbea-0ff0-4179-9021-e6e2b08cf3fe`. The first-entry/background/footer-parity follow-up passes focused Chromium 11/11 locally and awaits owner review.
 
 ## Phase 1D — Clean public-runtime foundation
 

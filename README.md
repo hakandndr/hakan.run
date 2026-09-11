@@ -24,10 +24,11 @@ canonical fields in staging APP_DB, and a fresh public API readback passes the s
 snapshot contract. Production content was not changed; commit, push and staging code
 deployment remain separate authorization gates for subsequent work.
 
-The current uncommitted Phase 2A candidate adds deterministic history-entry scroll
-restoration after READY and a CSS-only presentation `BootIntro`. It uses no timer,
-retry, session/local storage or fallback content authority, and its focused local
-contract passes. It is not committed, pushed or deployed.
+Phase 2A deterministic history-entry scroll restoration and its presentation-only
+BootIntro are deployed to staging from `9409630`. A narrow local follow-up makes the
+intro first-entry-only through a presentation-scoped tab-session flag, aligns its
+background with the main site, and makes the Footer `<h/>` slash white like Header.
+The follow-up is uncommitted and undeployed; it changes no content or scroll authority.
 
 ## Legacy technology reference
 
