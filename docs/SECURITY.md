@@ -1,5 +1,20 @@
 # Security
 
+## Phase 2B renderer isolation — local, 2026-09-11
+
+The Header, Hero and Expertise rewrite adds no trust or storage boundary. Each
+component receives a slice of the already validated and recursively frozen
+`PublishedSiteSnapshot`. None can fetch content, inspect drafts, address APP_DB,
+invoke Boss APIs or recover from incomplete data with source defaults. Failure still
+occurs before the renderer boundary.
+
+The surrounding `ContentProvider` temporarily serves only unmigrated sections and
+exposes the same immutable snapshot; it is not a second content authority. Public
+navigation still flows through React Router and the sole scroll coordinator. Local
+accordion state and Header backdrop state are presentation values without identity,
+authorization, content or persistence authority. No Access, Turnstile, secret,
+binding, database, analytics, provider or production state changed.
+
 ## Phase 2A local lifecycle boundary — 2026-09-10
 
 The new scroll checkpoint contains only viewport coordinates in the current browser

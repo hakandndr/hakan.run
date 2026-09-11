@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 19. Explicit renderer slices expose authority without forcing a full rewrite
+
+- Problem: A shared content hook hides which section owns which data and makes a section-by-section clean-room migration prone to parallel implementations or accidental defaults.
+- Evidence / context: Header, Hero and Expertise moved to explicit frozen snapshot slices while the remaining page continued to consume the same snapshot through a temporary compatibility context.
+- Reusable rule: Put composition at a renderer boundary, pass validated slices downward, and delete each superseded implementation as soon as its replacement becomes active.
+- Applies when: Incrementally replacing a renderer while one immutable payload remains authoritative.
+- Exceptions / caveats: A context remains appropriate for genuinely cross-cutting state, but it should not conceal content provenance or become a second authority.
+
 ## 18. High-frequency state persistence can disable the navigation API it supports
 
 - Problem: Writing scroll coordinates with `history.replaceState` on every smooth-scroll event consumes the same browser-controlled frequency budget required by later `pushState` navigation.

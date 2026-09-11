@@ -10,7 +10,7 @@ const Application = ({ snapshot }) => (
   <BrowserRouter>
     <ContentProvider snapshot={snapshot}>
       <PageTracker />
-      <App />
+      <App snapshot={snapshot} />
     </ContentProvider>
   </BrowserRouter>
 );

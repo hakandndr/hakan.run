@@ -1,64 +1,73 @@
-import { useContent } from '@/contexts/ContentContext';
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
 
-const Header = () => {
+const HeaderMark = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 100 100"
+    className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
+    fill="none"
+    aria-hidden="true"
+    data-header-mark
+  >
+    <text
+      x="50"
+      y="60"
+      fontFamily="monospace"
+      fontSize="46"
+      fontWeight="bold"
+      textLength="82"
+      lengthAdjust="spacingAndGlyphs"
+      fill="#57B8FF"
+      textAnchor="middle"
+    >
+      &lt;h<tspan data-header-logo-slash fill="#ffffff">/</tspan>&gt;
+    </text>
+    <text
+      x="50"
+      y="85"
+      fontFamily="sans-serif"
+      fontSize="14"
+      fontWeight="bold"
+      fill="#ffffff"
+      textAnchor="middle"
+    >
+      hakan.run
+    </text>
+  </svg>
+);
+
+const PublicHeader = ({ header }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigateTo = usePublicNavigation();
-  const { content } = useContent();
-
-  const navLinks = content.header.navLinks;
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleSmoothScroll = e => {
-    e.preventDefault();
-    const href = e.currentTarget.getAttribute('href');
-    if (/^https?:/.test(href)) { window.open(href, '_blank', 'noopener,noreferrer'); setIsOpen(false); return; }
+  const navigate = (href) => {
     navigateTo(href, { behavior: href.includes('#') ? 'smooth' : 'auto' });
-    if (isOpen) setIsOpen(false);
+    setIsOpen(false);
   };
 
-  const handleHomeClick = e => {
-    e.preventDefault();
-    navigateTo('/');
-    if (isOpen) setIsOpen(false);
+  const handleNavigation = (event) => {
+    event.preventDefault();
+    navigate(event.currentTarget.getAttribute('href'));
   };
 
-  const handleCTA = () => {
-    navigateTo('/contact');
-    if (isOpen) setIsOpen(false);
+  const handleHome = (event) => {
+    event.preventDefault();
+    navigate('/');
   };
 
-  const TransparentLogo = () => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 100 100"
-      className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-110"
-      fill="none"
-      aria-hidden="true"
-    >
-      <text x="50" y="60" fontFamily="monospace" fontSize="46" fontWeight="bold"
-        textLength="82" lengthAdjust="spacingAndGlyphs"
-        fill="#57B8FF" textAnchor="middle">
-        &lt;h<tspan fill="#ffffff">/</tspan>&gt;
-      </text>
-      <text x="50" y="85" fontFamily="sans-serif" fontSize="14" fontWeight="bold"
-        fill="#ffffff" textAnchor="middle">
-        hakan.run
-      </text>
-    </svg>
-  );
+  const handleContact = () => navigate('/contact');
 
   return (
     <>
@@ -68,31 +77,27 @@ const Header = () => {
         }`}
         style={{ backgroundColor: isScrolled ? 'rgba(9,9,9,0.92)' : 'rgba(9,9,9,0.60)' }}
       >
-        {/* Top accent line */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-purple/40 to-transparent" />
 
         <div className="container mx-auto px-6 h-20 flex justify-between items-center">
-
-          {/* Logo — two-line path style */}
-          <Link to="/" onClick={handleHomeClick} className="flex items-center gap-3 group">
-            <TransparentLogo />
+          <Link to="/" onClick={handleHome} className="flex items-center gap-3 group" aria-label="Home">
+            <HeaderMark />
             <div>
               <div className="font-mono text-[10px] text-accent-purple/50 leading-none mb-1 tracking-widest select-none">
                 ~/portfolio
               </div>
               <div className="text-sm font-bold text-white font-mono tracking-[0.2em] uppercase leading-none">
-                {content.header.siteName}
+                {header.siteName}
               </div>
             </div>
           </Link>
 
-          {/* Desktop nav — comment-prefix style */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(link => (
+          <nav className="hidden md:flex items-center gap-1" aria-label="Primary navigation">
+            {header.navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                onClick={handleSmoothScroll}
+                onClick={handleNavigation}
                 className="relative px-4 py-2 font-mono text-xs text-white/75 hover:text-white transition-colors tracking-wide uppercase group"
               >
                 <span className="text-accent-purple/50 mr-1 group-hover:text-accent-purple/80 transition-colors select-none">//</span>
@@ -102,23 +107,25 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* CTA — terminal command style */}
           <div className="hidden md:flex items-center">
             <Button
               className="bg-accent-purple text-white hover:bg-accent-purple/90 group rounded font-mono text-sm px-5 h-9"
-              onClick={handleCTA}
+              onClick={handleContact}
             >
               <span className="opacity-50 mr-1.5 text-xs select-none">$</span>
-              {content.header.ctaButton}
+              {header.ctaButton}
               <ArrowRight className="ml-2 h-3.5 w-3.5 transform transition-transform duration-300 group-hover:translate-x-1" />
             </Button>
           </div>
 
-          {/* Mobile toggle — bracket style */}
           <div className="md:hidden">
             <button
-              onClick={() => setIsOpen(!isOpen)}
+              type="button"
+              onClick={() => setIsOpen((value) => !value)}
               className="font-mono text-sm text-white border border-white/20 px-3 py-1.5 rounded hover:border-accent-purple/50 hover:text-accent-purple transition-colors"
+              aria-expanded={isOpen}
+              aria-controls="public-mobile-menu"
+              aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
             >
               {isOpen ? '[x]' : '[=]'}
             </button>
@@ -126,10 +133,10 @@ const Header = () => {
         </div>
       </motion.header>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id="public-mobile-menu"
             initial={{ opacity: 0, y: '-100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '-100%' }}
@@ -137,13 +144,12 @@ const Header = () => {
             className="fixed inset-0 z-50 md:hidden"
             style={{ backgroundColor: '#090909' }}
           >
-            {/* Top accent line */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-purple/40 to-transparent" />
 
             <div className="container mx-auto px-6 h-full flex flex-col">
               <div className="flex justify-between items-center h-20">
-                <Link to="/" onClick={handleHomeClick} className="flex items-center gap-3 group">
-                  <TransparentLogo />
+                <Link to="/" onClick={handleHome} className="flex items-center gap-3 group" aria-label="Home">
+                  <HeaderMark />
                   <div>
                     <div className="font-mono text-xs leading-none mb-1 select-none">
                       <span className="text-gray-600">&lt;</span>
@@ -151,24 +157,26 @@ const Header = () => {
                       <span className="text-gray-600"> /&gt;</span>
                     </div>
                     <div className="text-sm font-bold text-white font-mono tracking-[0.2em] uppercase leading-none">
-                      {content.header.siteName}
+                      {header.siteName}
                     </div>
                   </div>
                 </Link>
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
                   className="font-mono text-sm text-white border border-white/20 px-3 py-1.5 rounded hover:border-accent-purple/50 hover:text-accent-purple transition-colors"
+                  aria-label="Close navigation menu"
                 >
                   [x]
                 </button>
               </div>
 
-              <nav className="flex-grow flex flex-col justify-center items-center gap-8">
-                {navLinks.map((link, index) => (
+              <nav className="flex-grow flex flex-col justify-center items-center gap-8" aria-label="Mobile navigation">
+                {header.navLinks.map((link, index) => (
                   <motion.a
                     key={link.name}
                     href={link.href}
-                    onClick={handleSmoothScroll}
+                    onClick={handleNavigation}
                     className="font-mono text-2xl font-bold text-gray-200 hover:text-accent-purple transition-colors"
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -183,10 +191,10 @@ const Header = () => {
               <div className="py-8">
                 <Button
                   className="bg-accent-purple text-white hover:bg-accent-purple/90 group w-full font-mono text-base py-6 rounded"
-                  onClick={handleCTA}
+                  onClick={handleContact}
                 >
                   <span className="opacity-50 mr-2 text-sm select-none">$</span>
-                  {content.header.ctaButton}
+                  {header.ctaButton}
                   <ArrowRight className="ml-2 h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </div>
@@ -198,4 +206,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default PublicHeader;

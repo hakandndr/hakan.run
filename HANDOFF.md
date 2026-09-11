@@ -1,5 +1,42 @@
 # hakan.run Modernization Handoff
 
+## Phase 2B clean public renderer foundation — local, 2026-09-11
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `2f2acb352039284801f9d872a4d05b3f962e28f2` |
+| Current phase | Phase 2B Header, Hero and MY EXPERTISE clean renderer implementation is complete and focused-verified locally; owner visual review pending |
+| Completed | Explicit snapshot-slice renderer boundary, single active Header/Hero/Expertise implementations, legacy implementation disposal, focused behavior/regression coverage and artifact/runtime graph inspection |
+| Exact next action | Owner performs visual review of Header, Hero and MY EXPERTISE; commit, push and staging deployment require later explicit authorization |
+| Prohibited actions | Commit, push, deploy, production or provider mutation, database/content changes, Boss changes, and migration of Portfolio, Stats, About, CTA, Footer or Contact |
+| Push state | Local committed HEAD and upstream remain `2f2acb352039284801f9d872a4d05b3f962e28f2`; Phase 2B is uncommitted |
+| Deploy state | Phase 2B is not deployed; staging remains on Worker version `1492a0b9-d7fc-4a5a-ab54-4206ba934bf4` from `2f2acb3` |
+| Infrastructure state | Unchanged; no live request, APP_DB/ANALYTICS_DB write, provider mutation or production action occurred |
+
+The READY application passes the immutable `PublishedSiteSnapshot` through the
+router. `PublicPageShell` gives only the `header` slice to `PublicHeader`, while
+`PublicHome` gives only `hero` plus contact social links to `PublicHero` and only
+`services` to `PublicExpertise`. None of those three components imports
+`ContentContext`, APP_DB, fetch, Boss, drafts or CMS lifecycle code. Context remains
+temporarily available only to the unmigrated Stats, Portfolio, About, CTA, Footer
+and Contact implementations.
+
+Legacy `components/Header.jsx`, `components/Hero.jsx`, `components/Services.jsx`
+and `pages/Home.jsx` are deleted. There is one active implementation for each
+rewritten section, and public navigation intent still flows through
+`usePublicNavigation` to the sole `ScrollManager`; components do not scroll
+targets directly. Header and Hero retain presentation-only Framer entrances.
+Expertise owns one explicit index state and uses semantic buttons plus CSS-only
+expansion/indicator transitions; animation does not control correctness.
+
+Focused Chromium is green after adapting the historical MY EXPERTISE selector to
+the new semantic row contract. The corrected final combined set passes 23/23:
+Phase 2B 4/4, hash navigation 5/5, scroll restoration 6/6 and the BootIntro/
+first-paint/Footer/MY EXPERTISE set 8/8. Production build and lint pass. The built public chunks contain neither Boss
+implementation strings nor the stale `QA Automation & SDET` or former Hero/
+Expertise fallback copy. Final hygiene evidence is recorded in Operations.
+
 ## Phase 2A hash-navigation history quota correction — local, 2026-09-11
 
 | Field | Current value |

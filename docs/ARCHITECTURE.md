@@ -1,5 +1,41 @@
 # Architecture
 
+## Phase 2B clean public renderer boundary — local
+
+The public renderer now has an explicit snapshot-to-section dependency direction:
+
+```text
+PublishedSiteSnapshot
+  -> Application -> App
+      -> PublicPageShell
+          -> PublicHeader(header)
+          -> route content
+              -> PublicHome(snapshot)
+                  -> PublicHero(hero, contact.socialLinks)
+                  -> legacy sections awaiting migration
+                  -> PublicExpertise(services)
+          -> legacy Footer awaiting migration
+```
+
+`PublicHeader`, `PublicHero` and `PublicExpertise` accept only their validated,
+recursively frozen snapshot slices. They have no content defaults, context reads,
+fetches or CMS knowledge. `PublicHome` owns section composition and visibility, not
+editable values. The content context remains around the route only for unmigrated
+sections and is not an authority alternative: it exposes the same immutable
+snapshot already admitted by `PublicBootstrap`.
+
+Navigation intent remains in `usePublicNavigation`; the route-bound
+`ScrollManager` remains the only code allowed to perform target and restoration
+scrolling. Header's scroll listener changes backdrop presentation only. Framer
+Motion in Header and Hero is presentation-only. Expertise correctness is owned by
+one React index state; CSS transitions do not mount data, repair state or trigger
+navigation.
+
+The superseded `components/Header.jsx`, `components/Hero.jsx`,
+`components/Services.jsx` and `pages/Home.jsx` files are deleted rather than hidden
+behind flags. Stats, Portfolio, About, CTA, Footer and Contact retain their existing
+implementations until a later explicitly authorized Phase 2 migration.
+
 ## Implemented clean public-runtime boundary — staging deployed
 
 The public content flow is a single authority chain:
@@ -29,7 +65,7 @@ Entry ownership is selected in `main.jsx` through separate dynamic imports:
 - public paths load `PublicBootstrap`, `Application`, `App` and public renderer code;
 - `/boss` paths load `BossApplication` and the existing private module tree;
 - `/boss/content/preview` loads `PreviewPage`, validates the supplied private rows as
-  a `PublishedSiteSnapshot`, and renders the shared `PublicFrame` in memory.
+  a `PublishedSiteSnapshot`, and renders the shared `PublicPageShell` in memory.
 
 The public router now exposes `/`, `/contact` and the not-found surface. Portfolio
 cards require published external destinations. The historical source-backed Project

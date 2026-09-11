@@ -1,5 +1,38 @@
 # Current State
 
+## Phase 2B clean public renderer boundary — local, 2026-09-11
+
+The committed and deployed checkpoint is `2f2acb352039284801f9d872a4d05b3f962e28f2`.
+Phase 2B is an uncommitted local renderer change on that clean base. The strict
+APP_DB to `/api/content` to immutable `PublishedSiteSnapshot` authority chain is
+unchanged.
+
+`Application` now passes the snapshot explicitly into `App`. The home route renders
+`PublicHome`, and the route layout renders `PublicPageShell`. That shell supplies
+the validated `header` slice to `PublicHeader`; `PublicHome` supplies the validated
+`hero` and contact social-link slices to `PublicHero`, and the validated `services`
+slice to `PublicExpertise`. These components contain presentation markup and local
+interaction state only. They do not import the content context or know about fetch,
+APP_DB, Boss, drafts or publication lifecycle.
+
+The former `components/Header.jsx`, `components/Hero.jsx`,
+`components/Services.jsx` and `pages/Home.jsx` implementations are deleted. Import
+and artifact scans show no parallel implementation. `ContentContext` remains only
+as a temporary compatibility boundary for Stats, Portfolio, About, CTA, Footer,
+Contact and other not-yet-migrated public sections; their behavior was not rewritten
+in this phase.
+
+Header and Hero express destinations through `usePublicNavigation`. Only
+`ScrollManager` performs target or restoration scrolling. Expertise uses one
+`activeIndex` owner, semantic row buttons, `aria-expanded`/`aria-hidden`, and
+CSS-only presentation transitions. The first row begins RUNNING, at most one row is
+RUNNING, and opening another row closes the previous row.
+
+Focused Chromium passes Phase 2B 4/4, hash navigation 5/5, deterministic scroll
+restoration 6/6, and the corrected BootIntro/first-paint/MY EXPERTISE set 8/8. The
+production build completes 1716 modules and lint passes. No live environment,
+content, database, Boss, provider or production state changed.
+
 ## Phase 2A public lifecycle — deployed baseline plus local hash correction, 2026-09-11
 
 The asynchronous strict content boundary remains authoritative, but native browser

@@ -1,5 +1,39 @@
 # Operations
 
+## Phase 2B clean renderer verification — 2026-09-11
+
+The local work starts at committed, upstream-matching and staging-deployed SHA
+`2f2acb352039284801f9d872a4d05b3f962e28f2`. It changes no Worker, binding,
+database, content or provider resource. Browser tests stub both published content
+and analytics writes.
+
+Focused verification commands:
+
+```powershell
+npm run lint --prefix apps/web
+npm run build --prefix apps/web
+npx playwright test tests/public-renderer-phase2b.spec.ts --project=chromium --workers=1 --reporter=line
+npx playwright test tests/public-renderer-phase2b.spec.ts tests/hash-navigation.spec.ts tests/scroll-restoration.spec.ts tests/boot-intro.spec.ts --project=chromium --workers=1 --reporter=line
+npx playwright test tests/boot-intro.spec.ts --project=chromium --workers=1 --reporter=line
+npm run verify:artifact --prefix apps/web
+git diff --check
+```
+
+Phase 2B passes 4/4. In the combined 23-test regression, 22 tests passed and the
+historical MY EXPERTISE test alone timed out because it selected the deleted `h3`
+markup. The test was corrected to the new semantic row button/data contract; the
+complete BootIntro/first-paint/Footer/MY EXPERTISE file then passed 8/8. Hash
+navigation passed 5/5 and deterministic scroll restoration passed 6/6 in that
+combined run. After the selector correction, the final complete focused set passed
+23/23 in 26.9 seconds. No broad historical visual suite or live acceptance was run.
+
+The production build completed 1716 modules. Artifact scans found zero exact
+`QA Automation & SDET` matches and zero former Hero badge, biography or Expertise
+description matches. Public chunks contain no Boss implementation/API strings.
+Source imports contain no reference to the four deleted implementation files;
+`scrollIntoView` exists only in `ScrollManager`. Final lint, artifact policy and
+diff hygiene are recorded after documentation completion.
+
 ## Phase 2A hash-navigation history quota verification — 2026-09-11
 
 The deployed checkpoint is commit `9e99fe1`, staging Worker version

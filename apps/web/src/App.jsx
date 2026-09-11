@@ -1,13 +1,13 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import Layout from '@/components/Layout';
-import Home from '@/pages/Home';
+import PublicHome from '@/public/PublicHome';
 import Contact from '@/pages/Contact';
 import NotFound from '@/pages/NotFound';
 import { AnimatePresence } from 'framer-motion';
 import KonamiEasterEgg from '@/components/KonamiEasterEgg';
 
-function App() {
+function App({ snapshot }) {
   const location = useLocation();
   const navigationType = useNavigationType();
 
@@ -18,9 +18,9 @@ function App() {
         <Routes location={location} key={location.pathname}>
           <Route
             path="/"
-            element={<Layout navigationType={navigationType} routeLocation={location} />}
+            element={<Layout navigationType={navigationType} routeLocation={location} snapshot={snapshot} />}
           >
-            <Route index element={<Home />} />
+            <Route index element={<PublicHome snapshot={snapshot} />} />
             <Route path="contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
           </Route>

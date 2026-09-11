@@ -3198,3 +3198,69 @@ were intercepted locally. The initial guard caught Cloudflare RUM before network
 continuation; the corrected run fulfilled every non-GET request in-browser. No live
 database write, deployment or provider mutation occurred. No commit identity was
 exercised. Exact next action is owner review of this uncommitted local correction.
+
+### 2026-09-11 — Phase 2B clean public renderer foundation
+
+Objective: begin the clean-room renderer rewrite while preserving the approved
+visual product, limited to the renderer boundary, Header, Hero, MY EXPERTISE and
+their minimum integration surface. Work resumed from the exact uncommitted state
+on `develop/hakan-run-v2` at committed, upstream-matching and staging-deployed SHA
+`2f2acb352039284801f9d872a4d05b3f962e28f2`. Local implementation and focused BUILD
+were authorized. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER, Boss/content mutation and
+production work remained prohibited.
+
+The former renderer composed `Header` in `PublicFrame` and `Hero`/`Services` in
+`pages/Home.jsx`; all four read a shared content context. The implemented direction
+passes the immutable snapshot from `Application` through `App` to
+`PublicPageShell` and `PublicHome`. `PublicHeader` receives only `header`,
+`PublicHero` receives `hero` plus contact social links, and `PublicExpertise`
+receives only `services`. Context remains temporarily around the same immutable
+snapshot for the explicitly unmigrated Stats, Portfolio, About, CTA, Footer and
+Contact implementations.
+
+Created files are `apps/web/src/public/PublicHome.jsx`,
+`apps/web/src/public/components/PublicHeader.jsx`,
+`apps/web/src/public/components/PublicHero.jsx`,
+`apps/web/src/public/components/PublicExpertise.jsx` and
+`tests/public-renderer-phase2b.spec.ts`. Integration changes are `App.jsx`,
+`Application.jsx`, `boss/PreviewPage.jsx`, `components/Layout.jsx`,
+`public/PublicRenderer.jsx` and `index.css`. The historical
+`components/Header.jsx`, `components/Hero.jsx`, `components/Services.jsx` and
+`pages/Home.jsx` implementations are deleted. The existing BootIntro regression
+test now selects the semantic Expertise row contract. Continuity updates cover
+README, HANDOFF, CURRENT_STATE, ARCHITECTURE, SECURITY, OPERATIONS, DECISIONS,
+ROADMAP, LESSONS, VISUAL_BASELINE and this append-only journal.
+
+Header retains its desktop and mobile geometry, canonical white slash, published
+navigation order and contact behavior. Hero retains the approved content, profile
+card, CTA destinations and social links. Expertise retains its terminal process
+monitor identity, status language, first-open/at-most-one-open model and responsive
+layout, while replacing a clickable div and motion-owned indicator with a semantic
+button, one explicit index state and CSS-only presentation transitions. Header and
+Hero use `usePublicNavigation`; only `ScrollManager` performs target/restoration
+scrolling. No feature flag, fallback copy, timer-controlled correctness or parallel
+implementation was added.
+
+The first Phase 2B test run found one invalid multi-element locator assertion and
+was corrected to compare the exact href array. A Playwright-owned preview process
+also retained its known Windows shutdown behavior; subsequent evidence used an
+explicit local preview. In the first combined regression, 22/23 tests passed and
+the historical MY EXPERTISE test timed out because it still selected deleted `h3`
+markup. The selector was corrected to the new row button/data contract; its full
+file then passed 8/8, and the final combined run passed 23/23 in 26.9 seconds:
+Phase 2B 4/4, hash navigation 5/5, BootIntro/first-paint/Footer/MY EXPERTISE 8/8,
+and deterministic scroll restoration 6/6.
+
+Web lint passed. The final production build completed 1716 modules and production
+artifact policy passed both during build and through the explicit verifier.
+`git diff --check` passed. Artifact scans found zero `QA Automation & SDET`, former
+Hero badge/biography or former Expertise description matches. Public chunks contain
+zero Boss implementation/API strings. Source scans found no imports of the deleted
+files and found `scrollIntoView` only in `ScrollManager`. No broad historical visual
+suite, live browser acceptance or staging request was made.
+
+No commit identity was exercised. The committed HEAD, upstream and deployed staging
+checkpoint remain `2f2acb3`; Phase 2B is uncommitted and undeployed. No database,
+analytics, DNS, Access, Turnstile, provider or production state changed. The exact
+next action is owner visual review of Header, Hero and MY EXPERTISE, followed only
+by separately authorized commit, push or staging deployment decisions.

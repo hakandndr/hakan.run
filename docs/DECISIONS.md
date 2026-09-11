@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-029 — Public sections receive explicit immutable snapshot slices
+
+- Decision: Rewritten public renderer sections receive only their validated `PublishedSiteSnapshot` slices as props. They do not read a mutable content context, own defaults, fetch content or know about CMS lifecycle.
+- Context: The historical Header, Hero and Services implementations coupled presentation to a shared content hook and encouraged section composition, content access and interaction ownership to remain implicit.
+- Alternatives considered: Preserve the old components behind wrappers; add a second renderer context; run old and new implementations behind a feature flag; rewrite the whole site at once.
+- Rationale: Explicit slices make authority and dependencies visible while allowing a bounded section-by-section migration without creating a parallel public product.
+- Consequences: `PublicPageShell` owns the shared frame, `PublicHome` owns home composition, and Header/Hero/Expertise have one active implementation each. Context temporarily remains only for unmigrated sections. Navigation remains centralized and animation remains presentation-only. Later phases must remove the temporary context incrementally rather than add compatibility defaults.
+- Status: Approved and implemented locally for Phase 2B; focused verification complete, owner visual review and all Git/deployment actions pending.
+
 ## D-027 — Public content mounts only from an atomic published snapshot
 
 - Decision: The public renderer accepts one complete immutable `PublishedSiteSnapshot` produced from `GET /api/content`; LOADING and ERROR render no editable site content.
@@ -18,7 +27,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Reintroduce session storage; retain native restoration with guessed shell height; use timers, retries, animation-frame loops or observers; gate READY on the intro duration; allow route components to manage their own targets.
 - Rationale: The history entry is the browser object whose lifetime already matches reload and POP semantics. Binding one coordinator to the committed destination frame gives an exact lifecycle boundary without elapsed-time guesses. Presentation can then remain independent of application correctness.
 - Consequences: `history.state.__hakanRunScroll` is the reload-persistent restoration checkpoint. The same coordinator keeps current-session positions in a route-keyed in-memory map, so raw scroll events do not call `replaceState`; history is checkpointed only at entry initialization, `scrollend`, and `pagehide`. LOADING/ERROR never mount the coordinator; stale route-key writes are ignored; POP/reload restore once; PUSH/REPLACE perform one available hash or top action. BootIntro is fixed, pointer-transparent, `aria-hidden`, reduced-motion aware and contains only fixed system copy. It uses one tab-scoped session boolean solely to decide first-entry presentation; this value cannot participate in scroll, content or readiness. No timer/retry/session/local-storage scroll workaround is permitted.
-- Status: Scroll, first-entry presentation, blank React LOADING and zero-geometry static first paint are deployed to staging from `9e99fe1`. The bounded history-checkpoint correction is focused-validated locally, uncommitted and undeployed.
+- Status: Deployed to staging through commit `2f2acb3`, including the bounded history-checkpoint correction.
 
 ## D-001 — Preserve the existing visual language
 

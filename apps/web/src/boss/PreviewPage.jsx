@@ -51,7 +51,7 @@ export default function PreviewPage() {
   const stop = e => { e.preventDefault(); e.stopPropagation(); };
   return <MemoryRouter><PreviewContentProvider snapshot={snapshot}>
     <div ref={surface} onContextMenuCapture={stop} onDragStartCapture={stop} onClickCapture={stop} onAuxClickCapture={stop} onSubmitCapture={stop} onKeyDownCapture={e => { if (e.key === 'Enter' || e.key === ' ') stop(e); }}>
-      <PublicPreviewRenderer page={page} />
+      <PublicPreviewRenderer page={page} snapshot={snapshot} />
     </div>
   </PreviewContentProvider></MemoryRouter>;
 }

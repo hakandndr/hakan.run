@@ -28,12 +28,18 @@ deployment remain separate authorization gates for subsequent work.
 Phase 2A deterministic history-entry scroll restoration, first-entry-only BootIntro,
 immutable intro canvas, blank React LOADING and Footer mark parity are deployed to
 staging. Commit `9e99fe1` also deletes the earlier static HTML skeleton and its inline
-rules, leaving an empty pre-React root. A narrow local follow-up keeps one
+rules, leaving an empty pre-React root. Commit `2f2acb3` keeps one
 `ScrollManager` but records continuous scroll motion in entry-keyed memory and writes
 History API state only at stable checkpoints. This prevents smooth scrolling from
 exhausting browser history frequency limits and preserves indefinite hash-to-hash
-PUSH navigation, reload restoration and Back/Forward semantics. It is uncommitted
-and undeployed and changes no content, visual or bootstrap behavior.
+PUSH navigation, reload restoration and Back/Forward semantics.
+
+Phase 2B is implemented and focused-verified locally. `PublicHeader`, `PublicHero`
+and `PublicExpertise` consume explicit slices from the immutable snapshot through
+`PublicPageShell` and `PublicHome`; their former Context-reading implementations
+are deleted. Context remains temporary only for the page sections not yet migrated.
+Navigation and scroll ownership are unchanged, and no Phase 2B code is committed,
+pushed or deployed yet.
 
 ## Legacy technology reference
 

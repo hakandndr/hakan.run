@@ -181,8 +181,8 @@ test('MY EXPERTISE keeps its single-open accordion behavior', async ({ page }) =
   await expect(services.getByText('RUNNING')).toHaveCount(1);
   await expect(services.getByText('IDLE')).toHaveCount(3);
 
-  const secondService = services.locator('h3').nth(1);
-  await secondService.click();
+  const secondService = services.locator('[data-expertise-process]').nth(1);
+  await services.locator('[data-expertise-row]').nth(1).getByRole('button').click();
   await expect(services.getByText('RUNNING')).toHaveCount(1);
   await expect(services.getByText('IDLE')).toHaveCount(3);
   await expect(secondService).toHaveClass(/text-accent-purple/);

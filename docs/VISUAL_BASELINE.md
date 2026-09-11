@@ -20,6 +20,17 @@ or historical screenshot re-baselining was performed. The current local hash-
 navigation correction changes only scroll-position checkpoint frequency and has no
 visual-baseline delta.
 
+## Approved Phase 2B implementation boundary — local
+
+The Header, Hero and Expertise visual contracts remain unchanged, but their active
+implementations are now `public/components/PublicHeader.jsx`,
+`public/components/PublicHero.jsx` and `public/components/PublicExpertise.jsx`.
+`public/PublicHome.jsx` composes the home surface from immutable snapshot slices.
+The former Header, Hero, Services and Home files are deleted. Framer Motion remains
+presentation-only for Header and Hero; Expertise expansion uses semantic buttons,
+one explicit open-index owner and CSS transitions. No historical visual suite was
+re-baselined; owner visual review is the remaining Phase 2B gate.
+
 ## Preservation Contract
 
 The existing public design is authoritative during infrastructure and framework work. A future implementation must preserve brand identity, hierarchy, typography intent, major spacing geometry, section order, navigation, responsive behavior, interaction semantics, card proportions, major component geometry, motion intent, and content completeness. Approximate similarity is insufficient. Every intentional deviation requires explicit owner approval and documentation.
@@ -30,7 +41,7 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`.
 
 | Route | Boundary | Source | Title and primary heading | Archetype | Indexing and capture contract |
 | --- | --- | --- | --- | --- | --- |
-| `/` | Public | `apps/web/src/pages/Home.jsx` | `Hakan Dundar \| Software Developer & QA Automation Engineer`; `BUILD. DEPLOY. RUN.` | Long-form portfolio landing page | Listed in sitemap and `llms.txt`; desktop/mobile full page and critical sections |
+| `/` | Public | `apps/web/src/public/PublicHome.jsx` | Published title and description; `BUILD. DEPLOY. RUN.` | Long-form portfolio landing page | Listed in sitemap and `llms.txt`; desktop/mobile full page and critical sections |
 | `/contact` | Public | `apps/web/src/pages/Contact.jsx` | `Connect - Hakan Dundar`; `LET'S CONNECT` | Two-column terminal-style contact page | Listed in sitemap and `llms.txt`; desktop/mobile full page |
 | `/project/full-stack-development` | Public | `apps/web/src/pages/Project.jsx` | `Full-Stack SaaS Platform — Hakan Dundar`; project title | Long-form terminal case study | Listed in sitemap and `llms.txt`; representative desktop/mobile capture |
 | `/project/ai-and-automation` | Public | `apps/web/src/pages/Project.jsx` | `QA Automation with Playwright — Hakan Dundar`; `QA Automation with Playwright` | Long-form terminal case study | Listed in sitemap and `llms.txt`; covered structurally by the shared route implementation |
@@ -45,34 +56,34 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`.
 | Surface | Source | Current behavior and dependencies | Content authority |
 | --- | --- | --- | --- |
 | Entry and router | `apps/web/src/main.jsx`, `apps/web/src/App.jsx` | `BrowserRouter`, `ContentProvider`, scroll restoration, shared `Layout`, public and private route branches | Source-defined |
-| Header and mobile navigation | `apps/web/src/components/Header.jsx` | Fixed header, scroll backdrop, desktop navigation at `md`, full-screen animated mobile menu below `md`, Lucide arrow | Hardcoded |
-| Hero and profile card | `apps/web/src/components/Hero.jsx` | One column below `lg`; text plus 340 px photo column at `lg`, 360 px at `xl`; Framer entrances | Mixed fallback/CMS content with hardcoded presentation values |
+| Header and mobile navigation | `apps/web/src/public/components/PublicHeader.jsx` | Fixed header, scroll backdrop, desktop navigation at `md`, full-screen animated mobile menu below `md`, Lucide arrow | Immutable published `header` slice |
+| Hero and profile card | `apps/web/src/public/components/PublicHero.jsx` | One column below `lg`; text plus 340 px photo column at `lg`, 360 px at `xl`; Framer entrances | Immutable published `hero` and contact social-link slices |
 | Stats | `apps/web/src/components/Stats.jsx` | 1/2/4-column responsive grid; animated counters over 2 seconds in 60 steps | Fallback/CMS-driven |
-| Expertise / Services | `apps/web/src/components/Services.jsx` | Terminal process rows; first row open; one row may be open or all closed | Fallback/CMS-driven |
+| Expertise / Services | `apps/web/src/public/components/PublicExpertise.jsx` | Terminal process rows; first row open; one row may be open or all closed | Immutable published `services` slice |
 | Portfolio | `apps/web/src/components/Portfolio.jsx` | 1/2/3-column card grid; 16:9 images; internal and external navigation | Fallback/CMS-driven |
 | About | `apps/web/src/components/About.jsx` | Timeline and portrait; one column below `lg`, two columns from `lg` | Hardcoded |
 | CTA | `apps/web/src/components/CTA.jsx` | Centered call to action and primary button | Fallback/CMS-driven |
 | Contact | `apps/web/src/pages/Contact.jsx` | One column below `lg`, two columns from `lg`; Formspree browser submission | Fallback/CMS-driven |
 | Project detail | `apps/web/src/pages/Project.jsx` | Source-local project map, terminal cards, metrics, images, CTA | Hardcoded project data |
 | Footer | `apps/web/src/components/Footer.jsx` | 1/2/4-column responsive layout; source-driven navigation/social content | Fallback/CMS-driven |
-| Terminal loader | `apps/web/src/components/TerminalLoader.jsx` | One-time per tab session boot sequence | Hardcoded |
+| Boot intro | `apps/web/src/components/BootIntro.jsx` | Presentation-only first-entry overlay; no READY/content ownership | Source-controlled system copy |
 | Not found | `apps/web/src/pages/NotFound.jsx` | Path-aware terminal error and home link | Hardcoded |
 | Control Room boundary | `apps/web/src/pages/Admin.jsx` | Supabase Auth/TOTP, content editors, tracker UI | Private boundary; intentionally not captured |
 
-Shared primitives include `apps/web/src/components/ui/button.jsx` and toast components built with Radix Slot and utility classes. Icons are from `lucide-react`. Public imagery is stored under `apps/web/public/`, including the owner portraits and portfolio SVG illustrations. Tailwind CSS provides layout and responsive utilities; Framer Motion provides page, section, menu, accordion, and entrance motion.
+Shared primitives include `apps/web/src/components/ui/button.jsx` and toast components built with Radix Slot and utility classes. Icons are from `lucide-react`. Public imagery is stored under `apps/web/public/`, including the owner portraits and portfolio SVG illustrations. Tailwind CSS provides layout and responsive utilities; Framer Motion provides page, section, menu, and entrance motion. Expertise expansion uses CSS transitions.
 
 ## Brand Mark
 
-The approved future canonical personal mark is `<h/>`, colored as follows: `<` blue, `h` blue, `/` white, and `>` blue. Phase 1B does not implement that correction.
+The canonical personal mark is `<h/>`, colored as follows: `<` blue, `h` blue, `/` white, and `>` blue. Header and Footer implement that correction; the historical inventory below records other legacy assets separately.
 
 Current occurrences are inconsistent:
 
 | Path or surface | Type | Current representation |
 | --- | --- | --- |
-| `apps/web/src/components/Header.jsx` | Inline SVG text, desktop and mobile | `<h>` in cyan with a darker blue stroke; not canonical |
+| `apps/web/src/public/components/PublicHeader.jsx` | Inline SVG text, desktop and mobile | Canonical `<h/>`; slash is explicitly white |
 | `apps/web/index.html` | SVG data-URI favicon | `<h>`; not canonical |
 | `apps/web/src/content.js` and `apps/web/src/components/Footer.jsx` | Content string rendered as text | `<h>`; not canonical |
-| `apps/web/src/components/Header.jsx` mobile wordmark | JSX text fragments | `<hakan.run />`; another representation |
+| `apps/web/src/public/components/PublicHeader.jsx` mobile wordmark | JSX text fragments | `<hakan.run />`; secondary wordmark retained for visual parity |
 | `apps/web/src/pages/Admin.jsx` | Login, MFA, and sidebar text | `<hakan.run />`; another representation inside the private boundary |
 | `apps/web/public/og-image.png` | Raster social image | Large `</>` glyph; another representation |
 | `apps/web/src/components/TerminalLoader.jsx` | Text-only loader | `hakan.run` naming, no personal mark |
@@ -94,7 +105,7 @@ No separate canonical `<h/>` SVG asset was found. Public metadata otherwise name
 
 - Primary page background: `#090909` / `--color-bg`; nearby section surfaces include `#0A0A0A`, `#0B0B0C`, `#0D0D0D`, `#0E0E0F`, and `#111112`.
 - Card variable: `#151515`; terminal/project panels also use `#1A1A1A` and hero badges use `#181818`.
-- Accent blue: `rgb(87 184 255)` / `#57B8FF`; the current header mark separately uses `#00d2ff` with `#0077ff` stroke.
+- Accent blue: `rgb(87 184 255)` / `#57B8FF`; the Header mark uses the same `#57B8FF` with an explicit white slash.
 - Primary foreground: HSL `0 0% 96%`, equivalent intent to `#F4F4F5`; muted foreground: HSL `0 0% 64%`.
 - Borders are primarily white at 6–15% opacity; accent hover/focus borders commonly use 30–50% accent opacity.
 - Public success/status treatments use Tailwind green 400; contact errors use red treatments; terminal window controls use red/yellow/green at 50% opacity.
@@ -125,7 +136,7 @@ The hero contains a terminal-role badge, the uppercase `BUILD. DEPLOY. RUN.` hea
 
 ## Expertise / Services
 
-The section uses a terminal process-panel archetype. Filter tags sit above a bordered `rounded-xl` panel. The first service is initially `RUNNING`; clicking the active row closes it to `IDLE`, and clicking another row opens that row. Content opacity and height transition over 0.3 seconds `easeInOut`; the plus rotates over 0.25 seconds. Row hover adds a 2% white background and brighter title. Current rows are clickable `div` elements rather than semantic buttons.
+The section uses a terminal process-panel archetype. Filter tags sit above a bordered `rounded-xl` panel. The first service is initially `RUNNING`; clicking the active row closes it to `IDLE`, and clicking another row opens that row. Content opacity and height transition over 0.3 seconds `easeInOut`; the plus rotates over 0.3 seconds. Row hover adds a 2% white background and brighter title. Rows are semantic buttons with explicit expansion state.
 
 ## Portfolio
 
@@ -169,19 +180,19 @@ The exact Tailwind defaults are `sm 640px`, `md 768px`, `lg 1024px`, `xl 1280px`
 
 ## Motion
 
-- Framer Motion is used by pages, Header/mobile menu, Hero, About, Services accordion, and the shared `SectionAnimator`.
+- Framer Motion is used by pages, Header/mobile menu, Hero, About, and the shared `SectionAnimator`; Expertise correctness and expansion do not depend on it.
 - `SectionAnimator` enters once from 50 px below at 10% viewport visibility over 0.8 seconds `easeOut`.
 - Hero timing is 0.75 seconds for copy and 0.85 seconds plus 0.18-second delay for the photo.
 - About uses 0.65 seconds `easeOut`; Contact columns use 0.8 seconds; project page opacity uses 0.8 seconds; NotFound uses 0.5 seconds.
-- Services uses 0.3-second height/opacity and 0.25-second plus rotation. Portfolio hover uses 0.3-second card movement and 0.5-second image scale.
+- Expertise uses 0.3-second height/opacity and plus rotation. Portfolio hover uses 0.3-second card movement and 0.5-second image scale.
 - Global CSS shortens animation and transition durations to 0.001 ms and disables smooth scrolling under `prefers-reduced-motion: reduce`. No explicit Framer `useReducedMotion` or `MotionConfig` policy was found, so complete library-level reduced-motion behavior is not proven.
 
 ## Accessibility Baseline
 
 - The public pages preserve a single visible H1, semantic section headings, links, form labels, native form validation, and a global visible `:focus-visible` accent outline.
 - Desktop navigation is semantic `nav`; mobile menu links and its text-labeled toggle work with keyboard activation because the toggles are native buttons.
-- Mobile toggles do not expose `aria-label`, `aria-expanded`, or `aria-controls`; their visible bracket text is the accessible name.
-- Expertise accordion triggers are clickable `div` elements without button semantics, keyboard activation, or expansion attributes. This is a documented current limitation, not changed in the visual-freeze phase.
+- Mobile toggles expose explicit labels, expansion state and the controlled menu identifier while retaining their bracket text.
+- Expertise accordion triggers are native buttons with `aria-expanded`, `aria-controls` and corresponding description visibility state.
 - Muted 10–13 px text and very low-opacity gray/comment treatments present potential readability and contrast risk. Phase 1B did not perform a formal contrast audit.
 - CSS reduced-motion handling exists, but complete Framer Motion reduction requires later dedicated verification.
 
@@ -203,11 +214,10 @@ The production code and its animation values remain unchanged. Baselines were ge
 
 ## Known Visual Inconsistencies and Risks
 
-- Current `<h>` and alternate glyphs conflict with the approved future `<h/>` mark and color rule.
+- Historical favicon and alternate glyphs still differ from the canonical public Header/Footer `<h/>` treatment.
 - The Header SVG, favicon, Footer text, mobile wordmark, Control Room wordmark, and OG glyph do not use one common brand asset.
-- Content authority is mixed, so visual copy/theme changes can be inconsistent across hardcoded and CMS-backed surfaces.
+- Header, Hero and Expertise use immutable published slices; remaining unmigrated sections temporarily retain the shared snapshot context.
 - Unknown project slugs render full-stack content instead of a 404.
-- Expertise rows and mobile navigation state expose the accessibility limitations recorded above.
 - The production build has a JavaScript chunk above Vite's 500 kB warning threshold; this is a performance observation, not a visual change.
 
 ## Visual Parity Acceptance Contract
