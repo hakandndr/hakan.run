@@ -3356,3 +3356,50 @@ No commit identity was exercised. No APP_DB, ANALYTICS_DB, content, draft, Worke
 Turnstile, Access, DNS, provider or production mutation occurred. Exact next action
 is owner local visual acceptance, followed only by separately authorized commit,
 push and staging deployment. `/card` is a separate later phase.
+
+### 2026-09-11 — Phase 3A `/card` digital business card
+
+Objective: implement the physical business-card QR destination as a polished,
+mobile-first public `/card` route without adding content authority or changing the
+accepted Phase 2C renderer. Work began clean on `develop/hakan-run-v2` at committed,
+upstream-matching and staging-deployed SHA
+`6061a794ff7399b94d740f1f9ebade0df8e9c038`. Local implementation, focused browser
+verification and BUILD were authorized. COMMIT, PUSH, DEPLOY, DATABASE, schema,
+content, provider, Boss, production, DNS, Access, Turnstile and CSP remained
+prohibited.
+
+`PublicCard.jsx` adds the standalone route surface and `card-model.js` is a pure
+projection from the strict immutable snapshot. Name, role, location and the existing
+`/media/HakanDundar.webp` come from Hero; email and LinkedIn/GitHub come from Contact;
+Portfolio comes from Header; the footer slogan comes from Hero headings. Missing
+optional destinations are omitted. Source-controlled card configuration contains
+only canonical product URLs and presentation labels. No alternate portrait, CMS
+section, context, local/session storage, fallback content or parallel renderer was
+added.
+
+The Add to Contacts action generates vCard 4.0 text in-browser and exposes a
+`text/vcard;charset=utf-8` `.vcf` download. It uses no dependency, remote service,
+tracking redirect or server endpoint. `useCanonicalUrl` corrects the one existing
+canonical tag for the route and restores it on unmount; the first implementation
+used Helmet and a focused test correctly exposed that it appended a duplicate tag.
+The existing client and Worker PAGE-only allowlists and production sitemap/llms
+metadata now recognize `/card`; no event schema, third-party tracking or staging
+indexing behavior changed.
+
+The first build failed because the installed Lucide version did not export
+`PanelsTopLeft`; the existing `Briefcase` icon replaced it without a dependency
+change. `/card` then passed 11/11. A fully parallel 48-test focused run passed 47/48
+with one transient unchanged scroll POP assertion; the assertion passed alone, the
+scroll file passed 6/6 with one worker, and the deterministic combined run passed
+48/48. The route plus llms metadata check passed 12/12, web unit checks passed
+117/117, Worker checks passed 123/123, web lint passed, both the production and
+staging builds transformed 1,719 modules successfully, both artifact policies
+passed, and `git diff --check` passed. The staging artifact retained
+`noindex, nofollow`, a disallow-all robots policy and an empty sitemap. No broad
+historical visual suite ran.
+
+No commit identity was exercised and nothing was staged. No APP_DB, ANALYTICS_DB,
+content, draft, live Worker, live analytics, Turnstile, Access, DNS, provider or
+production mutation occurred. Exact next action is owner visual review of the local
+route, followed only by a separately authorized checkpoint/push/staging deployment.
+Production cutover remains the next major phase.

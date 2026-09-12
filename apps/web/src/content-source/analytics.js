@@ -2,7 +2,7 @@ export const normalizePagePath = (pathname) => {
   if (typeof pathname !== 'string') return null;
   const path = pathname.replace(/\/+$/, '') || '/';
 
-  if (path === '/' || path === '/contact') return path;
+  if (path === '/' || path === '/card' || path === '/contact') return path;
 
   if (/^\/project\/[^/]+$/.test(path)) {
     return path;

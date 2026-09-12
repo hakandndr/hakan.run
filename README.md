@@ -34,14 +34,16 @@ History API state only at stable checkpoints. This prevents smooth scrolling fro
 exhausting browser history frequency limits and preserves indefinite hash-to-hash
 PUSH navigation, reload restoration and Back/Forward semantics.
 
-Phase 2B is committed, pushed, deployed and owner-accepted on staging. Phase 2C is
-complete and focused-verified only in the local working tree. Every public section
-now consumes an explicit immutable snapshot slice through `PublicPageShell`,
-`PublicHome` or the route boundary. The temporary `ContentContext`, superseded
-section components and source-backed Project renderer are deleted. Contact keeps
-its labels, name/email autocomplete, Turnstile and Worker submission behavior.
-Navigation and scroll ownership are unchanged. Owner visual acceptance is the next
-gate; no Phase 2C commit, push or deployment has occurred.
+Phase 2B and Phase 2C are committed, pushed, deployed and owner-accepted on staging.
+Every public section consumes an explicit immutable snapshot slice; the temporary
+`ContentContext`, superseded section components and source-backed Project renderer
+are deleted. Contact keeps its labels, autocomplete, Turnstile and Worker behavior.
+
+Phase 3A implements `/card` locally as the QR destination for Hakan's physical
+business card. The compact route projects identity, the real owner portrait,
+Portfolio, LinkedIn, GitHub and email from the validated snapshot and offers a local
+vCard 4.0 download. It adds no CMS section, fallback content or third-party contact
+service. Owner visual review is pending; `/card` is not committed or deployed.
 
 ## Legacy technology reference
 

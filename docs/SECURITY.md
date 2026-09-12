@@ -1,5 +1,21 @@
 # Security
 
+## Phase 3A `/card` data boundary — local, 2026-09-11
+
+The `/card` route receives the already validated immutable public snapshot and makes
+no additional network or storage request. It cannot read drafts, browser storage,
+Boss APIs, APP_DB bindings or source fallback content. Contact and identity values
+remain owned by their canonical published sections.
+
+The vCard is generated locally as a `text/vcard` data download. It contains only the
+published name, role, available email/social URLs, published slogan and canonical
+site URL. There is no external vCard service, tracking redirect, new analytics call,
+upload, secret or executable content. Missing values are omitted. CSP, Turnstile,
+Worker submission semantics, Access and provider configuration are unchanged.
+The existing PAGE-only analytics boundary recognizes `/card` as a canonical public
+path; no new event type, field, external analytics provider or tracking redirect is
+introduced.
+
 ## Phase 2C renderer authority reduction — local, 2026-09-11
 
 Removing `ContentContext` narrows the public data boundary: one validated frozen

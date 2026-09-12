@@ -1,5 +1,34 @@
 # hakan.run Modernization Handoff
 
+## Phase 3A `/card` digital business card — local, 2026-09-11
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `6061a794ff7399b94d740f1f9ebade0df8e9c038` |
+| Current phase | Phase 3A `/card` is implemented and focused-verified locally; owner visual review is pending |
+| Completed | Mobile-first standalone card route, immutable snapshot-derived identity/actions, real owner portrait, local vCard download, route metadata and focused regression coverage |
+| Exact next action | Owner reviews `/card` visually at 360/390/430 px and desktop; if accepted, separately authorize checkpoint/push/staging deployment. Production cutover remains the next major phase |
+| Prohibited actions | Commit, push, deploy, production, database/content/schema, Boss, Turnstile, CSP, DNS, Access or provider changes |
+| Push state | Local committed HEAD and upstream remain `6061a79`; Phase 3A is uncommitted |
+| Deploy state | Staging remains on Phase 2C Worker version `b70f1677-395b-43ef-9976-633ece8cd0f9`; `/card` is not deployed; production is unchanged |
+| Infrastructure state | Unchanged; tests intercept public writes and no APP_DB, ANALYTICS_DB, content, provider or production mutation occurred |
+
+`/card` is the QR destination contract for the physical business card. The route
+uses the existing public bootstrap and receives the same strict immutable
+`PublishedSiteSnapshot`; `hero.profile` supplies name, role, location and
+`/media/HakanDundar.webp`, Contact supplies email and social destinations, and the
+Header supplies the Portfolio destination. Missing optional destinations are
+omitted rather than replaced. Only canonical route URLs, action labels and vCard
+download presentation are source-controlled product configuration.
+
+The route uses a compact standalone frame while retaining the one shared
+`ScrollManager`. It generates a vCard 4.0 data download in-browser with no library,
+service, tracking redirect or persisted state. Focused Chromium passes 48/48 in a
+deterministic one-worker run, including `/card` 11/11, Phase 2B/2C, Contact,
+sequential hash navigation, scroll restoration and BootIntro/first-paint. No broad
+historical visual suite was run.
+
 ## Phase 2C clean public renderer — local, 2026-09-11
 
 | Field | Current value |

@@ -5,7 +5,7 @@
 // system paths. Read queries therefore carry no path allow-list, which keeps
 // their index selection simple and predictable.
 
-export const CANONICAL_PAGES = ['/', '/contact'];
+export const CANONICAL_PAGES = ['/', '/card', '/contact'];
 export const PROJECT_PREFIX = '/project/';
 
 /** True when a normalized path is a public page worth recording. */

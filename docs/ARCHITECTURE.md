@@ -1,5 +1,35 @@
 # Architecture
 
+## Phase 3A `/card` route boundary — local
+
+```text
+PublishedSiteSnapshot
+  -> App / Layout / shared ScrollManager
+      -> /card -> PublicCard
+          -> card-model (pure projection)
+              hero.profile -> name, role, location, real profile media
+              contact -> email, LinkedIn, GitHub
+              header -> Portfolio destination
+              hero headings -> BUILD. DEPLOY. RUN.
+          -> local vCard 4.0 data download
+```
+
+`/card` uses the existing public entry, atomic validation and immutable snapshot. It
+has a compact standalone presentation instead of duplicating the full Header/Footer,
+but it stays under the same router and `ScrollManager`. The projection creates no
+context, persistence, fetch, defaults or CMS compatibility layer. `CARD_PRODUCT_CONFIG`
+contains only canonical product URLs; it cannot provide identity or contact content.
+
+The vCard is constructed synchronously from that projection and exposed through a
+`text/vcard;charset=utf-8` download. No server endpoint, third-party generator,
+tracking redirect or new dependency exists. Missing optional email/social links are
+excluded from both the UI and vCard rather than invented.
+
+Because `/card` is a canonical public page, it is added to the existing PAGE-only
+client and Worker allowlists plus production sitemap/llms metadata. This extends no
+event shape or collection behavior; staging remains the only hostname where the
+client sends the existing bounded PAGE event.
+
 ## Phase 2C complete public renderer boundary — local
 
 The complete public ownership graph is now:

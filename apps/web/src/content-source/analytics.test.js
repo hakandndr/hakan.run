@@ -7,6 +7,7 @@ import {
 
 test('normalizes supported public paths', () => {
   assert.equal(normalizePagePath('/'), '/');
+  assert.equal(normalizePagePath('/card/'), '/card');
   assert.equal(normalizePagePath('/contact/'), '/contact');
   assert.equal(normalizePagePath('/project/dndr-labs/'), '/project/dndr-labs');
 });
@@ -29,6 +30,7 @@ test('rejects private, API, asset and unknown routes', () => {
 
 test('records only on the staging hostname', () => {
   assert.equal(shouldTrackPage('staging.hakan.run', '/'), true);
+  assert.equal(shouldTrackPage('staging.hakan.run', '/card'), true);
   assert.equal(shouldTrackPage('staging.hakan.run', '/contact'), true);
   assert.equal(shouldTrackPage('hakan.run', '/'), false);
   assert.equal(shouldTrackPage('localhost', '/'), false);

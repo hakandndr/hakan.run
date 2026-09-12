@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import PublicHome from '@/public/PublicHome';
+import PublicCard from '@/public/components/PublicCard';
 import PublicContact from '@/public/components/PublicContact';
 import NotFound from '@/pages/NotFound';
 import { AnimatePresence } from 'framer-motion';
@@ -21,6 +22,7 @@ function App({ snapshot }) {
             element={<Layout navigationType={navigationType} routeLocation={location} snapshot={snapshot} />}
           >
             <Route index element={<PublicHome snapshot={snapshot} />} />
+            <Route path="card" element={<PublicCard snapshot={snapshot} />} />
             <Route path="contact" element={<PublicContact contact={snapshot.content.contact} />} />
             <Route path="*" element={<NotFound />} />
           </Route>

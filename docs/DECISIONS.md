@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-032 — `/card` projects canonical public identity into a local contact artifact
+
+- Decision: The physical-card QR destination is a dedicated mobile-first `/card` route. It projects identity, profile media, email, social links, Portfolio destination and slogan from the strict immutable `PublishedSiteSnapshot`; missing optional values disappear. Card-specific source configuration is limited to canonical product URLs and presentation labels. A standards-compatible vCard is generated locally without a service or persistence.
+- Context: A digital business card needs compact contact actions and a downloadable contact record without creating a thirteenth CMS section, copying public identity into source, or introducing a link-in-bio authority.
+- Alternatives considered: A hardcoded card dataset; a new APP_DB section; local/session storage; a third-party vCard generator; reusing the full public Header/Footer frame.
+- Rationale: Projection preserves one content authority while a compact standalone frame fits QR-first phone use. Local generation keeps public contact data direct and removes provider/tracking dependency.
+- Consequences: `PublicCard` must receive the complete validated snapshot, use the existing real profile asset, omit unavailable actions, remain under the shared router/scroll owner, and keep `<h/>` color semantics. Production cutover remains separately authorized.
+- Status: Approved by the Phase 3A task; implemented and focused-verified locally, pending owner visual review and all Git/deployment actions.
+
 ## D-031 — Complete the public renderer with explicit snapshot slices
 
 - Decision: Every editable public section receives only its validated immutable `PublishedSiteSnapshot` slice. Delete the temporary public content context, superseded section files and source-backed project-detail renderer rather than retain compatibility paths.

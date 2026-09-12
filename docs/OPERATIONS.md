@@ -1,5 +1,40 @@
 # Operations
 
+## Phase 3A `/card` verification — 2026-09-11
+
+The local work starts from clean, upstream-matching and staging-deployed SHA
+`6061a794ff7399b94d740f1f9ebade0df8e9c038`. Public content and analytics writes are
+intercepted in browser tests. No live environment or mutable endpoint is used.
+
+Focused verification commands:
+
+```powershell
+npx playwright test tests/card.spec.ts --project=chromium
+npx playwright test tests/card.spec.ts tests/public-renderer-phase2b.spec.ts tests/public-renderer-phase2c.spec.ts tests/hash-navigation.spec.ts tests/scroll-restoration.spec.ts tests/boot-intro.spec.ts tests/contact.spec.ts --project=chromium --workers=1
+npm run test:web
+npm run test:worker
+npm run lint --prefix apps/web
+npm run build --prefix apps/web
+npm run verify:artifact --prefix apps/web
+npm run build:staging --prefix apps/web
+npm run verify:artifact:staging --prefix apps/web
+git diff --check
+```
+
+The `/card` file passes 11/11. The deterministic combined Chromium run passes 48/48:
+Phase 3A 11, Phase 2B 4, Phase 2C 7, Contact 7, hash navigation 5, scroll restoration
+6, and BootIntro/first-paint/Footer/MY EXPERTISE 8. An initial fully parallel
+combined run passed 47/48 because one unchanged POP scroll assertion observed a
+concurrent transient position; the same assertion passed alone, the complete scroll
+file passed 6/6 with one worker, and the deterministic combined rerun passed 48/48.
+The card plus llms metadata run passes 12/12, web unit checks pass 117/117, Worker
+checks pass 123/123, web lint passes, and `git diff --check` passes. Production and
+staging builds each transform 1,719 modules and pass their matching artifact policy.
+No broad historical visual suite is part of this phase.
+Production sitemap/llms metadata and the existing client/Worker canonical PAGE
+allowlists include `/card`; the staging artifact still rewrites robots to
+`noindex, nofollow` and emits an empty sitemap.
+
 ## Phase 2C clean renderer verification — 2026-09-11
 
 The local work starts from clean, upstream-matching and staging-deployed SHA

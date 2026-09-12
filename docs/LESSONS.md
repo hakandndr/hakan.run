@@ -245,3 +245,11 @@
   loading component.
 - Exceptions / caveats: Static application shells can be valid product decisions,
   but they must be intentional and cannot satisfy a zero-geometry contract.
+
+## 19. A derivative public surface should project authority, not copy it
+
+- Problem: A compact profile or contact page can quietly become a second identity authority when it hardcodes values already published elsewhere.
+- Evidence / context: `/card` needs name, role, location, portrait, email, social destinations and Portfolio navigation, all already present in the strict public snapshot.
+- Reusable rule: Build a pure projection from the validated authority, isolate only genuine product presentation configuration, and omit unavailable optional actions rather than inventing defaults.
+- Applies when: Creating QR destinations, compact profiles, contact artifacts or alternate presentations of existing public data.
+- Exceptions / caveats: A genuinely new editable value requires an explicit content-model decision; it must not be smuggled into a view projection.

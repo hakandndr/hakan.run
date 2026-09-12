@@ -46,6 +46,13 @@ function metadataForPath(publicPath) {
     };
   }
 
+  if (publicPath === '/card') {
+    return {
+      title: 'Digital Business Card | Hakan Dundar',
+      description: 'A compact contact page using the same canonical published identity as hakan.run.',
+    };
+  }
+
   throw new Error(`No public metadata mapping for sitemap route: ${publicPath}`);
 }
 

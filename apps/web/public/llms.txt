@@ -3,4 +3,5 @@
 ## Public pages
 
 - [hakan.run](/): Published page content is provided at runtime by the canonical content API.
+- [Digital Business Card | Hakan Dundar](/card): A compact contact page using the same canonical published identity as hakan.run.
 - [Contact | hakan.run](/contact): Published contact content is provided at runtime by the canonical content API.

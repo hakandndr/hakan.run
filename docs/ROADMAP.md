@@ -189,7 +189,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Invented scope, duplicated identity data, visual inconsistency.
 - Acceptance gates: Approved requirements, responsive and accessibility validation, authority mapping, parity with brand rules.
 - Authorization boundaries: BUILD, COMMIT, PUSH, and DEPLOY are separate.
-- Status: Planned.
+- Status: **Implemented and focused-verified locally as Phase 3A.** The route is the physical-card QR destination, projects canonical PublishedSiteSnapshot values, uses the existing owner portrait, creates a local vCard 4.0 download and passes responsive/accessibility/navigation regression coverage. Owner visual review, commit, push and staging deployment remain separate gates. Production cutover is the next major phase after acceptance.
 
 ## Phase 10 — Production cutover
 

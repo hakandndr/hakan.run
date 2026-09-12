@@ -1,5 +1,30 @@
 # Current State
 
+## Phase 3A `/card` digital business card — local, 2026-09-11
+
+The accepted Phase 2C checkpoint is committed, upstream-matching and deployed at
+`6061a794ff7399b94d740f1f9ebade0df8e9c038`. Phase 3A adds an uncommitted, local-only
+`/card` route intended as the physical business-card QR destination. No deployment,
+database, provider or production state changed.
+
+`PublicCard` is a focused standalone public surface inside the existing router and
+strict public bootstrap. Its view model is derived only from the immutable
+`PublishedSiteSnapshot`: identity and the real profile image come from
+`hero.profile`, email and LinkedIn/GitHub from Contact, Portfolio from Header, and
+`BUILD. DEPLOY. RUN.` from the published Hero headings. Missing optional targets are
+omitted. A small source-controlled product configuration owns only `/card` canonical
+URL and site URL; it is not editable content or a fallback authority.
+
+The page creates a standards-compatible vCard 4.0 data download in the browser. It
+uses no third-party package or service, stores nothing, and includes only available
+published identity/contact values plus the canonical site URL. The same real
+`/media/HakanDundar.webp` asset is the page's sole portrait.
+
+Focused Chromium passes 48/48 with one worker: `/card` 11/11 plus Phase 2B/2C,
+Contact/Turnstile, hash navigation, deterministic scroll and BootIntro/first-paint.
+Responsive assertions cover 360, 390 and 430 px plus the desktop max-width layout.
+Owner visual review is the next gate; commit, push and deployment remain prohibited.
+
 ## Phase 2C clean public renderer — local, 2026-09-11
 
 The committed, upstream-matching and staging-deployed checkpoint is

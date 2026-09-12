@@ -41,6 +41,16 @@ explicit immutable snapshot slices now feed every public section. No historical
 screenshot suite was re-baselined. Owner visual review is the remaining Phase 2C
 gate before any Git or staging-deployment decision.
 
+## Phase 3A `/card` visual contract — local
+
+`/card` is an intentional new surface, not a rebaseline of the accepted main site.
+It uses a near-black single surface with a restrained blue radial accent, thin
+borders, the canonical blue/blue/white/blue `<h/>`, the existing owner portrait and
+monospace engineering labels. Mobile is one column at 360, 390 and 430 px; desktop
+uses a bounded `max-w-5xl` two-region layout rather than stretching a phone card.
+Actions are at least 44 px high, and motion is one restrained page entrance plus
+hover/focus feedback.
+
 ## Preservation Contract
 
 The existing public design is authoritative during infrastructure and framework work. A future implementation must preserve brand identity, hierarchy, typography intent, major spacing geometry, section order, navigation, responsive behavior, interaction semantics, card proportions, major component geometry, motion intent, and content completeness. Approximate similarity is insufficient. Every intentional deviation requires explicit owner approval and documentation.
@@ -53,6 +63,7 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`.
 | --- | --- | --- | --- | --- | --- |
 | `/` | Public | `apps/web/src/public/PublicHome.jsx` | Published title and description; `BUILD. DEPLOY. RUN.` | Long-form portfolio landing page | Listed in sitemap and `llms.txt`; desktop/mobile full page and critical sections |
 | `/contact` | Public | `apps/web/src/public/components/PublicContact.jsx` | Published title and Contact heading | Two-column terminal-style contact page | Listed in sitemap and `llms.txt`; desktop/mobile full page |
+| `/card` | Public | `apps/web/src/public/components/PublicCard.jsx` | Snapshot-derived name and digital-business-card metadata | QR-first compact contact card | New local route; owner review at 360/390/430 px and desktop before indexing/deployment decisions |
 | `/project/*` | Public catch-all | `apps/web/src/pages/NotFound.jsx` | `404 — Page Not Found \| Hakan Dundar`; `404` | Terminal-style error page | Source-backed detail renderer deleted; `noindex` |
 | `/admin` | Redirect | `apps/web/src/App.jsx` | Redirects to `/` | No independent page | Not indexed or captured |
 | Any other path | Public catch-all | `apps/web/src/pages/NotFound.jsx` | `404 — Page Not Found \| Hakan Dundar`; `404` | Terminal-style error page | `noindex`; real desktop/mobile capture |

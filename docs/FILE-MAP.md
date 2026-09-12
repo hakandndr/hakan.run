@@ -41,10 +41,11 @@
 | Path | Purpose |
 | --- | --- |
 | `src/main.jsx` | Public/Boss/preview entry selection and React mount |
-| `src/App.jsx` | Public route tree and explicit Contact snapshot-slice boundary |
+| `src/App.jsx` | Public route tree and explicit Contact/Card snapshot boundaries |
 | `src/Application.jsx` | Browser router and immutable snapshot handoff |
 | `src/content.js` | Offline historical/bootstrap source for tools and fixtures; absent from public runtime |
 | `src/content-source/visual-tokens.js` | Applies validated color and typography presentation tokens before READY |
+| `src/content-source/analytics.js` | Staging-only PAGE recording with canonical `/`, `/card`, `/contact` and retained project-path normalization |
 | `src/index.css` | global tokens, typography attributes, accessibility behavior |
 
 ## Public components
@@ -63,6 +64,9 @@
 | `public/components/PublicCTA.jsx` | Published CTA slice via centralized navigation |
 | `public/components/PublicFooter.jsx` | Published Footer slice, canonical mark and centralized navigation |
 | `public/components/PublicContact.jsx` | Published Contact slice, Turnstile and Worker submission boundary |
+| `public/components/PublicCard.jsx` | Standalone QR-first digital business card projected from the immutable snapshot |
+| `public/card/card-model.js` | Pure card view-model and local vCard 4.0 generation; canonical product URLs only |
+| `head/useCanonicalUrl.js` | Single-owner route canonical rewrite and restoration |
 | `components/BootIntro.jsx` | One-time tab-session presentation overlay |
 | `components/SectionAnimator.jsx` | Viewport-entry animation wrapper |
 | `components/KonamiEasterEgg.jsx` | Key-sequence overlay |
@@ -108,5 +112,6 @@ The real `secure-config.php` and log file must remain untracked.
 | `tests/navigation.spec.ts` | contact form structure, email input attributes, one project route |
 | `tests/notfound.spec.ts` | 404 rendering and home link |
 | `tests/seo.spec.ts` | selected Open Graph, Twitter, and canonical metadata |
+| `tests/card.spec.ts` | `/card` route, canonical data, vCard, responsive, focus and navigation contracts |
 
 There are no current tests for mobile-menu interaction, live form submission, Control Room, Supabase/RLS, PHP, hosting, cache, or deployment.

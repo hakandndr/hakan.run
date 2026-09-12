@@ -39,7 +39,7 @@ test('day ranges are inclusive and bounded', () => {
 });
 
 test('only public pages are recordable', () => {
-  for (const path of ['/', '/contact', '/project/full-stack-development']) {
+  for (const path of ['/', '/card', '/contact', '/project/full-stack-development']) {
     assert.equal(isPublicPage(path), true, `${path} should be recordable`);
   }
   for (const path of ['/assets/index.js', '/api/boss/system', '/boss', '/run/get_log.php',
@@ -50,6 +50,7 @@ test('only public pages are recordable', () => {
 
 test('paths are normalized before the public-page check', () => {
   assert.equal(normalizePath('//contact//'), '/contact');
+  assert.equal(normalizePath('/card/?source=qr'), '/card');
   assert.equal(normalizePath('/contact?utm=x#top'), '/contact');
   assert.equal(normalizePath(''), '/');
 });
