@@ -3497,3 +3497,20 @@ The generated SQL was not sent to D1. No production or staging row, Worker, flag
 DNS, Access or Turnstile state changed. No commit or push occurred. Exact next action
 is owner review and a separate commit/push decision; an analytics import requires a
 later explicit DATABASE authorization and fresh target verification.
+
+## 2026-09-12 — Production native analytics runtime correction
+
+- Objective: Restore real production PAGE collection after cutover, protect imported history, and make the existing Boss analytics presentation semantically clear.
+- Starting Git state: Clean `develop/hakan-run-v2` at `95c6f7f5966bb4e16fdd9f2a6caa7454d75b992a`, matching `origin/develop/hakan-run-v2` after fetch.
+- Approved scope: Public PAGE event generation, ingestion contracts, production runtime configuration continuity, Boss analytics read semantics and restrained row accents.
+- Root cause: `shouldTrackPage` accepted only `staging.hakan.run`. Production returned before the fetch boundary, so no request reached the healthy Worker/D1 path.
+- Changed runtime: The client explicitly accepts `hakan.run` and `staging.hakan.run`; canonical route classification and the Worker ingestion path are unchanged. Production configuration now records the already-live analytics flag and apex custom domain so deploy cannot silently remove them.
+- Boss correction: The native-only retention query remains native-only and is now exposed as `oldestNativeEvent` / `Oldest native event`. Source/actor and selected scan fields received restrained semantic accents; no broader redesign occurred.
+- Focused verification: 68/68 Node tests passed; web lint passed; production build transformed 1,719 modules; artifact verification and `git diff --check` passed; the production deploy dry-run preserved all expected bindings and flags.
+- Deployment: Production deployment `1973d643-489b-44a2-a236-41b4d2b1b93b`, Worker version `78bb5f6d-2c81-4519-a426-20b63aefacac`, became 100% active. The existing `hakan.run` custom domain was preserved; DNS, `www` redirect, Access and Turnstile provider configuration were not changed.
+- Live evidence: Clean-browser visits to `/`, `/contact` and `/card` produced three native rows with canonical paths in the first authoritative readback. After the remaining focused browser observations, the final count was nine (`/` 4, `/contact` 3, `/card` 2). Boss showed both `legacy_panel` and `native`; its native filter returned only native rows. Dashboard displayed the oldest native timestamp.
+- Data safety: Read-only D1 metadata reported `changed_db=false` and `rows_written=0`. Imported counts stayed at one snapshot, 5,294 source records and 3,332 `legacy_panel` events. APP_DB stayed at 12 published sections, 12 revisions, 12 audits, 0 drafts and 0 submissions.
+- Contact observation: No persistent application-owned error remained. The only warning/error messages were transient `NaN` entries sourced to the Cloudflare Turnstile challenge frame; CSP and Turnstile were unchanged.
+- Deliberate non-actions: No manual analytics rows, legacy mutation/re-import, APP_DB mutation, staging mutation, DNS/custom-domain/redirect change, Access change, CSP weakening, Turnstile change, CMS enablement, notification enablement or unrelated refactor.
+- Commit identity: Sole author and committer `Hakan Dundar <hakan@dndr.net>` with message `Fix production native analytics tracking`; no trailers or generated attribution.
+- Exact next action: Observe ordinary production traffic; any further analytics/UI work requires a separately reviewed scope.

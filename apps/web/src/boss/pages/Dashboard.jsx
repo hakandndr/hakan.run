@@ -26,9 +26,9 @@ const Dashboard = () => {
             },
             { label: 'Audit events', value: data.auditEvents, note: 'Privileged actions recorded' },
             {
-              label: 'Oldest analytics event',
-              value: formatInstant(data.oldestAnalyticsEvent),
-              note: 'Raw detail is removed only by an audited operator action',
+              label: 'Oldest native event',
+              value: formatInstant(data.oldestNativeEvent),
+              note: 'Native raw detail is removed only by an audited operator action',
             },
           ]}
         />

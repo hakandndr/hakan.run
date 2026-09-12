@@ -1,5 +1,29 @@
 # Architecture
 
+## Production native PAGE analytics path
+
+```text
+canonical browser host + canonical public route
+  -> client POST /api/analytics/page
+  -> Worker ANALYTICS_ENABLED gate
+  -> Worker canonical PAGE classification
+  -> production ANALYTICS_DB visitor_events (event_source = native)
+  -> Access-protected Boss read/filter layer
+```
+
+The client host allowlist contains only `hakan.run` and `staging.hakan.run`. It is
+an emission boundary, not a classification fallback: the Worker independently
+normalizes and accepts only canonical public PAGE paths. Assets, APIs, Boss/private
+routes and unknown paths are rejected before D1 insertion. The D1 schema default
+assigns `event_source = native`; imported rows remain `legacy_panel` and are not
+rewritten or duplicated by native ingestion.
+
+Boss raw-stream queries may combine both sources or bind one explicit source filter.
+The Dashboard oldest-event query deliberately binds `native` because it supports the
+native raw-detail retention action. The API and UI name that value
+`oldestNativeEvent`; imported history is visible elsewhere and is outside native
+retention deletion authority.
+
 ## Legacy analytics historical-classification boundary
 
 ```text

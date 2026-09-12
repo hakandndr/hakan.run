@@ -10,6 +10,19 @@ For the implemented site, start with the [documentation index](./docs/README.md)
 
 ## Modernization status
 
+Production cutover is complete. The modern Cloudflare Worker serves `hakan.run`,
+the canonical `www` redirect remains external and path/query preserving, production
+content comes only from the isolated production `APP_DB`, and Boss remains protected
+by Cloudflare Access. Production native PAGE analytics is live for canonical public
+routes and writes to the isolated production `ANALYTICS_DB`; imported history remains
+distinguishable through `event_source`.
+
+The production client explicitly tracks `hakan.run` and the staging client tracks
+`staging.hakan.run`. The Worker remains the PAGE classification/write boundary, and
+assets, APIs, Boss routes and unknown routes cannot become PAGE events. Boss exposes
+separate `native` and `legacy_panel` filters. Its oldest-event Dashboard card is
+explicitly native-scoped because it describes the native raw-detail retention action.
+
 The modernization branch has a deployed staging clean public-runtime boundary.
 Public paths render only after one complete, validated, immutable twelve-section
 snapshot has been read from `GET /api/content` and therefore from `APP_DB`. Before

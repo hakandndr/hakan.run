@@ -110,25 +110,71 @@ const DateField = ({ id, label, value, onChange }) => (
   </Field>
 );
 
+const SourceValue = ({ value }) => {
+  const className = value === 'native'
+    ? 'border-sky-400/25 bg-sky-400/10 text-sky-300'
+    : 'border-amber-400/25 bg-amber-400/10 text-amber-300';
+
+  return (
+    <span className={`inline-flex rounded border px-2 py-0.5 text-[10px] ${className}`}>
+      {value ?? '—'}
+    </span>
+  );
+};
+
+const ActorValue = ({ value }) => {
+  const className = value === 'human-likely'
+    ? 'text-emerald-300'
+    : value === 'verified-bot' || value === 'automated-likely'
+      ? 'text-rose-300'
+      : 'text-gray-500';
+
+  return <span className={className}>{value ?? '—'}</span>;
+};
+
 const STREAM_COLUMNS = [
   { key: 'rowNumber', label: '#' },
   { key: 'todayNumber', label: 'Today #' },
   { key: 'ip_address', label: 'IP Address' },
-  { key: 'event_source', label: 'Source' },
-  { key: 'actor_class', label: 'Actor' },
+  {
+    key: 'event_source',
+    label: 'Source',
+    render: (row) => <SourceValue value={row.event_source} />,
+  },
+  {
+    key: 'actor_class',
+    label: 'Actor',
+    render: (row) => <ActorValue value={row.actor_class} />,
+  },
   {
     key: 'occurred_at',
     label: 'Date (PT)',
-    render: (row) => formatInstant(row.occurred_at),
+    render: (row) => <span className="text-emerald-300/80">{formatInstant(row.occurred_at)}</span>,
   },
-  { key: 'country', label: 'Country' },
+  {
+    key: 'country',
+    label: 'Country',
+    render: (row) => <span className="text-gray-400">{row.country ?? '—'}</span>,
+  },
   {
     key: 'city',
     label: 'City / Region',
-    render: (row) => [row.city, row.region].filter(Boolean).join(', ') || '—',
+    render: (row) => (
+      <span className="text-fuchsia-300/80">
+        {[row.city, row.region].filter(Boolean).join(', ') || '—'}
+      </span>
+    ),
   },
-  { key: 'path', label: 'Page' },
-  { key: 'referrer_origin', label: 'Referrer' },
+  {
+    key: 'path',
+    label: 'Page',
+    render: (row) => <span className="text-sky-300">{row.path ?? '—'}</span>,
+  },
+  {
+    key: 'referrer_origin',
+    label: 'Referrer',
+    render: (row) => <span className="text-amber-300/80">{row.referrer_origin ?? '—'}</span>,
+  },
   {
     key: 'browser_family',
     label: 'Device / Browser',
@@ -137,12 +183,12 @@ const STREAM_COLUMNS = [
   },
 ];
 
-const CompactStat = ({ label, value, note }) => (
+const CompactStat = ({ label, value, note, valueClassName = 'text-white' }) => (
   <div className="min-w-0 px-4 py-3 border-r border-white/10 last:border-r-0">
     <p className="font-mono text-[9px] uppercase tracking-wider text-gray-600 truncate">
       {label}
     </p>
-    <p className="font-mono text-lg text-white mt-1">{value ?? '—'}</p>
+    <p className={`font-mono text-lg mt-1 ${valueClassName}`}>{value ?? '—'}</p>
     {note ? (
       <p className="font-mono text-[9px] text-gray-700 mt-1 truncate">{note}</p>
     ) : null}
@@ -159,8 +205,8 @@ const CompactSummary = ({ data }) => {
           <CompactStat label="Events" value={totals.events} />
           <CompactStat label="Today" value={totals.today} />
           <CompactStat label="Unique addresses" value={totals.uniqueAddresses} />
-          <CompactStat label="Human" value={totals.human} />
-          <CompactStat label="Automated" value={totals.automated} />
+          <CompactStat label="Human" value={totals.human} valueClassName="text-emerald-300" />
+          <CompactStat label="Automated" value={totals.automated} valueClassName="text-rose-300" />
           <CompactStat label="Raw days" value={coverage.rawDays.length} />
           <CompactStat label="Aggregate days" value={coverage.aggregateDays.length} />
         </div>

@@ -147,7 +147,7 @@ test('the Dashboard binds the source parameter it now has to bind', async () => 
   assert.equal(response.status, 200);
   const body = await response.json();
   assert.equal(body.pendingSubmissions, 2);
-  assert.equal(body.oldestAnalyticsEvent, 1);
+  assert.equal(body.oldestNativeEvent, 1);
   assert.deepEqual(seen.map((entry) => entry.params), [[NATIVE_SOURCE]]);
 });
 

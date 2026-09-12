@@ -1,5 +1,33 @@
 # Current State
 
+## Production native analytics — live and verified, 2026-09-12
+
+Production Worker version `78bb5f6d-2c81-4519-a426-20b63aefacac` is 100% active in
+deployment `1973d643-489b-44a2-a236-41b4d2b1b93b`. The public analytics client now
+allows the two explicit canonical hosts, `hakan.run` and `staging.hakan.run`.
+Production had previously been excluded at this client gate, so no analytics request
+was emitted even though the Worker route, `ANALYTICS_ENABLED=true`, D1 insert and Boss
+read paths were working.
+
+Controlled real-browser production visits created `native` rows for `/`, `/contact`
+and `/card`; the first authoritative readback showed exactly one for each path. After
+the remaining focused browser observations, final D1 readback showed nine native
+records (`/` 4, `/contact` 3, `/card` 2), and the Boss native filter returned only
+native records. Production legacy state is
+unchanged: one import snapshot, 5,294 legacy source records and 3,332
+`legacy_panel` visitor events. No legacy row was updated, deleted, re-imported or
+duplicated.
+
+Boss Analytics displays both sources and filters them independently. Dashboard's
+native-only raw-retention value is now named `Oldest native event`; it no longer
+implies an all-history query. Source, actor, timestamp, location, path and referrer
+accents are restrained semantic presentation only.
+
+Production APP_DB remains 12 published sections, 12 revisions, 12 audit events,
+zero drafts and zero submissions. CMS production writes and notifications remain
+disabled. DNS, custom-domain ownership, the `www` redirect, Access, Turnstile and CSP
+were not changed.
+
 ## Production content schema-gap planner — local, 2026-09-12
 
 The committed and upstream-matching base remains

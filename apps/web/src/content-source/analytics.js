@@ -11,9 +11,10 @@ export const normalizePagePath = (pathname) => {
   return null;
 };
 
+const TRACKED_HOSTNAMES = new Set(['hakan.run', 'staging.hakan.run']);
+
 export const shouldTrackPage = (hostname, pathname) =>
-  hostname === 'staging.hakan.run' &&
-  normalizePagePath(pathname) !== null;
+  TRACKED_HOSTNAMES.has(hostname) && normalizePagePath(pathname) !== null;
 
 let lastPath = null;
 

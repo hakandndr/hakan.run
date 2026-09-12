@@ -54,19 +54,19 @@ test('Worker-first routing carries no broader wildcard and no unrelated route', 
   }
 });
 
-test('production configuration matches the verified provisioned but inactive contract', () => {
+test('production configuration matches the verified live contract', () => {
   const config = JSON.parse(readFileSync(CONFIG_URL, 'utf8').replace(/^\s*\/\/.*$/gm, ''));
   const production = config.env.production;
   assert.equal(production.vars.ENVIRONMENT, 'production');
   assert.equal(production.vars.CMS_PRODUCTION_WRITES_ENABLED, 'false');
-  assert.equal(production.vars.ANALYTICS_ENABLED, 'false');
+  assert.equal(production.vars.ANALYTICS_ENABLED, 'true');
   assert.equal(production.vars.NOTIFICATIONS_ENABLED, 'false');
   assert.match(production.vars.ACCESS_AUD_BOSS, /^[a-f0-9]{64}$/);
   assert.match(production.vars.ACCESS_TEAM_DOMAIN, /^[a-z0-9-]+\.cloudflareaccess\.com$/);
   assert.match(production.vars.TURNSTILE_SITE_KEY, /^0x[0-9A-Za-z_-]+$/);
   assert.equal(production.workers_dev, false);
   assert.equal(production.preview_urls, false);
-  assert.deepEqual(production.routes, []);
+  assert.deepEqual(production.routes, [{ pattern: 'hakan.run', custom_domain: true }]);
   assert.deepEqual(
     production.d1_databases.map(({ binding, database_name: databaseName, migrations_dir: migrationsDir }) => ({
       binding,

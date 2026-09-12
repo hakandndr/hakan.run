@@ -1,5 +1,41 @@
 # Operations
 
+## Production native analytics correction — 2026-09-12
+
+The correction started from clean, upstream-matching SHA
+`95c6f7f5966bb4e16fdd9f2a6caa7454d75b992a`. Pre-deploy readback established one
+legacy snapshot, 5,294 legacy source records, 3,332 `legacy_panel` events and zero
+native events.
+
+Focused verification commands:
+
+```powershell
+node --test apps/web/src/content-source/analytics.test.js worker/tests/analytics-ingest.test.js worker/tests/time-and-routes.test.js worker/tests/analytics-source-stream.test.js worker/tests/legacy-retention.test.js apps/web/src/boss/pages/boss-pages.test.js worker/tests/routing-boundary.test.js
+npm run lint --prefix apps/web
+npm run build
+npm run verify:artifact --prefix apps/web
+git diff --check
+npx wrangler@4.131.1 deploy --env production --dry-run
+```
+
+Results: 68/68 tests passed; lint passed; the production build transformed 1,719
+modules; artifact verification and diff whitespace checks passed. The dry-run and
+deployed version retained production APP_DB/ANALYTICS_DB bindings,
+`ANALYTICS_ENABLED=true`, `CMS_PRODUCTION_WRITES_ENABLED=false`,
+`NOTIFICATIONS_ENABLED=false`, the Access audience/team values, Turnstile bindings
+and the existing apex custom domain.
+
+Deployment `1973d643-489b-44a2-a236-41b4d2b1b93b` activated Worker version
+`78bb5f6d-2c81-4519-a426-20b63aefacac` at 100%. Controlled browser visits to `/`,
+`/contact` and `/card` produced native PAGE events. Read-only D1 readback confirmed
+the three paths and unchanged imported counts with `changed_db=false` and
+`rows_written=0`. Boss then showed both sources, and its native filter returned only
+native records. No manual row was inserted.
+
+Production rollback remains a Worker version rollback to the previous known version
+`b9684f88-3763-4f6a-ba97-0f28d4791a23`; it must not delete the native rows already
+collected or alter imported history.
+
 ## Phase 3A `/card` verification — 2026-09-11
 
 The local work starts from clean, upstream-matching and staging-deployed SHA

@@ -1,5 +1,35 @@
 # hakan.run Modernization Handoff
 
+## Production native analytics runtime correction — deployed and verified, 2026-09-12
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / this `Fix production native analytics tracking` checkpoint |
+| Current phase | Production cutover complete; native PAGE analytics correction is live and verified |
+| Completed | Production/staging hostname gating correction, focused client and Worker ingestion contracts, semantically scoped Dashboard metric, restrained Boss analytics accents, production build/deploy, real-browser PAGE verification and D1/Boss readback |
+| Exact next action | Owner monitors normal production traffic and decides whether any separately scoped non-blocking analytics/UI follow-up is warranted |
+| Prohibited actions | Legacy-row mutation or re-import, APP_DB content writes, DNS/custom-domain/redirect changes, Access or Turnstile changes, CSP weakening, CMS production writes, notifications and unrelated refactors |
+| Push state | This checkpoint is committed and normally pushed to `origin/develop/hakan-run-v2`; no force push |
+| Deploy state | Production deployment `1973d643-489b-44a2-a236-41b4d2b1b93b`, Worker version `78bb5f6d-2c81-4519-a426-20b63aefacac`, 100% active |
+| Infrastructure state | Production analytics enabled; CMS writes and notifications disabled; apex custom domain preserved; APP_DB remains 12 published sections, 12 revisions, 12 audits, 0 drafts and 0 submissions; imported analytics remain 1 snapshot, 5,294 source records and 3,332 `legacy_panel` events |
+
+The root cause was the public client's exact-host gate: it allowed
+`staging.hakan.run` but rejected `hakan.run`, so the page tracker stopped before
+emitting `POST /api/analytics/page`. The Worker route, runtime flag, canonical PAGE
+classification, D1 insert and Boss queries were healthy. The client now allows the
+two explicit canonical hosts and still rejects `www`, localhost, assets, APIs,
+private Boss routes and unknown paths.
+
+Controlled clean-browser visits created native events for `/`, `/contact` and
+`/card`. The first authoritative readback showed exactly those three records; after
+the remaining focused browser observations, the final live count was nine (`/` 4,
+`/contact` 3, `/card` 2) without changing legacy counts. Boss displayed both sources
+and its native source filter returned only native rows. The Dashboard now names the
+native-only retention metric `Oldest native event`. Contact emitted no persistent
+application-owned error; the transient `NaN` console messages resolved to the
+Cloudflare Turnstile challenge URL.
+
 ## Production legacy analytics planner revalidation — local/read-only, 2026-09-12
 
 | Field | Current value |

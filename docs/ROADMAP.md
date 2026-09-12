@@ -2,6 +2,14 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Production native analytics runtime correction
+
+- Objective: Restore real production PAGE ingestion at the proven client-host break point while preserving imported analytics and improving narrow Boss semantics.
+- Dependencies: Completed production cutover, populated isolated ANALYTICS_DB, enabled production analytics binding and Access-protected Boss.
+- Acceptance gates: Explicit production/staging host tests; canonical `/`, `/contact` and `/card` writes; asset/API/Boss exclusion; disabled-flag behavior; native source identity; legacy preservation; focused lint/build/artifact checks; real production browser visits; read-only D1 and Boss filter readback.
+- Authorization boundaries: The approved task included the existing production Worker deploy, commit and normal push only after gates passed. It did not authorize DNS, redirect, Access, Turnstile, CSP, APP_DB content or imported-data mutation.
+- Status: Complete. Production version `78bb5f6d-2c81-4519-a426-20b63aefacac` is 100% active; native paths are visible in Boss and imported counts remain unchanged. Ordinary monitoring is the exact next step.
+
 ## Production legacy analytics import readiness
 
 - Objective: Preserve exact historical snapshot meaning across route evolution and make initial SQL refuse a non-empty analytics target.

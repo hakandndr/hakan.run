@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 23. Trace an event pipeline from its first gate before changing its write path
+
+- Problem: A healthy endpoint, enabled runtime flag and populated database can make a missing event look like an ingestion or query defect when the client never emitted the request.
+- Evidence / context: Production PAGE events were absent because the browser host gate accepted only staging. The Worker route, canonical classifier, D1 insert and Boss source query were already correct.
+- Reusable rule: Observe every boundary in order—generation, emission, routing, flag, classification, persistence and readback—and fix the first proven break point. Keep downstream defenses and source identity independent.
+- Applies when: Telemetry or other client-originated events disappear across a multi-layer runtime pipeline.
+- Exceptions / caveats: A corrected first gate still requires a real end-to-end event and authoritative datastore readback; manually inserted rows do not prove runtime collection.
+
 ## 22. Migration supplements must fill absence, never win precedence
 
 - Problem: A legacy authority may lack fields required by a stricter target contract, while copying a complete newer-environment section would silently replace authoritative production content.

@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-035 — Native analytics uses explicit host emission and independent PAGE classification
+
+- Decision: The public client emits PAGE events only on the explicit canonical hosts `hakan.run` and `staging.hakan.run`. The Worker independently owns canonical PAGE classification and persists accepted production events as `native`; imported history remains `legacy_panel`.
+- Context: Production analytics was enabled and its Worker/D1 path was healthy, but the client host gate accepted staging only and returned before issuing the analytics request.
+- Alternatives considered: Remove all hostname gating, synthesize server-side visits from asset traffic, manually insert verification rows, add retries, or merge native and imported source identity.
+- Rationale: Adding the missing canonical production host fixes the proven break point while retaining two deterministic boundaries and one analytics system. It does not turn assets, APIs, private routes or arbitrary hosts into events.
+- Consequences: Client and Worker contracts test `/`, `/contact`, `/card`, excluded paths, runtime flags, source identity and legacy preservation. Boss exposes both sources. Its oldest raw event metric is explicitly native-scoped because native retention operations cannot delete imported history.
+- Status: Approved, implemented, focused-verified, deployed to production and proven by real-browser/D1/Boss readback on 2026-09-12.
+
 ## D-034 — Historical analytics snapshots bind their classification semantics
 
 - Decision: A verified legacy-log snapshot records the versioned public-route contract that classified its prefix. Later planning revalidates historical counts under that contract, classifies only appended rows under current routes, and separately reports any semantic drift in the current full plan. Initial import SQL must first assert that all six protected analytics tables are empty.

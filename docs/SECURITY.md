@@ -1,5 +1,25 @@
 # Security
 
+## Production native analytics boundary — live, 2026-09-12
+
+Analytics is PAGE-only at both client emission and Worker insertion boundaries.
+Production enablement does not expand the accepted route set: `/`, `/contact`,
+`/card` and canonical project routes are eligible, while assets, APIs, Boss/private
+routes and unknown paths remain excluded. Requests still require Cloudflare's
+connecting-address header, and bounded request metadata is written only to the
+isolated production `ANALYTICS_DB`.
+
+Imported analytics remains a separate `legacy_panel` source. The correction neither
+updates nor deletes legacy rows and does not broaden the native-only retention delete
+authority. Boss stays behind Access and verifies the owner assertion in the Worker.
+CMS production writes and notifications remain false; APP_DB content, Access policy,
+Turnstile configuration, CSP, DNS and redirect behavior were not changed.
+
+The Contact console follow-up found no persistent application-owned error. The only
+captured warning/error entries were emitted by a Cloudflare Turnstile challenge URL.
+No `unsafe-eval` or other CSP weakening was introduced to hide third-party lifecycle
+messages.
+
 ## Legacy analytics initial-import guard — local/read-only, 2026-09-12
 
 Historical route semantics are evidence, not mutable application state. The planner

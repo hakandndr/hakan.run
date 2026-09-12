@@ -18,8 +18,8 @@
   },
   "observability": { "enabled": true },
 
-  // Production is an inactive configuration contract, not a provisioned target.
-  // See docs/ENVIRONMENTS.md before supplying any production bindings.
+  // Production is live. Provider mutations still require their own explicit
+  // authorization, and the source-controlled contract must preserve its domain.
   "env": {
     "staging": {
       "name": "hakan-run-web-staging",
@@ -67,7 +67,7 @@
       "vars": {
         "ENVIRONMENT": "production",
         "CMS_PRODUCTION_WRITES_ENABLED": "false",
-        "ANALYTICS_ENABLED": "false",
+        "ANALYTICS_ENABLED": "true",
         "NOTIFICATIONS_ENABLED": "false",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
         // Account team domain and production application audience were read back
@@ -93,7 +93,9 @@
       "triggers": { "crons": [] },
       "workers_dev": false,
       "preview_urls": false,
-      "routes": []
+      "routes": [
+        { "pattern": "hakan.run", "custom_domain": true }
+      ]
     }
   }
 }

@@ -56,7 +56,7 @@ const dashboard = async (env) => {
     environment: env.ENVIRONMENT ?? 'unknown',
     pendingSubmissions: Number(submissions?.value ?? 0),
     auditEvents: Number(audits?.value ?? 0),
-    oldestAnalyticsEvent: events?.oldest ?? null,
+    oldestNativeEvent: events?.oldest ?? null,
   });
 };
 

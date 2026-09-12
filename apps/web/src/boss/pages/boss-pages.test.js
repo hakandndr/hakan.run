@@ -51,6 +51,27 @@ test('analytics still labels the dimensions it renders', () => {
   assert.match(analytics, /key: 'label', label: 'Country'/);
 });
 
+test('analytics uses restrained semantic colors for source, actor and scan fields', () => {
+  const analytics = source('Analytics.jsx');
+
+  assert.match(analytics, /value === 'native'/);
+  assert.match(analytics, /text-sky-300/);
+  assert.match(analytics, /text-amber-300/);
+  assert.match(analytics, /value === 'human-likely'/);
+  assert.match(analytics, /text-emerald-300/);
+  assert.match(analytics, /value === 'verified-bot' \|\| value === 'automated-likely'/);
+  assert.match(analytics, /text-rose-300/);
+  assert.match(analytics, /text-fuchsia-300\/80/);
+});
+
+test('Dashboard labels its source-scoped oldest event as native', () => {
+  const dashboard = source('Dashboard.jsx');
+
+  assert.match(dashboard, /Oldest native event/);
+  assert.match(dashboard, /data\.oldestNativeEvent/);
+  assert.ok(!dashboard.includes('Oldest analytics event'));
+});
+
 // --- System: legacyAnalytics and eventSources are rendered ------------------
 
 test('System renders the legacy history the API returns', () => {
@@ -114,8 +135,9 @@ test('the stream renders the columns the raw event API returns', () => {
     ['path', 'Page'],
     ['referrer_origin', 'Referrer'],
   ]) {
-    assert.ok(
-      analytics.includes(`key: '${key}', label: '${label}'`),
+    assert.match(
+      analytics,
+      new RegExp(`key: '${key}',[\\s\\S]*?label: '${label}'`),
       `the stream must render ${label} from ${key}`,
     );
   }
