@@ -1,5 +1,30 @@
 # hakan.run Modernization Handoff
 
+## Production content schema-gap supplement planner — local, 2026-09-12
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `776f1147aeb15068dd171ed233a4a94081d1b055` |
+| Current phase | Production content planner gap resolved locally; planner is READY, import remains unauthorized |
+| Completed | Exact twelve-path supplement contract, staging evidence/revision binding, production non-override enforcement, complete field provenance, focused negative tests, JSON plan and unexecuted SQL evidence |
+| Exact next action | Owner reviews this uncommitted planner capability and separately decides whether to authorize commit/push; any production import requires a later explicit DATABASE authorization and a fresh target recheck |
+| Prohibited actions | Commit, push, deploy, SQL execution, APP_DB/Supabase/staging mutation, analytics import, DNS, Access, Turnstile, Worker flag or provider change |
+| Push state | Committed HEAD and upstream remain `776f114`; planner and continuity changes are uncommitted |
+| Deploy state | Unchanged; no Worker or application artifact was deployed |
+| Infrastructure state | Unchanged; the planner stayed offline, production target evidence remains empty, and no provider mutation occurred |
+
+The production export remains the source for all ten legacy sections. A separate
+owner-held JSON supplement may fill exactly twelve historically absent fields and
+cannot overwrite a field present in that export. The supplement is bound to the
+approved staging APP_DB identity, five published revisions and the reviewed staging
+evidence fingerprint; the planner itself has no D1 connection.
+
+The real owner-held inputs now produce twelve canonical sections, twelve revision-1
+records, twelve published section inserts and twelve `content.bootstrap` audit
+events. SQL begins with the empty-target assertion and contains no update, upsert or
+delete. It was generated for review only and was not executed.
+
 ## Phase 3A `/card` digital business card — local, 2026-09-11
 
 | Field | Current value |

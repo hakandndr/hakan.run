@@ -460,15 +460,29 @@ IDs are refused. Evidence is operator-supplied, not proof of provider authentica
 Do not fabricate inspection results or merely relabel an old/staging export.
 
 ```sh
-node tools/plan-content-bootstrap.js --input "<fresh-content.json>" --target-state "<checked-production-target.json>" --target-database-id "<verified-id>" --json
-node tools/plan-content-bootstrap.js --input "<fresh-content.json>" --target-state "<checked-production-target.json>" --target-database-id "<verified-id>" --sql-only
+node tools/plan-content-bootstrap.js --input "<fresh-content.json>" --target-state "<checked-production-target.json>" --target-database-id "<verified-id>" --supplement "<approved-schema-gap.json>" --json
+node tools/plan-content-bootstrap.js --input "<fresh-content.json>" --target-state "<checked-production-target.json>" --target-database-id "<verified-id>" --supplement "<approved-schema-gap.json>" --sql-only
 ```
+
+The supplement is migration-only evidence stored outside Git. It contains exactly
+the twelve owner-approved paths absent from the legacy production model, plus the
+reviewed staging APP_DB name/ID, published revisions for Hero, About, Portfolio, CTA
+and Footer, and the staging read-evidence SHA-256. Unknown, extra, missing, duplicate,
+malformed, null or empty entries are refused. A path already present in the fresh
+production export is also refused, so this input can fill a historical schema gap
+but can never override production content.
+
+The planner does not fetch staging or authenticate the supplement. The operator
+obtains and reviews the read-only evidence separately; the planner pins the expected
+identity, revisions and evidence fingerprint, fingerprints the supplement bytes and
+records every supplemented value in field provenance. Do not edit the production
+export or substitute complete staging sections.
 
 All validation completes before stdout receives SQL. The current CMS schema and
 local image availability are checked. Unknown safe fields are retained. Hero copy,
 Portfolio IDs/slugs/URLs and other content come from the fresh export, never the old
 snapshot or staging. Review the field-level reconciliation before any import.
-The only deliberate changes are the approved Header destination order
+The only deliberate changes are the twelve explicit schema-gap supplements, the approved Header destination order
 `/#services`, `/#portfolio`, `/#about`; normalization of the known About image URL;
 removal of `contact.formEndpoint`; and the two allowed fallback promotions.
 Unexpected Header destinations or image transformations require review rather than

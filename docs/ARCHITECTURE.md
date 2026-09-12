@@ -1,5 +1,27 @@
 # Architecture
 
+## Production content schema-gap supplement boundary — local
+
+```text
+fresh production export (10 sections, primary authority)
+  + approved source promotion (typography, visibility)
+  + owner-held supplement (exactly 12 absent field paths)
+  + deterministic normalization/exclusion rules
+  -> strict 12-section PublishedSiteSnapshot bootstrap plan
+```
+
+The supplement is a one-time migration input, not a content layer or override
+system. Its path allowlist, staging APP_DB identity, evidence fingerprint and five
+published revisions are fixed by the planner contract. Before setting each value,
+the planner traverses the production row with own-property semantics and fails if
+the field already exists. The planner opens no provider connection and reports both
+section-level and field-level provenance before emitting any SQL.
+
+Generated SQL remains target-agnostic text. The companion plan binds the reviewed
+production database identity and target-evidence fingerprint; an independently
+authorized executor must recheck that binding and run the empty assertion plus all
+inserts atomically. Planning does not authorize execution.
+
 ## Phase 3A `/card` route boundary — local
 
 ```text

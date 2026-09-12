@@ -1,5 +1,27 @@
 # Current State
 
+## Production content schema-gap planner — local, 2026-09-12
+
+The committed and upstream-matching base remains
+`776f1147aeb15068dd171ed233a4a94081d1b055`. An uncommitted local planner change
+adds one migration-only `--supplement` input for the twelve fields absent from the
+fresh legacy production model but already owner-approved on staging. The production
+export remains primary and an existing production value makes planning fail; the
+supplement cannot carry another path, omit a path or act as a general override.
+
+The supplement contract is pinned to staging APP_DB
+`71a28b10-861f-4554-9e14-5464c7116394`, revisions Hero 6 and About/Portfolio/CTA/
+Footer 2, and the reviewed staging evidence fingerprint. It is consumed offline and
+records field-level provenance alongside the existing Typography/Visibility
+promotions, Header order normalization, About image normalization and Contact
+endpoint exclusion.
+
+Focused planner contracts pass 15/15. The current owner-held production export,
+target evidence and supplement produce twelve canonical inserts, zero updates and
+review-only SQL with twelve sections, revisions and audit events. The SQL has not
+been executed; production APP_DB, staging, Supabase and all provider state remain
+unchanged.
+
 ## Phase 3A `/card` digital business card — local, 2026-09-11
 
 The accepted Phase 2C checkpoint is committed, upstream-matching and deployed at

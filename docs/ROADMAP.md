@@ -198,7 +198,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Main risks: Downtime, DNS/cache errors, data/environment crossover, incomplete rollback.
 - Acceptance gates: Cutover plan, backups, rollback rehearsal, owner approval, live smoke matrix, monitoring.
 - Authorization boundaries: DEPLOY, ACTIVATE, DNS, PROVIDER, SECRET, DATABASE, and rollback actions are separate.
-- Status: Planned.
+- Status: Pre-cutover content planning is READY locally. The fresh production export remains primary; an exact twelve-field, non-overriding supplement closes the reviewed legacy-schema gap with complete provenance. Planner JSON and SQL exist only as owner-held review evidence and no import, commit, push, deployment or production mutation is authorized.
 
 ## Phase 11 — Optional Astro migration
 

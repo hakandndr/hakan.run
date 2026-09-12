@@ -45,6 +45,12 @@ Portfolio, LinkedIn, GitHub and email from the validated snapshot and offers a l
 vCard 4.0 download. It adds no CMS section, fallback content or third-party contact
 service. Owner visual review is pending; `/card` is not committed or deployed.
 
+Production content cutover planning now has a local migration-only supplement
+contract for the twelve strict fields absent from the legacy production model. It
+accepts only those paths, refuses to overwrite production values, binds the reviewed
+staging evidence and records complete provenance. The planner is offline; generated
+SQL is review evidence only and has not been executed.
+
 ## Legacy technology reference
 
 | Area | Implementation |

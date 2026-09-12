@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 22. Migration supplements must fill absence, never win precedence
+
+- Problem: A legacy authority may lack fields required by a stricter target contract, while copying a complete newer-environment section would silently replace authoritative production content.
+- Evidence / context: The fresh production export lacked twelve fields whose exact values and revisions were already owner-approved on staging. Direct planning failed correctly rather than inventing defaults.
+- Reusable rule: Put schema-gap values in a separately reviewed evidence artifact, allowlist exact paths, bind source metadata, require the source field to be absent, and report field-level provenance. Reject any attempted override.
+- Applies when: A forward migration adds required fields that never existed in the legacy model but have separately approved values.
+- Exceptions / caveats: If the legacy source already carries the field, reconcile that conflict explicitly; a supplement must not decide precedence. Evidence review and import authorization remain separate.
+
 ## 21. Temporary migration context should disappear when the last consumer moves
 
 - Problem: A compatibility context can outlive its migration purpose and obscure that a strict snapshot already supplies every renderer dependency.

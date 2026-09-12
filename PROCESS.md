@@ -3403,3 +3403,46 @@ content, draft, live Worker, live analytics, Turnstile, Access, DNS, provider or
 production mutation occurred. Exact next action is owner visual review of the local
 route, followed only by a separately authorized checkpoint/push/staging deployment.
 Production cutover remains the next major phase.
+
+### 2026-09-12 — Production content schema-gap supplement planner
+
+Objective: resolve the sole fresh-production content-planning blocker without
+editing the export, copying complete staging sections or creating a general override
+system. Work began clean on `develop/hakan-run-v2` at committed and upstream-matching
+SHA `776f1147aeb15068dd171ed233a4a94081d1b055`. Local implementation, focused tests
+and offline planning were authorized; COMMIT, PUSH, DATABASE, DEPLOY, PROVIDER, DNS,
+Access, Turnstile, Supabase and analytics actions were not.
+
+The planner now requires `--supplement` for one contract containing exactly twelve
+allowlisted schema-gap paths. It pins staging APP_DB identity, five published
+revisions and the reviewed staging evidence fingerprint; rejects malformed, missing,
+extra, duplicate, null and empty entries; and checks own-property absence in the
+fresh production rows before filling any path. Output adds section categories,
+twenty-three field provenance records and a supplement byte fingerprint. Existing
+Typography/Visibility promotion, Header ordering, About image normalization,
+Contact endpoint exclusion, target evidence validation and insert-only SQL remain.
+
+The first focused run exposed that the old `siteContent` fixture had only three
+Portfolio cards. Adding a synthetic fourth then exposed broader fixture drift: it
+lacked the strict Hero profile and required production external URLs. The correction
+was to use the existing production snapshot fixture, whose SHA-256 exactly matches
+the fresh owner-held export, while keeping the live export untouched. Two ad hoc
+inspection commands also failed on path-regex and shell-quoting mistakes; corrected
+read-only forms completed without changing source or evidence.
+
+Focused planner contracts pass 15/15 and web lint passes. The real owner-held inputs
+produce twelve canonical sections with plan summary 12 inserts, zero updates and
+zero unchanged. The generated review-only SQL begins with the empty-target assertion
+and contains twelve section inserts, twelve immutable revision inserts and twelve
+audit inserts; an in-memory SQLite execution confirmed revision 1, actor `bootstrap`,
+action `content.bootstrap` and zero drafts. It contains no update, upsert, delete,
+staging database ID, Formspree reference or Supabase runtime reference.
+
+Changed implementation files are `tools/production-content-plan.js`,
+`tools/plan-content-bootstrap.js` and `tools/plan-cli.test.js`; continuity updates
+cover Handoff, Process, Current State, Architecture, Security, Operations, Decisions,
+Roadmap, Lessons and README. Owner-held supplement, planner JSON and SQL remain
+outside Git. No SQL was executed against a provider, no database row was written,
+and no commit, push or deployment occurred. Exact next action is owner review and a
+separate commit/push decision; production import requires later explicit approval
+and a fresh target check.

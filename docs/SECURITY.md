@@ -1,5 +1,19 @@
 # Security
 
+## Production content supplement trust boundary — local, 2026-09-12
+
+The migration supplement can fill only twelve named paths that are absent from the
+fresh production export. Unknown, extra, missing, duplicate, malformed, null and
+empty entries fail closed; source identity, evidence fingerprint and published
+revisions must exactly match the reviewed staging evidence. A production value at
+any supplement path is never overwritten.
+
+The planner is offline and holds no Cloudflare or Supabase credential. Supplement
+bytes and provenance are fingerprinted in the review output, while the executable
+SQL contains no staging database identifier or runtime dependency. Target evidence
+and generated SQL remain operator inputs rather than authorization: production
+identity must be rechecked and DATABASE execution explicitly approved later.
+
 ## Phase 3A `/card` data boundary — local, 2026-09-11
 
 The `/card` route receives the already validated immutable public snapshot and makes

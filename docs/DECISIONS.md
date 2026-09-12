@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-033 — Production schema gaps use an explicit non-overriding supplement
+
+- Decision: Production content bootstrap may consume one owner-held evidence file that fills exactly twelve approved fields absent from the legacy production model. The production export remains primary; any existing production value at a supplement path fails planning.
+- Context: The fresh ten-section production export could not satisfy the strict `PublishedSiteSnapshot`, while the missing fields already had reviewed published staging values and revisions. Copying staging sections or editing the export would erase provenance.
+- Alternatives considered: Modify the production CSV; copy full staging sections; hardcode staging copy in source; add a general field override map; let the planner query D1.
+- Rationale: A closed path allowlist plus fixed evidence metadata resolves only the known schema gap, preserves production copy byte-for-byte elsewhere and keeps provider access outside the planner.
+- Consequences: The supplement is required for this migration, stored outside Git, fingerprinted and represented in field provenance. It cannot override production, add paths or become runtime content. SQL generation and execution remain separate authorization boundaries.
+- Status: Approved by the narrow planner capability task; implemented and focused-verified locally, uncommitted and unexecuted.
+
 ## D-032 — `/card` projects canonical public identity into a local contact artifact
 
 - Decision: The physical-card QR destination is a dedicated mobile-first `/card` route. It projects identity, profile media, email, social links, Portfolio destination and slogan from the strict immutable `PublishedSiteSnapshot`; missing optional values disappear. Card-specific source configuration is limited to canonical product URLs and presentation labels. A standards-compatible vCard is generated locally without a service or persistence.
