@@ -11,6 +11,30 @@
 
 import { LEGACY_EVENT_SOURCE } from './parse.js';
 
+export const PROTECTED_INITIAL_IMPORT_TABLES = [
+  'visitor_events',
+  'analytics_daily',
+  'analytics_coverage',
+  'analytics_deletion_log',
+  'legacy_analytics_records',
+  'legacy_import_snapshots',
+];
+
+/**
+ * Fail before the first write unless every protected analytics table is empty.
+ * `json_extract` is evaluated only on the failure branch; its deliberately
+ * invalid JSON turns a non-empty target into a SQL error without cleanup or a
+ * schema mutation.
+ */
+export const emptyTargetAssertion = () => ({
+  sql: `SELECT CASE WHEN (
+          ${PROTECTED_INITIAL_IMPORT_TABLES.map((table) => `(SELECT COUNT(*) FROM ${table})`).join(' +\n          ')}
+        ) = 0 THEN 1
+        ELSE json_extract('analytics target must be empty', '$')
+        END AS legacy_import_empty_target_assertion`,
+  params: [],
+});
+
 export const eventStatement = (event) => ({
   sql: `INSERT OR IGNORE INTO visitor_events
           (id, occurred_at, date_local, ip_address, country, region, city, colo, path,
@@ -69,8 +93,9 @@ export const snapshotStatement = (snapshot) => ({
  * could leave an event with no provenance, which is the state this design
  * exists to prevent.
  */
-export const importStatements = (mapped, snapshot) => {
-  const statements = [snapshotStatement(snapshot)];
+export const importStatements = (mapped, snapshot, { requireEmptyTarget = false } = {}) => {
+  const statements = requireEmptyTarget ? [emptyTargetAssertion()] : [];
+  statements.push(snapshotStatement(snapshot));
   for (const record of mapped) {
     statements.push(archiveStatement(record, snapshot.id));
     if (record.event) statements.push(eventStatement(record.event));
@@ -85,8 +110,8 @@ const quote = (value) => {
 };
 
 /** The same statements as a reviewable script. */
-export const importSql = (mapped, snapshot) =>
-  importStatements(mapped, snapshot)
+export const importSql = (mapped, snapshot, options) =>
+  importStatements(mapped, snapshot, options)
     .map(({ sql, params }) => {
       let index = -1;
       return `${sql.replace(/\?/g, () => {

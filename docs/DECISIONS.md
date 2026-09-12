@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-034 — Historical analytics snapshots bind their classification semantics
+
+- Decision: A verified legacy-log snapshot records the versioned public-route contract that classified its prefix. Later planning revalidates historical counts under that contract, classifies only appended rows under current routes, and separately reports any semantic drift in the current full plan. Initial import SQL must first assert that all six protected analytics tables are empty.
+- Context: Adding `/card` as a public route correctly changed current classification but incorrectly changed one record inside an already verified 5,154-line prefix, while the generated initial SQL had no target-state precondition.
+- Alternatives considered: Hardcode `/card`; ignore prior count mismatches; freeze all future classification; trust an external empty-target check; delete target rows before import.
+- Rationale: Versioned evidence preserves exact historical meaning without weakening byte continuity, while current rules remain authoritative for new records and the complete initial plan. An executable first-statement assertion closes the race between review and execution without cleanup.
+- Consequences: New snapshots carry migration-local classification metadata; legacy evidence without it remains readable under the prior current-rule behavior. Operators must still recheck the target and receive separate DATABASE authorization. A non-empty target fails before every insert.
+- Status: Approved by the blocker-resolution task; implemented, focused-verified and revalidated locally, uncommitted and unexecuted against D1.
+
 ## D-033 — Production schema gaps use an explicit non-overriding supplement
 
 - Decision: Production content bootstrap may consume one owner-held evidence file that fills exactly twelve approved fields absent from the legacy production model. The production export remains primary; any existing production value at a supplement path fails planning.

@@ -57,8 +57,11 @@ const capturedAt = Date.now();
 try {
   const bytes = readFileSync(exportPath);
   const evidence = values['previous-snapshot'] ? JSON.parse(readFileSync(values['previous-snapshot'], 'utf8')) : null;
+  const previous = evidence?.snapshot
+    ? { ...evidence.snapshot, classification: evidence.snapshot.classification ?? evidence.classification }
+    : evidence;
   ({ mapped, summary, snapshot, reconciliation } = planLegacyExport({ bytes,
-    previous: evidence?.snapshot ?? evidence, initial: values.initial === true,
+    previous, initial: values.initial === true,
     fileName: path.basename(exportPath), capturedAt }));
 } catch (error) { fail(`NOT READY: ${error.message}`, 1); }
 
@@ -102,7 +105,8 @@ note(`  earliest record   ${iso(summary.earliestAt)}`);
 note(`  latest record     ${iso(summary.latestAt)}`);
 note(`  import cutoff     ${iso(snapshot.latestEventAt)}   <- newest event this snapshot carries`);
 note('');
-note(`statements          ${importStatements(mapped, snapshot).length}`);
+const initialSqlOptions = { requireEmptyTarget: reconciliation.mode === 'initial' };
+note(`statements          ${importStatements(mapped, snapshot, initialSqlOptions).length}`);
 note('coverage ledger     untouched — imported history is raw and uncovered');
 note('');
 note('This snapshot is a cutoff, not a completion: the source log is still being');
@@ -121,5 +125,5 @@ if (asJson) {
 
 if (withSql) {
   if (!sqlOnly) process.stdout.write('\n');
-  process.stdout.write(`${importSql(mapped, snapshot)}\n`);
+  process.stdout.write(`${importSql(mapped, snapshot, initialSqlOptions)}\n`);
 }

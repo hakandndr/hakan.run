@@ -3446,3 +3446,54 @@ outside Git. No SQL was executed against a provider, no database row was written
 and no commit, push or deployment occurred. Exact next action is owner review and a
 separate commit/push decision; production import requires later explicit approval
 and a fresh target check.
+
+### 2026-09-12 — Legacy analytics planner blocker resolution and revalidation
+
+Objective: resolve only the historical route-semantic drift and missing initial
+empty-target assertion, then repeat the final production analytics planning gates
+without executing an import. Work began clean on `develop/hakan-run-v2` at committed
+and upstream-matching SHA `6775d7c4f3f2466c51f487b16f9d6e80f66412f3`.
+Local implementation, focused tests, offline evidence generation and one production
+read-only query were authorized. COMMIT, PUSH, DATABASE writes, APP_DB, staging,
+deployment, activation and provider mutation were prohibited.
+
+The planner previously verified the prefix bytes and then reclassified those bytes
+through today's canonical routes. Commit `776f114` made `/card` public, so historical
+line 5,111 changed disposition despite an unchanged SHA-256 prefix. A migration-local
+versioned classification contract now travels with snapshot evidence. Historical
+records are mapped with that contract and their recorded counts remain verified;
+appended records use the current contract. Source-line/archive identity and duplicate
+ordinal behavior remain unchanged. Current full-plan semantic drift is reported
+separately rather than hidden or subtracted from appended growth.
+
+Initial SQL now begins with a SELECT assertion over all six protected analytics
+tables. Its failure branch raises a SQL error through SQLite JSON validation before
+the first insert. It performs no cleanup and contains no update, upsert, delete,
+APP_DB or staging reference. Focused analytics tests passed 72/72, including every
+protected non-empty table and no-write-after-failure cases.
+
+Fresh read-only production ANALYTICS_DB verification returned zero for all six
+tables, `changed_db=false` and `rows_written=0`. The exact old 1,216,526-byte prefix
+matched SHA-256 `0694feee1760bcbd487780bc58c5f516a218590b3869691289a86f22f6cfd965`
+and reconciled to 5,154 records, 3,191 imported and 1,963 archived. The appended
+segment contains 140 records, all importable under current rules. The complete
+1,262,956-byte log remained 5,294 records, 3,332 imported, 1,962 archived, 27
+physical duplicates and 5,267 distinct records. Full generated SQL reconciled in
+memory with zero orphaned imports, invalid archive states or duplicate source-line
+groups; aggregate, coverage and deletion tables remained empty.
+
+The first read-only provider query used six `UNION ALL` terms and D1 refused it with
+`too many terms in compound SELECT`; no statement ran and no row changed. Replacing
+it with one SELECT containing six scalar COUNT subqueries returned the required
+zero-state metadata. The first in-memory reporting command completed the import in
+its disposable database but used a double-quoted SQL string literal in a follow-up
+count, so that evidence process failed and vanished with the memory database. The
+corrected parameter-bound readback was rerun from a fresh empty in-memory database
+and produced the recorded successful reconciliation.
+
+New evidence was written outside Git under
+`C:\Users\Hakan\AppData\Local\Temp\hakan-run-analytics-revalidation-20260912T134232184Z`.
+The generated SQL was not sent to D1. No production or staging row, Worker, flag,
+DNS, Access or Turnstile state changed. No commit or push occurred. Exact next action
+is owner review and a separate commit/push decision; an analytics import requires a
+later explicit DATABASE authorization and fresh target verification.

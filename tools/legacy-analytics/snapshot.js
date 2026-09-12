@@ -16,6 +16,7 @@
 // export is a claim about data this run has not seen.
 
 import { createHash } from 'node:crypto';
+import { currentClassification } from './classification.js';
 
 export const IMPORT_SOURCE = 'hakanrun_panel_log';
 
@@ -50,6 +51,7 @@ export const describeSnapshot = ({ contents, fileName = null, mapped, capturedAt
     earliestEventAt: instants.length ? Math.min(...instants) : null,
     latestEventAt: instants.length ? Math.max(...instants) : null,
     capturedAt,
+    classification: currentClassification(),
   };
 };
 

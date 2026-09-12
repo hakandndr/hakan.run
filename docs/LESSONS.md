@@ -261,3 +261,11 @@
 - Reusable rule: Build a pure projection from the validated authority, isolate only genuine product presentation configuration, and omit unavailable optional actions rather than inventing defaults.
 - Applies when: Creating QR destinations, compact profiles, contact artifacts or alternate presentations of existing public data.
 - Exceptions / caveats: A genuinely new editable value requires an explicit content-model decision; it must not be smuggled into a view projection.
+
+## 20. Append-only bytes and classification semantics are separate evidence
+
+- Problem: Replaying an old byte prefix through today's route policy can change its disposition even though not one source byte changed.
+- Evidence / context: A route added after the verified cutoff moved one historical record from `non_public_path` to imported and made valid prior totals appear corrupt.
+- Reusable rule: Bind the classification contract to the snapshot, verify historical bytes and counts with that contract, and apply current semantics only to appended data. Report current full-plan drift explicitly.
+- Applies when: Append-only imports classify records using application policy that can evolve between snapshots.
+- Exceptions / caveats: The historical contract is evidence, not permission to classify new records under obsolete rules; byte-prefix verification remains mandatory.

@@ -139,7 +139,7 @@ test('--sql-only writes SQL and nothing else to stdout', () => {
   const result = run([fixturePath, '--sql-only']);
   assert.equal(result.status, 0, result.stderr);
   const [first] = result.stdout.split('\n').filter((line) => line.trim());
-  assert.ok(first.startsWith('INSERT OR IGNORE INTO legacy_import_snapshots'), first);
+  assert.ok(first.startsWith('SELECT CASE WHEN ('), first);
   for (const prose of ['source records', 'panel-visible', 'archive reasons', 'cutoff']) {
     assert.ok(!result.stdout.includes(prose), `stdout must not contain "${prose}"`);
   }
@@ -166,5 +166,5 @@ test('the generated SQL touches only the three legacy tables', () => {
   const { stdout } = run([fixturePath, '--sql-only']);
   const tables = new Set([...stdout.matchAll(/INSERT OR IGNORE INTO (\w+)/g)].map((m) => m[1]));
   assert.deepEqual([...tables].sort(), ['legacy_analytics_records', 'legacy_import_snapshots', 'visitor_events']);
-  assert.ok(!/analytics_coverage|analytics_daily/i.test(stdout));
+  assert.ok(!/INSERT(?: OR IGNORE)? INTO (?:analytics_coverage|analytics_daily)/i.test(stdout));
 });

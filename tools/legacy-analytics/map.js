@@ -14,7 +14,7 @@
 // a line that would not parse is `malformed_record`, not `missing_path`.
 
 import { createHash } from 'node:crypto';
-import { isPublicPage } from '../../worker/lib/routes.js';
+import { currentClassification, isPublicPageFor } from './classification.js';
 import { IMPORT_SOURCE } from './snapshot.js';
 import {
   LEGACY_EVENT_SOURCE,
@@ -93,7 +93,7 @@ export const archiveId = (sourceLine) =>
  * `ordinals` is a Map carried across the whole export so identical records get
  * 1, 2, 3… in file order — deterministic because the file order is.
  */
-export const mapRecord = (record, ordinals, importedAt) => {
+export const mapRecord = (record, ordinals, importedAt, classification = currentClassification()) => {
   const fields = record.fields ?? {};
   const timestamp = parseTimestamp(fields.date);
   const path = normalizePath(fields.path);
@@ -138,7 +138,7 @@ export const mapRecord = (record, ordinals, importedAt) => {
   if (!timestamp) return archived('missing_timestamp');
   if (!isStorableAddress(fields.ip)) return archived('invalid_ip');
   if (!path) return archived('missing_path');
-  if (!isPublicPage(path)) return archived('non_public_path');
+  if (!isPublicPageFor(path, classification)) return archived('non_public_path');
 
   const key = [fields.ip, timestamp.at, path, userAgent ?? '', fields.device ?? ''].join('');
   const ordinal = (ordinals.get(key) ?? 0) + 1;
@@ -185,9 +185,9 @@ export const mapRecord = (record, ordinals, importedAt) => {
 };
 
 /** Map a whole parsed export, in file order. */
-export const mapExport = (records, importedAt = Date.now()) => {
+export const mapExport = (records, importedAt = Date.now(), classification = currentClassification()) => {
   const ordinals = new Map();
-  return records.map((record) => mapRecord(record, ordinals, importedAt));
+  return records.map((record) => mapRecord(record, ordinals, importedAt, classification));
 };
 
 /**

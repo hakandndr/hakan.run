@@ -1,5 +1,27 @@
 # Architecture
 
+## Legacy analytics historical-classification boundary
+
+```text
+verified prefix bytes + recorded classification contract
+  -> historical disposition/count verification
+appended bytes + current canonical route contract
+  -> appended disposition counts
+complete bytes + current canonical route contract
+  -> current full initial import plan
+```
+
+Route evolution cannot rewrite a previously verified cutoff. Snapshot evidence stores
+a versioned canonical-page list and project prefix; the planner validates that contract
+and recomputes the historical counts from the exact fingerprint-bound prefix. This is
+generic route evidence, not a path exception. Source lines, archive identities and
+duplicate ordinals remain bound to the complete export order.
+
+Initial SQL has an independent target-state boundary. Its first statement reads all
+six protected analytics tables and deliberately fails if their combined row count is
+non-zero. Only an empty target can reach the snapshot/archive/event inserts, and the
+script contains no cleanup operation.
+
 ## Production content schema-gap supplement boundary — local
 
 ```text

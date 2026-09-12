@@ -2,6 +2,14 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Production legacy analytics import readiness
+
+- Objective: Preserve exact historical snapshot meaning across route evolution and make initial SQL refuse a non-empty analytics target.
+- Dependencies: Verified 5,154-record prefix evidence, final 5,294-record export and empty migrated production ANALYTICS_DB.
+- Acceptance gates: Exact prefix/mutation/truncation tests; historical/current route separation; stable source-line/duplicate identity; first-statement six-table assertion; all non-empty cases fail before inserts; full in-memory reconciliation; fresh read-only production zero-state.
+- Authorization boundaries: Local planner changes and read-only production verification only. COMMIT, PUSH, DATABASE execution, DEPLOY, ACTIVATE and every provider mutation remain separate.
+- Status: Gates passed; planner is READY-FOR-IMPORT. Review and a separate commit/push decision are next; production SQL execution is not authorized.
+
 ## Phase 2C — Complete clean public renderer
 
 - Objective: Preserve the approved public product while replacing Stats, Portfolio, About, CTA, Footer and Contact with explicit immutable snapshot-slice renderers and disposing of the temporary content context.

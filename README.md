@@ -51,6 +51,12 @@ accepts only those paths, refuses to overwrite production values, binds the revi
 staging evidence and records complete provenance. The planner is offline; generated
 SQL is review evidence only and has not been executed.
 
+The legacy analytics planner now binds each verified prefix to its versioned
+public-route classification contract, while appended records use current routes.
+Initial import SQL fails before any write unless all six analytics tables are empty.
+The final 5,294-record production plan and full in-memory reconciliation are ready
+for review; no analytics SQL has been executed against D1.
+
 ## Legacy technology reference
 
 | Area | Implementation |

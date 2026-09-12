@@ -8,7 +8,9 @@ import { spawnSync } from 'node:child_process';
 import { DatabaseSync } from 'node:sqlite';
 import { planLegacyExport } from './plan.js';
 import { importSql } from './statements.js';
-import { fingerprintOf } from './snapshot.js';
+import { describeSnapshot, fingerprintOf } from './snapshot.js';
+import { mapExport } from './map.js';
+import { parseExport } from './parse.js';
 
 const fixture = readFileSync(new URL('./fixtures/sample-panel-log.txt', import.meta.url));
 const initial = () => planLegacyExport({ bytes: fixture, initial: true, capturedAt: 1000 });
@@ -64,11 +66,48 @@ test('truncation, rotation, changed prefixes and tail-only inputs are refused', 
     Buffer.from('tail only\n')]) assert.throws(() => planLegacyExport({ bytes, previous }), /shorter|mismatch/);
 });
 
+test('historical route semantics stay fixed while appended records use the current contract', () => {
+  const historicalClassification = {
+    version: 1,
+    canonicalPages: ['/', '/contact'],
+    projectPrefix: '/project/',
+  };
+  const historicalBytes = Buffer.from(
+    '{"ip":"198.51.100.20","date":"2026-09-03 10:00:00","country":"United States","city":"Irvine, CA","device":"Desktop / Chrome 152","ua_full":"Historical","referrer":"Direct","referrer_raw":"-","path":"/card"}\n',
+  );
+  const historicalMapped = mapExport(parseExport(historicalBytes.toString('utf8')), 1000, historicalClassification);
+  const previous = {
+    ...describeSnapshot({ contents: historicalBytes, mapped: historicalMapped, capturedAt: 1000 }),
+    classification: historicalClassification,
+  };
+  const appended = Buffer.from(
+    '{"ip":"198.51.100.21","date":"2026-09-03 10:01:00","country":"United States","city":"Irvine, CA","device":"Desktop / Chrome 152","ua_full":"Current","referrer":"Direct","referrer_raw":"-","path":"/card"}\n',
+  );
+  const plan = planLegacyExport({ bytes: Buffer.concat([historicalBytes, appended]), previous, capturedAt: 2000 });
+
+  assert.equal(previous.importedEvents, 0, 'the historical policy archived the old route');
+  assert.equal(previous.archivedRecords, 1);
+  assert.equal(plan.reconciliation.previous.importableEvents, 0);
+  assert.equal(plan.reconciliation.previous.archivedOnly, 1);
+  assert.equal(plan.reconciliation.delta.importableEvents, 1, 'the appended row uses current routes');
+  assert.equal(plan.reconciliation.delta.archivedOnly, 0);
+  assert.deepEqual(plan.reconciliation.historicalSemanticDrift, {
+    sourceRecords: 0,
+    importableEvents: 1,
+    archivedOnly: -1,
+    archiveRows: 0,
+  });
+  assert.equal(plan.summary.imported, 2, 'the full initial plan still uses current route semantics');
+  assert.deepEqual(plan.mapped.map((record) => record.sourceLine), [1, 2]);
+  assert.equal(new Set(plan.mapped.map((record) => record.id)).size, 2);
+});
+
 test('wrong source, invalid evidence and inconsistent prior totals are refused', () => {
   const previous = initial().snapshot;
   for (const patch of [{ byteSize: -1 }, { byteSize: 1.5 }, { fingerprint: 'invalid' },
     { importSource: 'native' }, { sourceRecords: previous.sourceRecords + 1 },
-    { importedEvents: undefined }, { archivedRecords: 999 }])
+    { importedEvents: undefined }, { archivedRecords: 999 },
+    { classification: { version: 1, canonicalPages: [], projectPrefix: '/project/' } }])
     assert.throws(() => planLegacyExport({ bytes: fixture, previous: { ...previous, ...patch } }));
   assert.throws(() => planLegacyExport({ bytes: fixture }));
   assert.throws(() => planLegacyExport({ bytes: fixture, initial: true, previous }));

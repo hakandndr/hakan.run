@@ -1019,6 +1019,25 @@ The legacy `/control-room` visitor log is imported into `ANALYTICS_DB` by
 credential. Executing the plan is a separate step across the DATABASE boundary
 and is separately authorized.
 
+Snapshot JSON carries `classification.version`, `canonicalPages` and
+`projectPrefix`. A verified prefix is reclassified with that recorded contract;
+appended rows use the current route contract. Evidence created before this field
+remains readable with the original current-rule behavior, but a known historical
+contract must be attached before relying on old disposition totals.
+
+Use exactly one planning mode:
+
+```text
+node tools/legacy-analytics/plan-legacy-import.js <full-log> --initial --json
+node tools/legacy-analytics/plan-legacy-import.js <full-log> --previous-snapshot <evidence.json> --json
+node tools/legacy-analytics/plan-legacy-import.js <full-log> --initial --sql-only
+```
+
+Initial SQL begins with a fail-closed read assertion over all six protected
+analytics tables. Recheck the named production target immediately before any later
+authorized execution. Never remove the assertion or add cleanup to make a non-empty
+target pass.
+
 **The source is a live file.** Production is still appending to
 `hakanrun_panel_log.txt`, so every export is a cutoff and never a completion.
 The export is production data, is never committed, and is matched by

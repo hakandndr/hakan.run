@@ -1,5 +1,19 @@
 # Security
 
+## Legacy analytics initial-import guard — local/read-only, 2026-09-12
+
+Historical route semantics are evidence, not mutable application state. The planner
+requires exact prefix bytes and validates a versioned classification contract before
+accepting recorded imported/archive totals. Newly appended records still use current
+canonical routes; no named-route exception or relaxed fingerprint check exists.
+
+The initial SQL's first statement checks `visitor_events`, `analytics_daily`,
+`analytics_coverage`, `analytics_deletion_log`, `legacy_analytics_records` and
+`legacy_import_snapshots`. Any row causes a SQL error before an insert. There is no
+UPDATE, UPSERT, DELETE, APP_DB reference or staging identifier. Production verification
+was one read-only SELECT and reported `changed_db=false`, `rows_written=0`; generated
+SQL was used only with an in-memory database.
+
 ## Production content supplement trust boundary — local, 2026-09-12
 
 The migration supplement can fill only twelve named paths that are absent from the

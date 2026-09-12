@@ -23,7 +23,7 @@ import {
 } from './parse.js';
 import { mapExport, summarize, isStorableAddress, archiveId, EXCLUSION_REASONS } from './map.js';
 import { describeSnapshot, fingerprintOf } from './snapshot.js';
-import { importStatements, importSql } from './statements.js';
+import { importStatements, importSql, PROTECTED_INITIAL_IMPORT_TABLES } from './statements.js';
 import { oldestEventQuery, totalEventsQuery, eventsBySourceQuery, NATIVE_SOURCE, LEGACY_SOURCE } from '../../worker/analytics/queries.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -344,9 +344,76 @@ test('the import writes nothing to the coverage ledger or the aggregates', () =>
 
 test('only the two intended tables are ever written', () => {
   const tables = new Set(
-    importStatements(mapped(), snapshotOf(mapped())).map(({ sql }) => /INSERT OR IGNORE INTO (\w+)/.exec(sql)[1]),
+    importStatements(mapped(), snapshotOf(mapped()))
+      .map(({ sql }) => /INSERT OR IGNORE INTO (\w+)/.exec(sql)?.[1])
+      .filter(Boolean),
   );
   assert.deepEqual([...tables].sort(), ['legacy_analytics_records', 'legacy_import_snapshots', 'visitor_events']);
+});
+
+// --- Initial import target guard -------------------------------------------
+
+const initialSql = () => importSql(mapped(), snapshotOf(mapped()), { requireEmptyTarget: true });
+
+test('initial SQL begins with a fail-closed assertion and succeeds on an empty target', () => {
+  const sql = initialSql();
+  assert.match(sql, /^SELECT CASE WHEN \(/);
+  for (const table of PROTECTED_INITIAL_IMPORT_TABLES) assert.match(sql, new RegExp(`COUNT\\(\\*\\) FROM ${table}`));
+  const database = openDb();
+  database.exec(sql);
+  assert.equal(database.prepare('SELECT COUNT(*) AS n FROM legacy_import_snapshots').get().n, 1);
+  assert.equal(database.prepare('SELECT COUNT(*) AS n FROM legacy_analytics_records').get().n, mapped().length);
+  database.close();
+});
+
+const protectedSeedSql = {
+  visitor_events: `INSERT INTO visitor_events
+    (id, occurred_at, date_local, ip_address, path, referrer_origin, user_agent, browser_family,
+     device_class, actor_class, classification_source, session_id, event_source)
+    VALUES ('guard-event', 1, '2026-09-12', '198.51.100.1', '/', 'Direct', 'ua', 'Chrome',
+            'desktop', 'unknown', 'none', 'guard', 'native')`,
+  analytics_daily: `INSERT INTO analytics_daily
+    (date_local, aggregate_version, path, country, device_class, browser_family, actor_class, event_count)
+    VALUES ('2026-09-12', 1, '/', 'US', 'desktop', 'Chrome', 'unknown', 1)`,
+  analytics_coverage: `INSERT INTO analytics_coverage
+    (date_local, aggregate_version, event_count, covered_at) VALUES ('2026-09-12', 1, 1, 1)`,
+  analytics_deletion_log: `INSERT INTO analytics_deletion_log
+    (id, ran_at, cutoff_at, rows_deleted, actor) VALUES ('guard-delete', 1, 1, 0, 'test')`,
+  legacy_import_snapshots: `INSERT INTO legacy_import_snapshots
+    (id, import_source, fingerprint, byte_size, source_records, imported_events, archived_records, captured_at)
+    VALUES ('guard-snapshot', 'guard', 'guard', 0, 0, 0, 0, 1)`,
+  legacy_analytics_records: `INSERT INTO legacy_analytics_records
+    (id, import_source, snapshot_id, source_line, source_format, source_record, disposition,
+     exclusion_reason, imported_at)
+    VALUES ('guard-record', 'guard', 'guard-snapshot', 1, 'unknown', 'guard', 'archived',
+            'malformed_record', 1)`,
+};
+
+for (const table of PROTECTED_INITIAL_IMPORT_TABLES) {
+  test(`initial SQL refuses a non-empty ${table} before import inserts`, () => {
+    const database = openDb();
+    database.exec(protectedSeedSql[table]);
+    const before = Object.fromEntries(PROTECTED_INITIAL_IMPORT_TABLES.map((name) => [
+      name,
+      database.prepare(`SELECT COUNT(*) AS n FROM ${name}`).get().n,
+    ]));
+    assert.throws(() => database.exec(initialSql()), /malformed JSON/);
+    const after = Object.fromEntries(PROTECTED_INITIAL_IMPORT_TABLES.map((name) => [
+      name,
+      database.prepare(`SELECT COUNT(*) AS n FROM ${name}`).get().n,
+    ]));
+    assert.deepEqual(after, before, 'the failed assertion must precede every import insert');
+    database.close();
+  });
+}
+
+test('initial SQL contains no mutation escape hatch or unrelated database identifier', () => {
+  const sql = initialSql();
+  assert.doesNotMatch(sql, /\bUPDATE\b/i);
+  assert.doesNotMatch(sql, /\bUPSERT\b|ON\s+CONFLICT\s+DO\s+UPDATE/i);
+  assert.doesNotMatch(sql, /\bDELETE\b/i);
+  assert.doesNotMatch(sql, /APP_DB/i);
+  assert.doesNotMatch(sql, /staging/i);
 });
 
 // --- Reconciliation ---------------------------------------------------------

@@ -1,5 +1,30 @@
 # hakan.run Modernization Handoff
 
+## Production legacy analytics planner revalidation — local/read-only, 2026-09-12
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `6775d7c4f3f2466c51f487b16f9d6e80f66412f3` |
+| Current phase | Legacy analytics planner blockers resolved; planner is READY-FOR-IMPORT, execution remains unauthorized |
+| Completed | Versioned historical route-classification evidence, current-semantics appended classification, fail-closed initial empty-target SQL assertion, 72 focused tests, real-log continuity/full-plan validation, read-only production empty-target verification and in-memory reconciliation |
+| Exact next action | Owner reviews the uncommitted planner/documentation diff and evidence; commit/push and any production analytics import each require later explicit authorization |
+| Prohibited actions | SQL execution against D1, APP_DB/ANALYTICS_DB mutation, staging or production mutation, deploy, DNS, Worker flags, Access, Turnstile, commit and push |
+| Push state | No commit or push; local and upstream HEAD remain `6775d7c` |
+| Deploy state | Unchanged; no Worker or application artifact was built or deployed |
+| Infrastructure state | Production ANALYTICS_DB readback found all six protected tables empty with `changed_db=false` and `rows_written=0`; no other provider surface was accessed |
+
+The verified 5,154-record prefix now carries its historical PAGE-route contract,
+so its 3,191 imported / 1,963 archived disposition is verified against exact bytes
+without being rewritten by later public routes. The 140 appended records use the
+current route contract. The complete 5,294-record initial plan remains 3,332 PAGE
+events and 1,962 archived records.
+
+Initial SQL begins with a read-only assertion over all six protected analytics
+tables. A non-empty table raises a SQL error before the snapshot or import inserts;
+there is no cleanup path. The generated SQL was executed only against in-memory
+SQLite, never against Cloudflare D1.
+
 ## Production content schema-gap supplement planner — local, 2026-09-12
 
 | Field | Current value |

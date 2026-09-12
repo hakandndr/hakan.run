@@ -744,3 +744,18 @@ remains a separate, separately authorised decision.
 
 Inspect and Export are not implemented. Neither endpoint exists yet; both are a
 later scope.
+# Production legacy analytics import readiness — 2026-09-12
+
+The offline legacy analytics planner is locally READY-FOR-IMPORT, but no import is
+authorized or executed. Snapshot evidence now includes a migration-local versioned
+PAGE classification contract. Exact byte-prefix, fingerprint, byte-size,
+source-record and disposition totals are revalidated under that historical contract;
+only appended records use the current public-route rules. This preserves the verified
+5,154-record boundary at 3,191 imported and 1,963 archived while the full current
+5,294-record initial plan remains 3,332 imported and 1,962 archived.
+
+Initial generated SQL starts with a fail-closed assertion that all six analytics
+tables are empty. Focused tests prove every protected non-empty case fails before
+import inserts. A fresh read-only query found the production ANALYTICS_DB tables
+empty with `rows_written=0`; full SQL reconciliation passed only in memory. No D1
+write, APP_DB access, staging mutation, deploy, commit or push occurred.
