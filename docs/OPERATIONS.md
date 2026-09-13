@@ -1,5 +1,37 @@
 # Operations
 
+## Boss analytics case-insensitive filter deploy — 2026-09-12
+
+The task started from clean, upstream-matching SHA
+`ea831eea85182bda0ef8b6a26144f6413e5817ac`. Pre-deploy analytics readback was one
+snapshot, 5,294 legacy source records, 3,332 `legacy_panel`, 9 native and 3,341 total.
+
+Focused verification commands:
+
+```powershell
+node --test worker/tests/analytics-case-insensitive-filter.test.js worker/tests/analytics-source-stream.test.js worker/tests/analytics-query-plan.test.js
+npm run lint --prefix apps/web
+npm run build
+npm run verify:artifact --prefix apps/web
+git diff --check
+npx wrangler@4.131.1 deploy --env production --dry-run
+```
+
+Results were 30/30 tests, successful lint, 1,719-module production build, artifact
+policy and whitespace checks. Query-plan guards remained bounded. The dry-run retained
+production APP_DB/ANALYTICS_DB bindings, analytics enabled, CMS writes and
+notifications disabled, Access/Turnstile bindings and the existing apex custom
+domain.
+
+Deployment `b8166433-9b98-49c1-aaa8-2f6eac811937` activated Worker version
+`7ba335b5-69b9-447c-9f86-d4bb567473d0` at 100%. Authenticated Boss checks used only
+existing records and GET requests. Upper/lower/mixed-case pairs returned identical
+totals and first-page rows for every tested free-text field. Post-deploy D1 readback
+matched the pre-deploy counts with `changed_db=false`, `rows_written=0`.
+
+Rollback remains activation of prior Worker version
+`78bb5f6d-2c81-4519-a426-20b63aefacac`; it must not modify analytics data.
+
 ## Production native analytics correction — 2026-09-12
 
 The correction started from clean, upstream-matching SHA

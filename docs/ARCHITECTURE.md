@@ -1,5 +1,26 @@
 # Architecture
 
+## Boss analytics free-text comparison boundary
+
+```text
+Boss input
+  -> unchanged query parameter
+  -> Worker parseFilters
+  -> one buildEventFilter SQL builder
+  -> bound predicate with field-appropriate collation
+  -> ANALYTICS_DB read only
+```
+
+Operator-entered country, browser, page, city and referrer text uses SQLite
+`COLLATE NOCASE` in the authoritative SQL predicate. Exact fields remain exact and
+prefix fields remain escaped prefixes. Input case is not rewritten, and persisted
+analytics values are not normalized or duplicated.
+
+IP matching deliberately retains its existing byte-oriented exact/prefix predicates.
+Source and actor are controlled dimensions and remain exact. Range predicates,
+pagination and count queries reuse the same filter builder so the displayed rows and
+reported total cannot diverge by case semantics.
+
 ## Production native PAGE analytics path
 
 ```text

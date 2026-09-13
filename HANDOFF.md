@@ -1,5 +1,30 @@
 # hakan.run Modernization Handoff
 
+## Boss analytics case-insensitive filters — deployed and verified, 2026-09-12
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / this `Make analytics filters case-insensitive` checkpoint |
+| Current phase | Production healthy; Boss free-text analytics filters are case-insensitive at the query layer |
+| Completed | Explicit SQL `NOCASE` semantics for country, browser, exact/prefix page, city and referrer; focused result/count/query-plan tests; production deploy; authenticated Boss pair verification |
+| Exact next action | Observe ordinary Boss use; no further filter work is required unless the owner requests a separately scoped improvement |
+| Prohibited actions | Analytics ingestion changes, stored-row normalization, migrations, legacy/native data mutation, APP_DB changes, DNS/routes/redirects, Access, Turnstile, CSP or unrelated Boss redesign |
+| Push state | This checkpoint is committed and normally pushed to `origin/develop/hakan-run-v2`; no force push |
+| Deploy state | Production deployment `b8166433-9b98-49c1-aaa8-2f6eac811937`, Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0`, 100% active |
+| Infrastructure state | Existing production bindings and apex route preserved; analytics true, CMS writes false, notifications false; analytics counts remain 1 snapshot, 5,294 legacy records, 3,332 `legacy_panel`, 9 native |
+
+The case-sensitive behavior came from BINARY equality predicates in the single
+analytics SQL filter builder. Operator-entered text now carries explicit SQLite
+`COLLATE NOCASE` semantics without changing stored values or the exact/prefix match
+mode. IP, actor, source, date range and pagination retain their prior semantics.
+
+Authenticated production Boss checks returned identical counts and first-page rows
+for TR/tr/mixed case (3), US/us (5), IT/it (1), Istanbul variants (22), `/card`
+variants (3), Direct/direct (2,712) and Chrome/chrome (2,516). Source filters still
+returned 9 native and 3,332 legacy records. No public page was visited for this
+verification, so no analytics traffic was generated.
+
 ## Production native analytics runtime correction — deployed and verified, 2026-09-12
 
 | Field | Current value |

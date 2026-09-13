@@ -10,6 +10,12 @@ For the implemented site, start with the [documentation index](./docs/README.md)
 
 ## Modernization status
 
+Boss Analytics free-text filtering is case-insensitive in the Worker query layer.
+Country, browser, page, city and referrer inputs retain their existing exact or
+prefix behavior while ignoring ASCII case. IP matching and controlled source/actor
+filters keep their previous semantics; stored analytics data is never normalized or
+rewritten for filtering.
+
 Production cutover is complete. The modern Cloudflare Worker serves `hakan.run`,
 the canonical `www` redirect remains external and path/query preserving, production
 content comes only from the isolated production `APP_DB`, and Boss remains protected

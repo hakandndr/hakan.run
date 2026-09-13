@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 24. Text-filter normalization belongs in the authoritative comparison
+
+- Problem: A UI can accept arbitrary casing while an exact database predicate silently treats equivalent operator input as different.
+- Evidence / context: Country `TR` matched production rows while `tr` did not because the Worker emitted a BINARY equality comparison.
+- Reusable rule: Define case semantics once in the server/query builder, keep values bound, and preserve exact versus prefix behavior. Do not rely on cosmetic input rewriting or mutate stored data.
+- Applies when: Human-entered filters query codes, labels, routes, referrers or client-family names.
+- Exceptions / caveats: Machine identifiers and controlled enumerations may require exact semantics; case-insensitive collation must not be applied indiscriminately.
+
 ## 23. Trace an event pipeline from its first gate before changing its write path
 
 - Problem: A healthy endpoint, enabled runtime flag and populated database can make a missing event look like an ingestion or query defect when the client never emitted the request.

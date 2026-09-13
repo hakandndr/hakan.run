@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-036 — Operator-entered analytics text is case-insensitive in SQL
+
+- Decision: Country, browser, exact/prefix page, city and referrer filters use explicit SQLite `COLLATE NOCASE` predicates in the single Worker query builder. IP and controlled actor/source filters remain unchanged.
+- Context: Production Boss returned rows for uppercase country codes but not lower/mixed-case equivalents because exact text comparison used SQLite's default BINARY collation.
+- Alternatives considered: Force uppercase in the UI, rewrite stored rows, add normalized columns, duplicate filter logic or change ingestion.
+- Rationale: Query-layer collation fixes every caller and preserves displayed/stored values, bound parameters and existing exact/prefix behavior without a migration.
+- Consequences: Stream and count queries share identical semantics. Focused tests guard country variants, other free-text fields, IP/source behavior, date ranges, pagination and query plans.
+- Status: Approved, implemented, focused-verified and deployed to production on 2026-09-12.
+
 ## D-035 — Native analytics uses explicit host emission and independent PAGE classification
 
 - Decision: The public client emits PAGE events only on the explicit canonical hosts `hakan.run` and `staging.hakan.run`. The Worker independently owns canonical PAGE classification and persists accepted production events as `native`; imported history remains `legacy_panel`.

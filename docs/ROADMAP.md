@@ -2,6 +2,14 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Boss analytics case-insensitive filter correction
+
+- Objective: Remove case sensitivity from operator-entered analytics text without changing stored data, ingestion or match modes.
+- Dependencies: Healthy production native analytics, shared SQL filter builder and Access-authenticated Boss.
+- Acceptance gates: Upper/lower/mixed country equivalence; city/page/referrer/browser equivalence; unchanged IP/source/actor/date/pagination behavior; bounded query plans; lint/build/artifact; real Boss GET verification; unchanged D1 counts.
+- Authorization boundaries: Existing production Worker deploy, checkpoint commit and normal push after gates. No database mutation, APP_DB, DNS/routes, Access, Turnstile, CSP, staging or redesign authority.
+- Status: Complete. Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0` is 100% active and all requested live pairs match.
+
 ## Production native analytics runtime correction
 
 - Objective: Restore real production PAGE ingestion at the proven client-host break point while preserving imported analytics and improving narrow Boss semantics.

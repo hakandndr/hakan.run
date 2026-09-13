@@ -1,5 +1,24 @@
 # Current State
 
+## Boss analytics case-insensitive filters — live, 2026-09-12
+
+Production Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0` is 100% active in
+deployment `b8166433-9b98-49c1-aaa8-2f6eac811937`. The shared analytics query builder
+uses explicit SQLite `COLLATE NOCASE` semantics for country, browser, exact/prefix
+page, city and referrer filters. Existing bound parameters and exact/prefix modes are
+unchanged.
+
+IP filtering remains byte/exact-prefix based. Source and actor are controlled values
+and remain exact. Date ranges, totals, paging and native/legacy source separation are
+unchanged. There is no client-only normalization, stored-row rewrite, migration or
+analytics-ingestion change.
+
+Authenticated Boss verification returned identical totals and rows for TR/tr/mixed
+case, US/us, IT/it, Istanbul, `/card`, Direct and Chrome case variants. Pre/post D1
+readbacks stayed at one snapshot, 5,294 legacy source records, 3,332 `legacy_panel`
+events and 9 native events. DNS, Worker routes, APP_DB, Access and Turnstile were not
+changed.
+
 ## Production native analytics — live and verified, 2026-09-12
 
 Production Worker version `78bb5f6d-2c81-4519-a426-20b63aefacac` is 100% active in

@@ -13,9 +13,10 @@ const AUTOMATED_ACTORS = "actor_class IN ('verified-bot','automated-likely')";
 // ---------------------------------------------------------------------------
 // Filters
 //
-// Selective predicates are exact or prefix so they stay sargable. No filter
-// uses leading-wildcard matching: `LIKE '%x%'` cannot use an index and its cost
-// grows with the whole table.
+// Selective predicates are exact or prefix so they stay sargable. Operator-entered
+// text uses SQLite's explicit NOCASE collation while controlled values and IP
+// addresses retain their existing exact semantics. No filter uses leading-wildcard
+// matching: `LIKE '%x%'` cannot use an index and its cost grows with the whole table.
 // ---------------------------------------------------------------------------
 
 const escapePrefix = (value) => value.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -43,7 +44,7 @@ export const buildEventFilter = (filters = {}, range = null) => {
   }
 
   if (filters.country) {
-    conditions.push('country = ?');
+    conditions.push('country COLLATE NOCASE = ?');
 
     // Country is stored as the display value in visitor_events, including
     // imported legacy values such as "United States", "Taiwan", "Türkiye",
@@ -53,16 +54,16 @@ export const buildEventFilter = (filters = {}, range = null) => {
   }
 
   if (filters.browser) {
-    conditions.push('browser_family = ?');
+    conditions.push('browser_family COLLATE NOCASE = ?');
     params.push(filters.browser);
   }
 
   if (filters.path) {
     if (filters.pathExact) {
-      conditions.push('path = ?');
+      conditions.push('path COLLATE NOCASE = ?');
       params.push(filters.path);
     } else {
-      conditions.push("path LIKE ? ESCAPE '\\'");
+      conditions.push("path COLLATE NOCASE LIKE ? ESCAPE '\\'");
       params.push(`${escapePrefix(filters.path)}%`);
     }
   }
@@ -78,12 +79,12 @@ export const buildEventFilter = (filters = {}, range = null) => {
   }
 
   if (filters.city) {
-    conditions.push("city LIKE ? ESCAPE '\\'");
+    conditions.push("city COLLATE NOCASE LIKE ? ESCAPE '\\'");
     params.push(`${escapePrefix(filters.city)}%`);
   }
 
   if (filters.referrer) {
-    conditions.push("referrer_origin LIKE ? ESCAPE '\\'");
+    conditions.push("referrer_origin COLLATE NOCASE LIKE ? ESCAPE '\\'");
     params.push(`${escapePrefix(filters.referrer)}%`);
   }
 

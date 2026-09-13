@@ -1,5 +1,17 @@
 # Security
 
+## Boss analytics case-insensitive reads — live, 2026-09-12
+
+Case-insensitive filtering is implemented only in bound SELECT predicates. Values
+remain parameters rather than SQL interpolation, and no UPDATE, migration, normalized
+column or duplicate index was introduced. The change cannot alter native or imported
+records and does not expand analytics ingestion.
+
+IP retains its previous matching semantics. Controlled source/actor values remain
+exact, preventing arbitrary case aliases from becoming new dimension values. Boss
+Access verification, Worker routes, APP_DB, Turnstile, CSP, DNS and feature flags are
+unchanged.
+
 ## Production native analytics boundary — live, 2026-09-12
 
 Analytics is PAGE-only at both client emission and Worker insertion boundaries.

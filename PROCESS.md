@@ -3514,3 +3514,18 @@ later explicit DATABASE authorization and fresh target verification.
 - Deliberate non-actions: No manual analytics rows, legacy mutation/re-import, APP_DB mutation, staging mutation, DNS/custom-domain/redirect change, Access change, CSP weakening, Turnstile change, CMS enablement, notification enablement or unrelated refactor.
 - Commit identity: Sole author and committer `Hakan Dundar <hakan@dndr.net>` with message `Fix production native analytics tracking`; no trailers or generated attribution.
 - Exact next action: Observe ordinary production traffic; any further analytics/UI work requires a separately reviewed scope.
+
+## 2026-09-12 — Boss analytics case-insensitive filter correction
+
+- Objective: Make operator-entered Boss analytics text filters case-insensitive in the authoritative query layer while retaining all existing match modes and controlled-value semantics.
+- Starting Git state: Clean `develop/hakan-run-v2` at `ea831eea85182bda0ef8b6a26144f6413e5817ac`, matching `origin/develop/hakan-run-v2` after fetch.
+- Root cause: Country and browser used BINARY `=` predicates; the shared SQL builder did not declare a uniform case-insensitive contract for the other free-text predicates.
+- Changed runtime: `worker/analytics/queries.js` applies explicit SQLite `COLLATE NOCASE` to country, browser, exact/prefix page, city and referrer predicates. Parameters remain bound and stored rows are untouched.
+- Intentionally unchanged: IP exact/prefix logic; source and actor controlled values; date bounds; pagination/count calculation; analytics ingestion; Worker routing/config; migrations; Boss UI.
+- Focused validation: 30/30 filter/source/query-plan tests passed. Web lint, production build (1,719 modules), artifact policy and `git diff --check` passed. Production dry-run preserved all bindings, flags and the existing apex route.
+- Deployment: Production deployment `b8166433-9b98-49c1-aaa8-2f6eac811937` activated Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0` at 100%; no asset upload was needed.
+- Live verification: Authenticated Boss GET filtering produced identical totals and rows for TR/tr/Tr/tR, US/us, IT/it, Istanbul mixed case, `/card` mixed case, Direct/direct and Chrome/chrome. Native/legacy filters remained 9/3,332 and an IP-prefix read remained operational.
+- Data safety: Pre/post readbacks were identical—one snapshot, 5,294 legacy source records, 3,332 `legacy_panel`, 9 native, 3,341 total; verification queries reported `changed_db=false`, `rows_written=0`.
+- Deliberate non-actions: No public visits, analytics ingestion changes, stored-row rewrite, migration, APP_DB access, DNS/custom-domain/redirect, Access, Turnstile, CSP, staging or UI redesign.
+- Commit identity: Sole author/committer `Hakan Dundar <hakan@dndr.net>`, message `Make analytics filters case-insensitive`, no trailers or generated attribution.
+- Exact next action: Normal operational observation only; further analytics changes require a new scope.

@@ -63,7 +63,7 @@ test('the source filter composes with the other filters and the range', () => {
     { start: 10, end: 20 },
   );
   assert.match(where, /event_source = \?/);
-  assert.match(where, /country = \?/);
+  assert.match(where, /country COLLATE NOCASE = \?/);
   // Range first, then filters in declaration order: the params must line up
   // with the placeholders or the whole query silently means something else.
   // Country values are stored as display names and are preserved exactly.
@@ -79,7 +79,7 @@ test('a full country name is preserved instead of being forced to uppercase', ()
     { start: 10, end: 20 },
   );
 
-  assert.match(where, /country = \?/);
+  assert.match(where, /country COLLATE NOCASE = \?/);
   assert.deepEqual(params, [10, 20, 'Taiwan']);
 });
 
