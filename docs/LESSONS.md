@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 26. Request diagnostics belong to the private product record, not analytics
+
+- Problem: Operational abuse investigation needs request context, but placing raw IP and network metadata into analytics creates another authority and expands identity scope.
+- Evidence / context: Contact submissions already form a private APP_DB record while Cloudflare supplies bounded request metadata at the inbound Worker boundary.
+- Reusable rule: Read canonical platform metadata only at the trusted boundary, attach the minimal nullable context to the product record, and expose it only through the protected detail surface.
+- Applies when: A private support, contact or abuse record needs request-level diagnostics.
+- Exceptions / caveats: Never trust generic forwarded headers as canonical identity, never fabricate historical values, and couple deletion to the product record's retention policy.
+
 ## 25. Delivery observability belongs beside the durable submission
 
 - Problem: A list can prove a row exists while hiding the content, request context and secondary delivery outcome needed to operate it.

@@ -2,6 +2,14 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Boss submission request metadata follow-up
+
+- Objective: Add minimal private abuse/operational request context to contact submissions without changing analytics, notification or public behavior.
+- Dependencies: Production checkpoint `e9c0001`, APP_DB submission authority, existing Access-protected Inspect and Cloudflare inbound request metadata.
+- Acceptance gates: Authoritative source-IP boundary; optional request.cf persistence; compact list/detail separation; NULL historical behavior; APP_DB-only tests; Access/Turnstile/persistence-order regressions; lint/build/artifact/diff hygiene.
+- Authorization boundaries: Local code, tests and documentation only. COMMIT, PUSH, MIGRATE and DEPLOY are owner-executed; provider, notification, Access, Turnstile, DNS and analytics mutations are prohibited.
+- Status: Implemented locally. Migration `0003` is unapplied and must precede an exact-commit deployment.
+
 ## Post-cutover Boss operational follow-up
 
 - Objective: Improve submission operations, owner timezone consistency, contact-delivery observability and analytics page selection without starting rollback cleanup.

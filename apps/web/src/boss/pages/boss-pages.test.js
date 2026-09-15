@@ -19,6 +19,7 @@ import {
   buildEventsPath,
   buildPageOptions,
 } from './eventStreamPath.js';
+import { displaySubmissionMetadata } from '../submissionMetadata.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const source = (file) => readFileSync(path.join(here, file), 'utf8');
@@ -96,9 +97,28 @@ test('Submissions renders stored content and delivery diagnostics', () => {
     'submission.notification_provider_status',
     'submission.notification_request_id',
     'submission.notification_error',
+    'submission.source_ip',
+    'submission.cf_region',
+    'submission.cf_region_code',
+    'submission.cf_city',
+    'submission.cf_continent',
+    'submission.cf_colo',
+    'submission.cf_asn',
+    'submission.cf_as_organization',
+    'submission.http_protocol',
+    'submission.tls_version',
   ]) {
     assert.ok(submissions.includes(field), `${field} must remain visible`);
   }
+  assert.match(submissions, /Operational request metadata/);
+  assert.match(submissions, /\/api\/boss\/submissions\/\$\{encodeURIComponent\(selectedId\)\}/);
+});
+
+test('Submissions renders unavailable historical metadata as an em dash', () => {
+  assert.equal(displaySubmissionMetadata(null), '—');
+  assert.equal(displaySubmissionMetadata(undefined), '—');
+  assert.equal(displaySubmissionMetadata(''), '—');
+  assert.equal(displaySubmissionMetadata(64500), '64500');
 });
 
 // --- System: legacyAnalytics and eventSources are rendered ------------------

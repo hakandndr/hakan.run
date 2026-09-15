@@ -1,5 +1,19 @@
 # Security
 
+## Private submission request metadata — local, 2026-09-15
+
+Raw source IP is intentionally permitted only on the private APP_DB submission
+record. The Worker reads it from inbound `CF-Connecting-IP`, never from
+`X-Forwarded-For` or another generic forwarded header. Location, network and
+protocol context comes from `request.cf`; absent fields become NULL and never weaken
+input or Turnstile validation.
+
+Only the existing Access-protected Boss API can return this metadata. It is not
+placed in ANALYTICS_DB, used as an analytics identity, copied to another table or
+exposed by a public endpoint. Access, CSP, Turnstile and notification/provider
+configuration are unchanged. The data must be deleted under the future submission
+retention policy, independently of analytics retention.
+
 ## Submission operations and Turnstile hardening — local, 2026-09-15
 
 The richer submission view remains behind Cloudflare Access plus Worker owner-token

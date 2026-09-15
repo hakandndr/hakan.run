@@ -2,7 +2,7 @@
 //
 // The order is the product contract, not an implementation detail:
 //
-//   verify Turnstile -> validate -> persist durably -> acknowledge -> notify
+//   validate -> verify Turnstile -> persist durably -> acknowledge -> notify
 //
 // A 200 means the submission exists in APP_DB. Notification runs after the
 // acknowledgement and its outcome is recorded against the stored row; a failed
@@ -14,6 +14,39 @@ import { sendNotification } from '../lib/resend.js';
 import { formatLocalInstant } from '../lib/time.js';
 
 const MAX_FIELD = { name: 120, email: 200, message: 4000 };
+
+const optionalString = (value, maximum) => {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized ? normalized.slice(0, maximum) : null;
+};
+
+const optionalAsn = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+};
+
+// CF-Connecting-IP is supplied by Cloudflare at the inbound Worker boundary.
+// Generic forwarded headers are deliberately ignored because they can contain
+// arbitrary client-supplied values. Every request.cf field is optional so a
+// missing edge property can never invalidate an otherwise valid submission.
+export const submissionRequestMetadata = (request) => {
+  const cf = request.cf ?? {};
+  return {
+    sourceIp: optionalString(request.headers.get('CF-Connecting-IP'), 64),
+    country: optionalString(cf.country, 16),
+    region: optionalString(cf.region, 255),
+    regionCode: optionalString(cf.regionCode, 32),
+    city: optionalString(cf.city, 255),
+    continent: optionalString(cf.continent, 16),
+    colo: optionalString(cf.colo, 16),
+    asn: optionalAsn(cf.asn),
+    asOrganization: optionalString(cf.asOrganization, 255),
+    httpProtocol: optionalString(cf.httpProtocol, 32),
+    tlsVersion: optionalString(cf.tlsVersion, 32),
+  };
+};
 
 const validate = (payload) => {
   if (typeof payload !== 'object' || payload === null) return null;
@@ -47,14 +80,17 @@ export const handleSubmission = async (request, env, context) => {
   const id = crypto.randomUUID();
   const receivedAt = Date.now();
   const requestId = request.headers.get('CF-Ray');
+  const requestMetadata = submissionRequestMetadata(request);
   const initialNotificationState = env.NOTIFICATIONS_ENABLED === 'true' ? 'pending' : 'disabled';
 
   // Durable first. If this throws, nothing is acknowledged and nothing is sent.
   await env.APP_DB.prepare(
     `INSERT INTO submissions
        (id, received_at, name, email, message, source_path, country, user_agent,
-        notification_state, notification_provider, request_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        notification_state, notification_provider, request_id, source_ip,
+        cf_region, cf_region_code, cf_city, cf_continent, cf_colo, cf_asn,
+        cf_as_organization, http_protocol, tls_version)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       id,
@@ -63,11 +99,21 @@ export const handleSubmission = async (request, env, context) => {
       fields.email,
       fields.message,
       String(payload.sourcePath ?? '/contact').slice(0, 512),
-      request.cf?.country ?? null,
+      requestMetadata.country,
       (request.headers.get('user-agent') ?? '').slice(0, 512),
       initialNotificationState,
       'resend',
       requestId,
+      requestMetadata.sourceIp,
+      requestMetadata.region,
+      requestMetadata.regionCode,
+      requestMetadata.city,
+      requestMetadata.continent,
+      requestMetadata.colo,
+      requestMetadata.asn,
+      requestMetadata.asOrganization,
+      requestMetadata.httpProtocol,
+      requestMetadata.tlsVersion,
     )
     .run();
 

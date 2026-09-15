@@ -2,10 +2,11 @@
 
 Personal portfolio and content platform for **Hakan Dundar**, a software developer and QA automation engineer based in Irvine, California.
 
-The current local post-cutover follow-up adds an inspectable Boss submission record,
-IANA-aware Los Angeles owner timestamps and newest-first analytics page-range
-selection. Contact delivery remains APP_DB-first and targets `hakan@dndr.net` when
-the independently controlled production notification flag and Resend secret are enabled.
+The current local follow-up records a minimal set of Cloudflare-provided request and
+network metadata beside private contact submissions in APP_DB. Boss keeps its list
+compact and retrieves the richer record only through an Access-protected Inspect
+endpoint. The metadata is not analytics, is never exposed publicly and will follow
+the future submission-retention policy.
 
 Live site: [hakan.run](https://hakan.run)
 

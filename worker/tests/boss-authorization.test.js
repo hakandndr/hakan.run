@@ -65,13 +65,17 @@ test('the private shell is denied when verification fails, not served', async ()
 });
 
 test('every private API path is denied without a verified identity', async () => {
-  for (const module of BOSS_MODULES) {
+  const paths = [
+    ...BOSS_MODULES.map((module) => `/api/boss/${module}`),
+    '/api/boss/submissions/private-submission-id',
+  ];
+  for (const path of paths) {
     const response = await worker.fetch(
-      request(`/api/boss/${module}`),
+      request(path),
       configuredEnv,
       {},
     );
-    assert.equal(response.status, 403, `/api/boss/${module} must fail closed`);
+    assert.equal(response.status, 403, `${path} must fail closed`);
   }
 });
 

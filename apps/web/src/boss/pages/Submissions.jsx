@@ -3,6 +3,7 @@ import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateBlock.jsx';
 import { DataTable, Panel } from '../components/Panel.jsx';
 import { formatBossInstant } from '../time.js';
+import { displaySubmissionMetadata } from '../submissionMetadata.js';
 
 const stateClass = {
   sent: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
@@ -21,7 +22,7 @@ const Badge = ({ value }) => (
 const Metadata = ({ label, value }) => (
   <div className="min-w-0">
     <dt className="font-mono text-[9px] uppercase tracking-wider text-gray-600">{label}</dt>
-    <dd className="mt-1 break-all font-mono text-xs text-gray-300">{value || '—'}</dd>
+    <dd className="mt-1 break-all font-mono text-xs text-gray-300">{displaySubmissionMetadata(value)}</dd>
   </div>
 );
 
@@ -62,9 +63,7 @@ const SubmissionDetail = ({ submission, onClose }) => (
 
       <dl className="grid grid-cols-1 gap-4 border-t border-white/10 pt-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metadata label="Source" value={submission.source_path} />
-        <Metadata label="Country" value={submission.country} />
         <Metadata label="Submission ID" value={submission.id} />
-        <Metadata label="Cloudflare request" value={submission.request_id} />
         <Metadata label="Notification provider" value={submission.notification_provider} />
         <Metadata label="Provider status" value={submission.notification_provider_status} />
         <Metadata label="Provider request" value={submission.notification_request_id} />
@@ -72,6 +71,29 @@ const SubmissionDetail = ({ submission, onClose }) => (
         <Metadata label="Last attempted" value={formatBossInstant(submission.notification_attempted_at)} />
         <Metadata label="Notified" value={formatBossInstant(submission.notified_at)} />
       </dl>
+
+      <section className="border-t border-white/10 pt-4" aria-labelledby="submission-network-metadata">
+        <h4
+          id="submission-network-metadata"
+          className="font-mono text-[9px] uppercase tracking-wider text-gray-600"
+        >
+          Operational request metadata
+        </h4>
+        <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <Metadata label="Source IP" value={submission.source_ip} />
+          <Metadata label="Country" value={submission.country} />
+          <Metadata label="Region / State" value={submission.cf_region} />
+          <Metadata label="Region code" value={submission.cf_region_code} />
+          <Metadata label="City" value={submission.cf_city} />
+          <Metadata label="Continent" value={submission.cf_continent} />
+          <Metadata label="ASN" value={submission.cf_asn} />
+          <Metadata label="ASN organization" value={submission.cf_as_organization} />
+          <Metadata label="Cloudflare colo" value={submission.cf_colo} />
+          <Metadata label="HTTP protocol" value={submission.http_protocol} />
+          <Metadata label="TLS version" value={submission.tls_version} />
+          <Metadata label="Cloudflare request" value={submission.request_id} />
+        </dl>
+      </section>
 
       {submission.notification_error ? (
         <div className="rounded border border-rose-400/25 bg-rose-400/5 px-3 py-2" role="status">
@@ -95,11 +117,15 @@ const SubmissionDetail = ({ submission, onClose }) => (
 const Submissions = () => {
   const { status, data, error, reload } = useBossResource('/api/boss/submissions');
   const [selectedId, setSelectedId] = useState(null);
+  const detail = useBossResource(
+    selectedId ? `/api/boss/submissions/${encodeURIComponent(selectedId)}` : null,
+    { enabled: Boolean(selectedId) },
+  );
   if (status === 'loading') return <LoadingState label="reading /api/boss/submissions" />;
   if (status === 'error') return <ErrorState error={error} onRetry={reload} />;
 
   const submissions = data.submissions ?? [];
-  const selected = submissions.find((submission) => submission.id === selectedId) ?? null;
+  const detailMatchesSelection = detail.data?.submission?.id === selectedId;
   return (
     <Panel
       title="Submissions"
@@ -149,8 +175,16 @@ const Submissions = () => {
             rows={submissions}
             rowKey={(row) => row.id}
           />
-          {selected ? (
-            <SubmissionDetail submission={selected} onClose={() => setSelectedId(null)} />
+          {selectedId && (detail.status === 'loading' || !detailMatchesSelection)
+            && detail.status !== 'error' ? (
+              <LoadingState label="reading submission detail" />
+            ) : null}
+          {detail.status === 'error' ? <ErrorState error={detail.error} onRetry={detail.reload} /> : null}
+          {detail.status === 'ready' && detailMatchesSelection ? (
+            <SubmissionDetail
+              submission={detail.data.submission}
+              onClose={() => setSelectedId(null)}
+            />
           ) : null}
         </div>
       )}

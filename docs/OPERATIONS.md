@@ -1,5 +1,21 @@
 # Operations
 
+## Submission request metadata migration order
+
+The uncommitted `e9c0001` follow-up requires this owner-executed order:
+
+1. Re-run focused local verification and checkpoint the exact reviewed diff.
+2. Export and verify a non-empty production APP_DB backup.
+3. List and apply `0003_submission_request_metadata.sql` to production APP_DB.
+4. Verify the ten new nullable columns and the D1 migration ledger.
+5. Build and deploy the exact commit.
+6. Use authenticated, read-only Boss requests to confirm the compact list and detail
+   contract; do not submit a public contact form merely for smoke verification.
+
+The migration must precede deployment. It adds no backfill, so historical rows must
+return NULL and render as unavailable. The operation does not require or authorize
+ANALYTICS_DB, notification, Resend, Turnstile, Access or DNS changes.
+
 ## Post-cutover Boss follow-up activation order
 
 This local follow-up has independent operational gates:

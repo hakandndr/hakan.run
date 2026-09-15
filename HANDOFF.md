@@ -1,22 +1,24 @@
 # hakan.run Modernization Handoff
 
-## Post-cutover Boss operations follow-up — local, 2026-09-15
+## Boss submission request metadata follow-up — local, 2026-09-15
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2` / `b62d1e87455a66f02b4a99e4776881b5f8cc8544` plus an uncommitted local implementation |
-| Current phase | Boss submissions, owner timezone, contact delivery observability and analytics pagination follow-up |
-| Completed | Inspect/detail submission UI; delivery/provider metadata; shared `America/Los_Angeles` formatting; newest-first range dropdown; Turnstile action/hostname validation; focused local verification |
-| Exact next action | Owner reviews, then separately performs commit, APP_DB migration, provider/secret activation and deploy if approved |
-| Prohibited actions | Agent-side commit/push/deploy; remote migration; secret/provider/DNS/Access mutation; production notification activation; rollback cleanup |
-| Push state | No commit or push for this follow-up; upstream checkpoint remains `b62d1e8` |
-| Deploy state | Unchanged; production remains on Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0` |
-| Infrastructure state | Production notifications remain disabled; last verified Worker binding inventory had no Resend secret; intended recipient is `hakan@dndr.net`; D1 resources are untouched |
+| Branch / HEAD | `develop/hakan-run-v2` / `e9c0001e3e7152ce8ccda768dcab52befe2b8a29` plus an uncommitted local implementation |
+| Current phase | Private operational request metadata for Boss submission inspection |
+| Completed | Nullable APP_DB migration; inbound Worker metadata capture; compact list plus Access-protected detail API; operational Inspect section; focused local verification |
+| Exact next action | Owner reviews, then separately checkpoints, backs up production APP_DB, applies migration `0003`, deploys the exact commit and performs read-only smoke verification |
+| Prohibited actions | Agent-side commit/push/deploy; remote migration; APP_DB/ANALYTICS_DB/provider/DNS/Access/Turnstile mutation; notification activation; public redesign |
+| Push state | No commit or push for this follow-up; current production checkpoint is `e9c0001` |
+| Deploy state | Unchanged in this task; the live Worker version was not queried |
+| Infrastructure state | No remote resource was accessed or mutated; production notifications remain disabled |
 
-Migration `0002_submission_notification_metadata.sql` must precede a Worker deploy
-because the new Boss query reads its columns. Notification activation additionally
-requires a separately authorized Resend key and `NOTIFICATIONS_ENABLED=true`.
+Migration `0003_submission_request_metadata.sql` must precede the matching Worker
+deploy because the submission insert and Boss detail query use its nullable columns.
+Existing rows remain NULL and render as unavailable. Operational request metadata is
+private APP_DB data governed by the future submission-retention policy; it never
+enters ANALYTICS_DB or a public response.
 
 ## Boss analytics case-insensitive filters — deployed and verified, 2026-09-12
 

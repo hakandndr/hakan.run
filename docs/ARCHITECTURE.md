@@ -1,10 +1,26 @@
 # Architecture
 
+## Private submission request context
+
+Contact submission request context is part of the private submission aggregate in
+APP_DB. `CF-Connecting-IP` is the sole source-IP input at the inbound Cloudflare
+Worker boundary; generic forwarded headers are ignored. Country, region, region
+code, city, continent, colo, ASN, ASN organization, HTTP protocol and TLS version
+come only from optional `request.cf` properties. Missing metadata stores as NULL and
+cannot reject an otherwise valid submission.
+
+The compact Boss list returns only table fields. Inspect performs a separate
+Access-protected read of one submission and exposes its stored request context to the
+owner. There is no public read path, analytics copy, cross-session identity or
+fingerprint. These fields follow submission retention rather than analytics
+retention.
+
 ## Durable submission operations and owner time
 
 ```text
-Turnstile Siteverify (success + contact action + exact environment hostname)
-  -> bounded input validation
+Bounded input validation
+  -> Turnstile Siteverify (success + contact action + exact environment hostname)
+  -> capture optional Cloudflare request context
   -> APP_DB insert with pending/disabled delivery state
   -> 202 acknowledgement
   -> Resend attempt

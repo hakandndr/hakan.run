@@ -3542,3 +3542,18 @@ later explicit DATABASE authorization and fresh target verification.
 - Validation: Focused submission, Boss, pagination, timezone, routing, Access and case-insensitive analytics tests passed; web lint, production build, artifact and diff checks passed.
 - Deliberate non-actions: No commit, push, fetch, deploy, remote migration, database write, secret/provider mutation, DNS, Access, public submission or rollback cleanup.
 - Exact next action: Owner reviews and separately performs checkpoint, migration, secret/provider activation and exact-commit deployment.
+
+## 2026-09-15 — Boss submission request metadata follow-up
+
+- Objective: Capture minimal private Cloudflare request/network context with accepted contact submissions and expose it only in Boss Inspect.
+- Starting Git state: Clean `develop/hakan-run-v2` at production checkpoint `e9c0001e3e7152ce8ccda768dcab52befe2b8a29`.
+- Approved scope: Local code, focused tests, production build and continuity documentation only; owner retains Git, database and deploy operations.
+- Schema: Forward-only APP_DB migration `0003_submission_request_metadata.sql` adds nullable source IP, region, region code, city, continent, colo, ASN, ASN organization, HTTP protocol and TLS version columns. Existing `country` remains the `request.cf.country` field, avoiding duplicate storage. No backfill or rewrite exists.
+- Request boundary: Source IP comes only from inbound `CF-Connecting-IP`; generic forwarded headers are ignored. Optional location, network and protocol fields come only from `request.cf` and missing values store as NULL without failing the submission.
+- Boss contract: The list response now contains only compact table fields. An Access-protected `/api/boss/submissions/:id` read returns the complete record; Inspect renders a separate operational metadata section and an em dash for unavailable historical values.
+- Architecture/data/security implications: APP_DB remains the single submission authority. Raw IP is private abuse-diagnostic data, never analytics identity, fingerprinting input, public output or ANALYTICS_DB data. It follows the future submission-retention policy rather than analytics retention.
+- Preserved contracts: Input validation and Turnstile precede persistence; the durable APP_DB write precedes optional notification; delivery-disabled behavior and public success semantics are unchanged. Access, CSP, Turnstile/provider and notification configuration are unchanged.
+- Validation: 94/94 focused submission, Boss UI/API, Access, routing, Contact/Turnstile and time/route tests passed. Web lint passed. The production build transformed 1,721 modules; artifact verification and `git diff --check` passed.
+- Deliberate non-actions: No commit, push, fetch, remote migration, database mutation, deploy, notification activation, Resend change, Turnstile/provider change, Access, DNS, analytics change, public request or broad browser suite.
+- Commit identity: No commit created. A later authorized commit must use only `Hakan Dundar <hakan@dndr.net>` with no trailers or generated attribution.
+- Exact next action: Owner reviews the diff, checkpoints it, verifies a production APP_DB backup, applies migration `0003`, deploys the exact commit and performs an authenticated read-only smoke check.

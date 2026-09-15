@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-038 — Request diagnostics stay with the private submission
+
+- Decision: Store the minimal Cloudflare-derived request context, including raw source IP, as nullable fields on the private APP_DB submission and retrieve the full record through a separate Access-protected Boss detail endpoint.
+- Context: Sender content and delivery status were inspectable, but abuse and delivery investigations lacked the request location, network and connection context already available at the inbound Worker boundary.
+- Alternatives considered: Trust `X-Forwarded-For`, copy the data to ANALYTICS_DB, create a fingerprint/profile table, return every field in the compact list, or depend on transient provider logs.
+- Rationale: `CF-Connecting-IP` and `request.cf` provide bounded request context at the platform boundary; the submission is the single operational authority and Inspect is the only consumer.
+- Consequences: Migration `0003` must precede deployment. Existing rows remain NULL. The metadata follows the future submission-retention policy, not analytics retention, and remains unavailable publicly.
+- Status: Implemented and focused-verified locally on 2026-09-15; not committed, migrated or deployed.
+
 ## D-037 — Delivery observability stays with the durable submission
 
 - Decision: Store minimal provider outcome metadata on the APP_DB submission, expose it in an explicit Boss Inspect view, and render owner instants with IANA zone `America/Los_Angeles`.

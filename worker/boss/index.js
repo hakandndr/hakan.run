@@ -187,14 +187,24 @@ const submissionList = async (url, env) => {
     : 25;
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
   const rows = await env.APP_DB.prepare(
+    `SELECT id, received_at, name, email, status, notification_state
+     FROM submissions ORDER BY received_at DESC, id DESC LIMIT ? OFFSET ?`,
+  ).bind(limit, (page - 1) * limit).all();
+  return json({ submissions: rows.results ?? [], pagination: { page, limit } });
+};
+
+const submissionDetail = async (id, env) => {
+  const submission = await env.APP_DB.prepare(
     `SELECT id, received_at, name, email, message, source_path, country, status,
             user_agent, request_id, notification_state, notification_attempts,
             notification_error, notified_at, notification_provider,
             notification_attempted_at, notification_provider_status,
-            notification_request_id
-     FROM submissions ORDER BY received_at DESC, id DESC LIMIT ? OFFSET ?`,
-  ).bind(limit, (page - 1) * limit).all();
-  return json({ submissions: rows.results ?? [], pagination: { page, limit } });
+            notification_request_id, source_ip, cf_region, cf_region_code,
+            cf_city, cf_continent, cf_colo, cf_asn, cf_as_organization,
+            http_protocol, tls_version
+     FROM submissions WHERE id = ?`,
+  ).bind(id).first();
+  return submission ? json({ submission }) : notFound();
 };
 
 // --- Audit ------------------------------------------------------------------
@@ -297,6 +307,15 @@ export const handleBossApi = async (request, env, context, identity) => {
   if (path === '/api/boss/content/preview' && method === 'GET') return contentPreview(env);
   if (path.startsWith('/api/boss/content/')) return handleContentManagement(request, env, identity, path);
   if (path === '/api/boss/submissions' && method === 'GET') return submissionList(url, env);
+  if (path.startsWith('/api/boss/submissions/') && method === 'GET') {
+    let id;
+    try {
+      id = decodeURIComponent(path.slice('/api/boss/submissions/'.length));
+    } catch {
+      return notFound();
+    }
+    return id ? submissionDetail(id, env) : notFound();
+  }
   if (path === '/api/boss/audit' && method === 'GET') return auditList(url, env);
   if (path === '/api/boss/system' && method === 'GET') return system(env);
   return notFound();

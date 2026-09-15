@@ -1,5 +1,20 @@
 # Current State
 
+## Boss submission request metadata — local, 2026-09-15
+
+The clean starting checkpoint is `e9c0001`. An uncommitted narrow follow-up adds
+nullable private request metadata to APP_DB submissions: source IP from the inbound
+`CF-Connecting-IP` boundary, existing `country` from `request.cf.country`, and
+region, region code, city, continent, colo, ASN, ASN organization, HTTP protocol and
+TLS version from `request.cf`.
+
+The main Boss submissions response now carries only its table fields. Inspect loads
+one full record from `/api/boss/submissions/:id`, which remains behind Cloudflare
+Access and Worker owner verification. Historical rows retain NULL metadata and the
+UI renders an em dash. No data is copied to ANALYTICS_DB, no analytics ingestion or
+notification behavior changed, and migration `0003_submission_request_metadata.sql`
+has been exercised locally only.
+
 ## Post-cutover Boss operational follow-up — local, 2026-09-15
 
 The local diff on pushed checkpoint `b62d1e8` adds a compact submissions table with
