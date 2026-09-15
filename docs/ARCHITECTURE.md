@@ -1,5 +1,26 @@
 # Architecture
 
+## Durable submission operations and owner time
+
+```text
+Turnstile Siteverify (success + contact action + exact environment hostname)
+  -> bounded input validation
+  -> APP_DB insert with pending/disabled delivery state
+  -> 202 acknowledgement
+  -> Resend attempt
+  -> APP_DB outcome, attempted/sent time, HTTP status and provider request identity
+```
+
+Delivery metadata is part of the durable submission aggregate in APP_DB, never an
+analytics event. The forward migration adds four nullable operational columns and
+does not rewrite existing rows. Boss reads this single authority through its existing
+Access-protected API.
+
+Epoch timestamps remain UTC at rest. Boss display uses `America/Los_Angeles` through
+one client helper, and notification text uses the Worker's IANA-aware time helper.
+Analytics remains newest-first and server-authoritative; the dropdown derives only
+page labels from the returned filtered total and row size.
+
 ## Boss analytics free-text comparison boundary
 
 ```text

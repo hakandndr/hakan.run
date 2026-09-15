@@ -3,9 +3,7 @@ import { Link } from 'react-router-dom';
 import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState } from '../components/StateBlock.jsx';
 import { Panel, StatGrid } from '../components/Panel.jsx';
-
-const formatInstant = (value) =>
-  value ? new Date(Number(value)).toISOString().replace('T', ' ').slice(0, 19) : 'none recorded';
+import { formatBossInstant } from '../time.js';
 
 const Dashboard = () => {
   const { status, data, error, reload } = useBossResource('/api/boss/dashboard');
@@ -27,8 +25,8 @@ const Dashboard = () => {
             { label: 'Audit events', value: data.auditEvents, note: 'Privileged actions recorded' },
             {
               label: 'Oldest native event',
-              value: formatInstant(data.oldestNativeEvent),
-              note: 'Native raw detail is removed only by an audited operator action',
+              value: formatBossInstant(data.oldestNativeEvent, 'none recorded'),
+              note: 'America/Los_Angeles · native raw detail is removed only by an audited operator action',
             },
           ]}
         />

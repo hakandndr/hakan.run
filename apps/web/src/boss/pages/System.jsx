@@ -2,6 +2,7 @@ import React from 'react';
 import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState } from '../components/StateBlock.jsx';
 import { Panel, StatGrid } from '../components/Panel.jsx';
+import { formatBossInstant } from '../time.js';
 
 const Binding = ({ label, present, note }) => (
   <div className="flex items-baseline justify-between gap-4 border border-white/10 bg-[#151515] rounded px-4 py-3">
@@ -32,6 +33,14 @@ const System = () => {
   // governs what this system collected, not what was imported into it.
   const legacy = data.legacyAnalytics ?? null;
   const eventSources = data.eventSources ?? [];
+  const notificationDelivery = data.notificationDelivery ?? {
+    provider: 'unknown',
+    enabled: false,
+    sender: null,
+    recipient: null,
+    secretConfigured: false,
+    ready: false,
+  };
 
   return (
     <>
@@ -43,7 +52,7 @@ const System = () => {
             {
               label: 'Oldest retained event',
               value: analytics.oldestEventDay ?? 'none',
-              note: `${analytics.oldestEventAgeDays} day(s) old`,
+              note: `${analytics.oldestEventAgeDays} day(s) old · ${formatBossInstant(analytics.oldestEventAt)}`,
             },
             {
               label: 'Retention policy',
@@ -77,7 +86,7 @@ const System = () => {
               {
                 label: 'Oldest imported event',
                 value: legacy.oldestEventDay ?? 'none',
-                note: `${legacy.oldestEventAgeDays} day(s) old`,
+                note: `${legacy.oldestEventAgeDays} day(s) old · ${formatBossInstant(legacy.oldestEventAt)}`,
               },
               {
                 label: 'Retention policy',
@@ -113,8 +122,8 @@ const System = () => {
           />
           <Binding
             label="Notifications"
-            present={bindings.notifications}
-            note="Delivery only; never the record of a submission"
+            present={notificationDelivery.ready}
+            note={`${notificationDelivery.enabled ? 'enabled' : 'disabled'} · ${notificationDelivery.provider} · ${notificationDelivery.sender ?? 'sender absent'} → ${notificationDelivery.recipient ?? 'recipient absent'} · ${notificationDelivery.secretConfigured ? 'secret configured' : 'secret absent'}`}
           />
         </div>
       </Panel>

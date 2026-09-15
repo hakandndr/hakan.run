@@ -12,6 +12,8 @@ import {
   loadPublicConfig,
   submitContact,
 } from './contact.js';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const response = ({ ok = true, status = 202, payload = { id: 'x', status: 'stored' }, json = true } = {}) => ({
   ok,
@@ -80,6 +82,11 @@ test('the submission goes to the Worker, as JSON, with the challenge token', asy
     turnstileToken: 'token-value',
     sourcePath: '/contact',
   });
+});
+
+test('the Turnstile widget declares the action enforced by the Worker', () => {
+  const source = readFileSync(fileURLToPath(new URL('./useTurnstile.js', import.meta.url)), 'utf8');
+  assert.match(source, /action: 'contact'/);
 });
 
 test('the body matches the fields the Worker validates, and adds nothing', () => {

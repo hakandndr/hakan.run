@@ -2,6 +2,11 @@
 
 Personal portfolio and content platform for **Hakan Dundar**, a software developer and QA automation engineer based in Irvine, California.
 
+The current local post-cutover follow-up adds an inspectable Boss submission record,
+IANA-aware Los Angeles owner timestamps and newest-first analytics page-range
+selection. Contact delivery remains APP_DB-first and targets `hakan@dndr.net` when
+the independently controlled production notification flag and Resend secret are enabled.
+
 Live site: [hakan.run](https://hakan.run)
 
 [![Playwright Tests](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml/badge.svg)](https://github.com/hakandndr/hakan.run/actions/workflows/playwright.yml)

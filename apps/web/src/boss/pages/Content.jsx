@@ -6,9 +6,7 @@ import { fetchBoss, mutateBoss } from '../api.js';
 import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateBlock.jsx';
 import { Panel, DataTable } from '../components/Panel.jsx';
-
-const instant = (value) =>
-  value ? new Date(Number(value)).toISOString().replace('T', ' ').slice(0, 16) : '—';
+import { formatBossInstant } from '../time.js';
 const pretty = (value) => JSON.stringify(value, null, 2);
 const button = 'rounded border border-white/15 px-3 py-2 text-xs font-mono hover:border-[#57B8FF]/50 disabled:opacity-40';
 const title = 'font-mono text-sm font-semibold text-white';
@@ -153,8 +151,8 @@ const Content = () => {
                 <button className="text-[#57B8FF] font-mono text-xs hover:underline" onClick={() => open(row.section)}>{row.section}</button>
               ) },
               { key: 'published_revision', label: 'Revision', render: (row) => row.published_revision ?? '—' },
-              { key: 'published_at', label: 'Published', render: (row) => instant(row.published_at) },
-              { key: 'draft_updated_at', label: 'Draft updated', render: (row) => instant(row.draft_updated_at) },
+              { key: 'published_at', label: 'Published (PT)', render: (row) => formatBossInstant(row.published_at) },
+              { key: 'draft_updated_at', label: 'Draft updated (PT)', render: (row) => formatBossInstant(row.draft_updated_at) },
             ]}
             rows={sections}
             rowKey={(row) => row.section}
@@ -224,7 +222,7 @@ const Content = () => {
                     </div>
                     {revisions.map((item) => (
                       <div key={item.revision} className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 py-2 text-xs">
-                        <span>Revision {item.revision} · {instant(item.created_at)} · {item.actor}</span>
+                        <span>Revision {item.revision} · {formatBossInstant(item.created_at)} · {item.actor}</span>
                         <button className={button} disabled={busy} onClick={() => viewRevision(item.revision)}>View</button>
                       </div>
                     ))}

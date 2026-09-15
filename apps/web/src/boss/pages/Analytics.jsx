@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateBlock.jsx';
 import { DataTable } from '../components/Panel.jsx';
-import { EMPTY_FILTERS, PAGE_SIZES, buildEventsPath } from './eventStreamPath.js';
+import { EMPTY_FILTERS, PAGE_SIZES, buildEventsPath, buildPageOptions } from './eventStreamPath.js';
+import { formatBossInstant } from '../time.js';
 
 // Analytics V3 stays authoritative in the Worker.
 //
@@ -12,8 +13,6 @@ import { EMPTY_FILTERS, PAGE_SIZES, buildEventsPath } from './eventStreamPath.js
 // The page is intentionally structured as an operational surface:
 // compact summary first, raw event stream immediately after it, and
 // secondary diagnostic information below the stream.
-
-const OPS_TIME_ZONE = 'America/Los_Angeles';
 
 const SOURCES = [
   { value: '', label: 'All' },
@@ -26,23 +25,6 @@ const ACTORS = [
   { value: 'human', label: 'human' },
   { value: 'automated', label: 'automated' },
 ];
-
-const timestamp = new Intl.DateTimeFormat('en-CA', {
-  timeZone: OPS_TIME_ZONE,
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: false,
-});
-
-const formatInstant = (value) => {
-  const instant = Number(value);
-  if (!Number.isFinite(instant)) return '—';
-  return timestamp.format(new Date(instant)).replace(', ', ' ');
-};
 
 const controlClass =
   'w-full bg-[#111111] border border-white/10 rounded px-3 py-2 font-mono text-xs text-gray-200 ' +
@@ -149,7 +131,7 @@ const STREAM_COLUMNS = [
   {
     key: 'occurred_at',
     label: 'Date (PT)',
-    render: (row) => <span className="text-emerald-300/80">{formatInstant(row.occurred_at)}</span>,
+    render: (row) => <span className="text-emerald-300/80">{formatBossInstant(row.occurred_at)}</span>,
   },
   {
     key: 'country',
@@ -259,15 +241,10 @@ const PaginationControls = ({
   lastPage,
   limit,
   total,
-  pageInput,
-  setPageInput,
   goToPage,
   changeLimit,
 }) => {
-  const submitPage = (event) => {
-    event.preventDefault();
-    goToPage(pageInput);
-  };
+  const pageOptions = buildPageOptions(total, limit);
 
   return (
     <div className="border border-white/10 bg-[#111111] rounded px-3 py-2.5 flex flex-col xl:flex-row xl:items-center justify-between gap-3">
@@ -322,7 +299,7 @@ const PaginationControls = ({
           Previous
         </button>
 
-        <form onSubmit={submitPage} className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <label
             htmlFor="stream-page-jump"
             className="font-mono text-[10px] uppercase tracking-wider text-gray-600"
@@ -330,20 +307,17 @@ const PaginationControls = ({
             Page
           </label>
 
-          <input
+          <select
             id="stream-page-jump"
-            type="number"
-            min="1"
-            max={lastPage}
-            value={pageInput}
-            onChange={(event) => setPageInput(event.target.value)}
-            className="w-20 bg-[#0c0c0c] border border-white/10 rounded px-2.5 py-1.5 font-mono text-xs text-gray-200 focus:outline-none focus:border-accent-purple/60"
-          />
-
-          <button type="submit" className={primaryButtonClass}>
-            Go
-          </button>
-        </form>
+            value={page}
+            onChange={(event) => goToPage(event.target.value)}
+            className="max-w-[16rem] bg-[#0c0c0c] border border-white/10 rounded px-2.5 py-1.5 font-mono text-xs text-gray-200 focus:outline-none focus:border-accent-purple/60"
+          >
+            {pageOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
 
         <button
           type="button"
@@ -372,7 +346,6 @@ const EventStream = () => {
   const [applied, setApplied] = useState(EMPTY_FILTERS);
   const [limit, setLimit] = useState(PAGE_SIZES[1]);
   const [page, setPage] = useState(1);
-  const [pageInput, setPageInput] = useState('1');
   const [knownTotal, setKnownTotal] = useState(null);
 
   const path = useMemo(
@@ -389,10 +362,6 @@ const EventStream = () => {
     if (Number.isSafeInteger(reported)) setKnownTotal(reported);
   }, [stream.data]);
 
-  useEffect(() => {
-    setPageInput(String(page));
-  }, [page]);
-
   const set = (key) => (value) =>
     setDraft((current) => ({ ...current, [key]: value }));
 
@@ -401,21 +370,16 @@ const EventStream = () => {
 
   const goToPage = (value) => {
     const requested = Number(value);
-    if (!Number.isFinite(requested)) {
-      setPageInput(String(page));
-      return;
-    }
+    if (!Number.isFinite(requested)) return;
 
     const nextPage = Math.min(lastPage, Math.max(1, Math.trunc(requested)));
     setPage(nextPage);
-    setPageInput(String(nextPage));
   };
 
   const apply = (event) => {
     event.preventDefault();
     setApplied(draft);
     setPage(1);
-    setPageInput('1');
     setKnownTotal(null);
   };
 
@@ -423,14 +387,12 @@ const EventStream = () => {
     setDraft(EMPTY_FILTERS);
     setApplied(EMPTY_FILTERS);
     setPage(1);
-    setPageInput('1');
     setKnownTotal(null);
   };
 
   const changeLimit = (value) => {
     setLimit(Number(value));
     setPage(1);
-    setPageInput('1');
   };
 
   const quickSource = (source) => {
@@ -438,7 +400,6 @@ const EventStream = () => {
     setDraft(next);
     setApplied(next);
     setPage(1);
-    setPageInput('1');
     setKnownTotal(null);
   };
 
@@ -599,8 +560,6 @@ const EventStream = () => {
             lastPage={lastPage}
             limit={limit}
             total={total}
-            pageInput={pageInput}
-            setPageInput={setPageInput}
             goToPage={goToPage}
             changeLimit={changeLimit}
           />

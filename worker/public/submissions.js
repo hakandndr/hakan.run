@@ -11,6 +11,7 @@
 import { json, problem } from '../lib/response.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
 import { sendNotification } from '../lib/resend.js';
+import { formatLocalInstant } from '../lib/time.js';
 
 const MAX_FIELD = { name: 120, email: 200, message: 4000 };
 
@@ -46,12 +47,14 @@ export const handleSubmission = async (request, env, context) => {
   const id = crypto.randomUUID();
   const receivedAt = Date.now();
   const requestId = request.headers.get('CF-Ray');
+  const initialNotificationState = env.NOTIFICATIONS_ENABLED === 'true' ? 'pending' : 'disabled';
 
   // Durable first. If this throws, nothing is acknowledged and nothing is sent.
   await env.APP_DB.prepare(
     `INSERT INTO submissions
-       (id, received_at, name, email, message, source_path, country, user_agent, request_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, received_at, name, email, message, source_path, country, user_agent,
+        notification_state, notification_provider, request_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       id,
@@ -62,6 +65,8 @@ export const handleSubmission = async (request, env, context) => {
       String(payload.sourcePath ?? '/contact').slice(0, 512),
       request.cf?.country ?? null,
       (request.headers.get('user-agent') ?? '').slice(0, 512),
+      initialNotificationState,
+      'resend',
       requestId,
     )
     .run();
@@ -70,15 +75,37 @@ export const handleSubmission = async (request, env, context) => {
   const notify = async () => {
     const result = await sendNotification(env, {
       subject: `hakan.run — new submission from ${fields.name}`,
-      text: `${fields.name} <${fields.email}>\n\n${fields.message}`,
+      replyTo: fields.email,
+      text: [
+        `Name: ${fields.name}`,
+        `Email: ${fields.email}`,
+        `Received (PT): ${formatLocalInstant(receivedAt)}`,
+        `Source: ${String(payload.sourcePath ?? '/contact').slice(0, 512)}`,
+        requestId ? `Cloudflare request: ${requestId}` : null,
+        '',
+        fields.message,
+      ].filter((line) => line !== null).join('\n'),
     });
+    const attemptedAt = result.attempted ? Date.now() : null;
     await env.APP_DB.prepare(
       `UPDATE submissions
-         SET notification_state = ?, notification_attempts = notification_attempts + 1,
-             notification_error = ?, notified_at = ?
+         SET notification_state = ?, notification_attempts = notification_attempts + ?,
+             notification_error = ?, notified_at = ?, notification_provider = ?,
+             notification_attempted_at = ?, notification_provider_status = ?,
+             notification_request_id = ?
        WHERE id = ?`,
     )
-      .bind(result.state, result.error ?? null, result.state === 'sent' ? Date.now() : null, id)
+      .bind(
+        result.state,
+        result.attempted ? 1 : 0,
+        result.error ?? null,
+        result.state === 'sent' ? Date.now() : null,
+        result.provider ?? null,
+        attemptedAt,
+        result.providerStatus ?? null,
+        result.requestId ?? null,
+        id,
+      )
       .run();
   };
 

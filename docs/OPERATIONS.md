@@ -1,5 +1,22 @@
 # Operations
 
+## Post-cutover Boss follow-up activation order
+
+This local follow-up has independent operational gates:
+
+1. Review and checkpoint the exact local diff.
+2. Back up the intended APP_DB, apply `0002_submission_notification_metadata.sql`,
+   and verify the D1 migration ledger plus all four added columns.
+3. Separately authorize the Resend provider secret. Confirm sender and recipient
+   `hakan@dndr.net` without printing the secret.
+4. Set `NOTIFICATIONS_ENABLED=true` only under explicit activation approval.
+5. Build and deploy the exact commit, then verify Access denial, Boss detail,
+   PST/PDT timestamps, System delivery readiness and analytics page selection.
+
+The migration must precede the Worker deploy because the new Boss query reads its
+columns. Do not create a production contact submission merely to validate delivery
+unless that external write is separately authorized.
+
 ## Boss analytics case-insensitive filter deploy — 2026-09-12
 
 The task started from clean, upstream-matching SHA

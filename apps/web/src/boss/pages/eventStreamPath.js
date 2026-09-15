@@ -11,6 +11,19 @@ export const STREAM_FILTER_KEYS = [
 
 export const PAGE_SIZES = [25, 50, 100];
 
+/** Newest-first page labels expose the canonical record ordinals in each page. */
+export const buildPageOptions = (total, limit) => {
+  const safeTotal = Math.max(0, Number(total) || 0);
+  const safeLimit = PAGE_SIZES.includes(Number(limit)) ? Number(limit) : PAGE_SIZES[0];
+  const pages = Math.max(1, Math.ceil(safeTotal / safeLimit));
+  return Array.from({ length: pages }, (_, index) => {
+    const value = index + 1;
+    const newest = Math.max(0, safeTotal - index * safeLimit);
+    const oldest = safeTotal === 0 ? 0 : Math.max(1, newest - safeLimit + 1);
+    return { value, label: `page ${value} · ${newest}–${oldest}` };
+  });
+};
+
 export const EMPTY_FILTERS = Object.freeze(
   Object.fromEntries(STREAM_FILTER_KEYS.map((key) => [key, ''])),
 );

@@ -1,5 +1,24 @@
 # Current State
 
+## Post-cutover Boss operational follow-up — local, 2026-09-15
+
+The local diff on pushed checkpoint `b62d1e8` adds a compact submissions table with
+an explicit Inspect view. The detail reads message content, sender identity, source,
+country, user agent, Cloudflare request ID, delivery state, attempts, attempted and
+sent times, provider HTTP status, provider request ID and bounded error detail from
+APP_DB. Submission data never enters ANALYTICS_DB.
+
+Dashboard, Analytics, Content, Submissions, Audit and System use one browser-side
+`Intl.DateTimeFormat` configured with `America/Los_Angeles`. Server-generated contact
+notifications use the same IANA zone in the Worker. Winter/summer tests prove PST/PDT
+selection without a fixed offset. Analytics page selection is now a dropdown whose
+labels derive newest-first ordinal ranges from the filtered total and row size.
+
+Production config names `hakan@dndr.net` as the future notification recipient, but
+notifications remain disabled. The last verified production Worker inventory had no
+Resend secret binding. No commit, migration, provider activation or deployment has
+occurred in this follow-up.
+
 ## Boss analytics case-insensitive filters — live, 2026-09-12
 
 Production Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0` is 100% active in

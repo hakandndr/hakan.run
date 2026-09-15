@@ -2,6 +2,14 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Post-cutover Boss operational follow-up
+
+- Objective: Improve submission operations, owner timezone consistency, contact-delivery observability and analytics page selection without starting rollback cleanup.
+- Dependencies: Healthy production Worker, Access-protected Boss, APP_DB submission authority and the existing event stream.
+- Acceptance gates: Inspectable stored submission; minimal delivery metadata and owner routing; automatic PST/PDT tests; page/range dropdown synchronization; Turnstile action/hostname enforcement; focused tests, lint, build and diff hygiene.
+- Authorization boundaries: Code completion and local review only. COMMIT, PUSH, MIGRATE, SECRET, PROVIDER, ACTIVATE and DEPLOY remain owner-executed and independent.
+- Status: Implemented locally. Production notifications remain disabled and the last verified Worker had no Resend secret. Rollback cleanup remains deferred.
+
 ## Boss analytics case-insensitive filter correction
 
 - Objective: Remove case sensitivity from operator-entered analytics text without changing stored data, ingestion or match modes.

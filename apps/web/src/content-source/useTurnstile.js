@@ -81,6 +81,7 @@ export const useTurnstile = (containerRef, enabled = true) => {
       try {
         widgetId.current = turnstile.render(containerRef.current, {
           sitekey: config.turnstileSiteKey,
+          action: 'contact',
           theme: 'dark',
           callback: (value) => { setToken(value); setState(TURNSTILE_STATE.solved); },
           'expired-callback': () => { setToken(null); setState(TURNSTILE_STATE.ready); },

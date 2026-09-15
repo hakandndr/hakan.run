@@ -24,6 +24,18 @@ const partsFormatter = new Intl.DateTimeFormat('en-GB-u-ca-gregory', {
   hourCycle: 'h23',
 });
 
+const instantFormatter = new Intl.DateTimeFormat('en-CA-u-ca-gregory', {
+  timeZone: OPS_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+  timeZoneName: 'short',
+});
+
 const partsOf = (formatter, instant) =>
   Object.fromEntries(
     formatter
@@ -36,6 +48,20 @@ const partsOf = (formatter, instant) =>
 export const localDay = (instant) => {
   const parts = partsOf(dayFormatter, instant);
   return `${String(parts.year).padStart(4, '0')}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
+};
+
+/** Human-readable owner time for operational notifications, with PST/PDT. */
+export const formatLocalInstant = (instant) => {
+  if (instant === null || instant === undefined || instant === '') return null;
+  const value = Number(instant);
+  if (!Number.isFinite(value)) return null;
+  const formatted = Object.fromEntries(
+    instantFormatter
+      .formatToParts(new Date(value))
+      .filter((part) => part.type !== 'literal')
+      .map((part) => [part.type, part.value]),
+  );
+  return `${formatted.year}-${formatted.month}-${formatted.day} ${formatted.hour}:${formatted.minute}:${formatted.second} ${formatted.timeZoneName}`;
 };
 
 /** Shift a `YYYY-MM-DD` key by whole days. */

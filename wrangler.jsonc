@@ -37,6 +37,7 @@
         // team key set before trusting the claim.
         "ACCESS_AUD_BOSS": "c9f9d4070414d021c4aad110bc37f11d45795951902147b555abc89742e02e1e",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
+        "TURNSTILE_EXPECTED_HOSTNAME": "staging.hakan.run",
         "TURNSTILE_SITE_KEY": "0x4AAAAAAEm_dH-JFfwoJxQ0"
       },
       "d1_databases": [
@@ -69,11 +70,14 @@
         "CMS_PRODUCTION_WRITES_ENABLED": "false",
         "ANALYTICS_ENABLED": "true",
         "NOTIFICATIONS_ENABLED": "false",
+        "NOTIFICATION_SENDER": "noreply@hakan.run",
+        "NOTIFICATION_RECIPIENT": "hakan@dndr.net",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
         // Account team domain and production application audience were read back
         // from Cloudflare after the isolated Access application was created.
         "ACCESS_TEAM_DOMAIN": "dndrnet.cloudflareaccess.com",
         "ACCESS_AUD_BOSS": "a4c69082066aab12ecfa785868e05664994787c61063df51d346f5729eb89d71",
+        "TURNSTILE_EXPECTED_HOSTNAME": "hakan.run",
         "TURNSTILE_SITE_KEY": "0x4AAAAAAEuX8mAZVNXXGL29"
       },
       "d1_databases": [

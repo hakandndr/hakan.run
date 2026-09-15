@@ -2,9 +2,7 @@ import React from 'react';
 import { useBossResource } from '../useBossResource.js';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateBlock.jsx';
 import { Panel, DataTable } from '../components/Panel.jsx';
-
-const instant = (value) =>
-  value ? new Date(Number(value)).toISOString().replace('T', ' ').slice(0, 19) : '—';
+import { formatBossInstant } from '../time.js';
 
 const Audit = () => {
   const { status, data, error, reload } = useBossResource('/api/boss/audit');
@@ -24,7 +22,7 @@ const Audit = () => {
       ) : (
         <DataTable
           columns={[
-            { key: 'occurred_at', label: 'When', render: (row) => instant(row.occurred_at) },
+            { key: 'occurred_at', label: 'When (PT)', render: (row) => formatBossInstant(row.occurred_at) },
             { key: 'actor', label: 'Actor' },
             { key: 'action', label: 'Action' },
             { key: 'object_type', label: 'Object' },

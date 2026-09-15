@@ -2,7 +2,14 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { localDay, localDayBounds, localDayRange, shiftDay, daysBetween } from '../lib/time.js';
+import {
+  daysBetween,
+  formatLocalInstant,
+  localDay,
+  localDayBounds,
+  localDayRange,
+  shiftDay,
+} from '../lib/time.js';
 import { isPublicPage, normalizePath } from '../lib/routes.js';
 
 test('a local day is exactly 24 hours outside daylight-saving transitions', () => {
@@ -21,6 +28,12 @@ test('the spring-forward day is 23 hours and still starts at local midnight', ()
 test('the fall-back day is 25 hours', () => {
   const { start, end } = localDayBounds('2026-11-01');
   assert.equal(end - start, 25 * 3_600_000);
+});
+
+test('operational instants use Los Angeles time with automatic PST/PDT', () => {
+  assert.equal(formatLocalInstant(Date.UTC(2026, 0, 15, 12)), '2026-01-15 04:00:00 PST');
+  assert.equal(formatLocalInstant(Date.UTC(2026, 6, 15, 12)), '2026-07-15 05:00:00 PDT');
+  assert.equal(formatLocalInstant(null), null);
 });
 
 test('an instant just before local midnight belongs to the previous day', () => {

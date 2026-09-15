@@ -17,6 +17,7 @@ import {
   PAGE_SIZES,
   STREAM_FILTER_KEYS,
   buildEventsPath,
+  buildPageOptions,
 } from './eventStreamPath.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -72,6 +73,34 @@ test('Dashboard labels its source-scoped oldest event as native', () => {
   assert.ok(!dashboard.includes('Oldest analytics event'));
 });
 
+test('Boss owner-facing timestamp surfaces share the Los Angeles formatter', () => {
+  for (const file of ['Dashboard.jsx', 'Analytics.jsx', 'Submissions.jsx', 'Audit.jsx', 'System.jsx']) {
+    assert.match(source(file), /formatBossInstant/, `${file} must use the shared formatter`);
+  }
+});
+
+test('Submissions renders stored content and delivery diagnostics', () => {
+  const submissions = source('Submissions.jsx');
+  for (const field of [
+    'submission.name',
+    'submission.email',
+    'submission.message',
+    'submission.source_path',
+    'submission.country',
+    'submission.request_id',
+    'submission.user_agent',
+    'submission.notification_state',
+    'submission.notification_attempts',
+    'submission.notification_provider',
+    'submission.notification_attempted_at',
+    'submission.notification_provider_status',
+    'submission.notification_request_id',
+    'submission.notification_error',
+  ]) {
+    assert.ok(submissions.includes(field), `${field} must remain visible`);
+  }
+});
+
 // --- System: legacyAnalytics and eventSources are rendered ------------------
 
 test('System renders the legacy history the API returns', () => {
@@ -90,6 +119,15 @@ test('System renders the event-source breakdown', () => {
   assert.match(system, /eventSources/);
   assert.match(system, /Event sources/);
   assert.match(system, /entry\.retainedEvents/);
+});
+
+test('System reports notification readiness without exposing a secret', () => {
+  const system = source('System.jsx');
+  assert.match(system, /notificationDelivery/);
+  assert.match(system, /notificationDelivery\.recipient/);
+  assert.match(system, /notificationDelivery\.secretConfigured/);
+  assert.match(system, /notificationDelivery\.ready/);
+  assert.ok(!system.includes('RESEND_API_KEY'));
 });
 
 test('the two histories stay separate on the page', () => {
@@ -149,7 +187,7 @@ test('the stream renders the columns the raw event API returns', () => {
   );
   assert.match(
     analytics,
-    /formatInstant\(row\.occurred_at\)/,
+    /formatBossInstant\(row\.occurred_at\)/,
     'Date (PT) must render from occurred_at',
   );
 
@@ -200,7 +238,7 @@ test('the source filter offers all, native and legacy_panel', () => {
   assert.match(analytics, /value: 'legacy_panel'/);
 });
 
-test('the stream shows record count, page size and direct pagination controls', () => {
+test('the stream shows record count, page size and dropdown pagination controls', () => {
   const analytics = source('Analytics.jsx');
 
   assert.match(analytics, /\{total\} records/);
@@ -212,13 +250,23 @@ test('the stream shows record count, page size and direct pagination controls', 
 
   assert.match(analytics, />\s*First\s*</);
   assert.match(analytics, />\s*Previous\s*</);
-  assert.match(analytics, />\s*Go\s*</);
   assert.match(analytics, />\s*Next\s*</);
   assert.match(analytics, />\s*Last\s*</);
 
   assert.match(analytics, /id="stream-page-jump"/);
-  assert.match(analytics, /max=\{lastPage\}/);
+  assert.match(analytics, /buildPageOptions\(total, limit\)/);
+  assert.ok(!analytics.includes('type="number"'));
+  assert.ok(!analytics.includes('>Go</button>'));
   assert.match(analytics, /goToPage\(lastPage\)/);
+});
+
+test('page dropdown labels expose newest-first record ranges', () => {
+  const options = buildPageOptions(3396, 50);
+  assert.deepEqual(options.slice(0, 2), [
+    { value: 1, label: 'page 1 · 3396–3347' },
+    { value: 2, label: 'page 2 · 3346–3297' },
+  ]);
+  assert.deepEqual(options.at(-1), { value: 68, label: 'page 68 · 46–1' });
 });
 
 // --- The request contract, executed rather than read ------------------------
@@ -361,11 +409,7 @@ test('applying or resetting filters returns to page one and drops the held total
     ['apply', apply],
     ['reset', reset],
   ]) {
-    assert.match(
-      block,
-      /setPage\(1\)/,
-      `${name} returns to page one`,
-    );
+    assert.match(block, /setPage\(1\)/, `${name} returns to page one`);
 
     assert.match(
       block,
@@ -380,7 +424,7 @@ test('applying or resetting filters returns to page one and drops the held total
   );
 });
 
-test('direct page jumps are clamped to the valid range', () => {
+test('dropdown page changes are clamped to the valid range', () => {
   const analytics = source('Analytics.jsx');
 
   assert.match(
@@ -404,7 +448,6 @@ test('changing page size returns to page one', () => {
 
   assert.match(changeLimit, /setLimit\(Number\(value\)\)/);
   assert.match(changeLimit, /setPage\(1\)/);
-  assert.match(changeLimit, /setPageInput\('1'\)/);
 });
 
 test('quick source switching resets pagination and held totals', () => {
@@ -418,7 +461,6 @@ test('quick source switching resets pagination and held totals', () => {
   assert.match(quickSource, /setDraft\(next\)/);
   assert.match(quickSource, /setApplied\(next\)/);
   assert.match(quickSource, /setPage\(1\)/);
-  assert.match(quickSource, /setPageInput\('1'\)/);
   assert.match(quickSource, /setKnownTotal\(null\)/);
 });
 

@@ -3529,3 +3529,16 @@ later explicit DATABASE authorization and fresh target verification.
 - Deliberate non-actions: No public visits, analytics ingestion changes, stored-row rewrite, migration, APP_DB access, DNS/custom-domain/redirect, Access, Turnstile, CSP, staging or UI redesign.
 - Commit identity: Sole author/committer `Hakan Dundar <hakan@dndr.net>`, message `Make analytics filters case-insensitive`, no trailers or generated attribution.
 - Exact next action: Normal operational observation only; further analytics changes require a new scope.
+
+## 2026-09-15 — Post-cutover Boss operational follow-up
+
+- Objective: Improve Boss submission inspection, owner-time consistency, notification observability and analytics pagination.
+- Starting Git state: Clean `develop/hakan-run-v2` at pushed SHA `b62d1e87455a66f02b4a99e4776881b5f8cc8544`.
+- Approved scope: Complete and review local code, focused tests and build only; owner retains every Git/provider/database operation.
+- Changed application behavior: Compact submission list with Inspect detail; provider attempt metadata and reply-to; PT notification context; shared Boss `America/Los_Angeles` formatter; newest-first page/range dropdown.
+- Security/data implications: APP_DB remains the sole submission authority. Turnstile requires Siteverify success, `contact` action and the exact environment hostname. Access and analytics ingestion are unchanged.
+- Migration: Forward-only APP_DB migration adds nullable attempted time, provider, HTTP status and request identity. It was exercised only by the in-memory harness.
+- Production finding: Recipient configuration is `hakan@dndr.net`; notifications remain disabled and the last verified Worker inventory lacked `RESEND_API_KEY`.
+- Validation: Focused submission, Boss, pagination, timezone, routing, Access and case-insensitive analytics tests passed; web lint, production build, artifact and diff checks passed.
+- Deliberate non-actions: No commit, push, fetch, deploy, remote migration, database write, secret/provider mutation, DNS, Access, public submission or rollback cleanup.
+- Exact next action: Owner reviews and separately performs checkpoint, migration, secret/provider activation and exact-commit deployment.

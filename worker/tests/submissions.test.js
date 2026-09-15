@@ -3,6 +3,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { handleSubmission } from '../public/submissions.js';
+import { handleBossApi } from '../boss/index.js';
 import { openAppDb } from './helpers.js';
 
 // A minimal D1-shaped adapter over SQLite, so the handler under test is the
@@ -39,13 +40,18 @@ const valid = {
 const envWith = (db, overrides = {}) => ({
   APP_DB: d1(db),
   TURNSTILE_SECRET_KEY: 'secret',
+  TURNSTILE_EXPECTED_HOSTNAME: 'staging.hakan.run',
   NOTIFICATIONS_ENABLED: 'false',
   ...overrides,
 });
 
 test('a submission is stored before it is acknowledged', async (t) => {
   const db = openAppDb();
-  global.fetch = async () => new Response(JSON.stringify({ success: true }), { status: 200 });
+  global.fetch = async () => new Response(JSON.stringify({
+    success: true,
+    action: 'contact',
+    hostname: 'staging.hakan.run',
+  }), { status: 200 });
   t.after(() => { delete global.fetch; });
 
   const response = await handleSubmission(submissionRequest(valid), envWith(db), null);
@@ -63,8 +69,15 @@ test('a failed notification never invalidates the stored submission', async (t) 
   global.fetch = async () => {
     call += 1;
     // First call is Turnstile and succeeds; the notification provider then fails.
-    if (call === 1) return new Response(JSON.stringify({ success: true }), { status: 200 });
-    return new Response('provider down', { status: 500 });
+    if (call === 1) return new Response(JSON.stringify({
+      success: true,
+      action: 'contact',
+      hostname: 'staging.hakan.run',
+    }), { status: 200 });
+    return new Response(JSON.stringify({ name: 'provider_error', message: 'provider down' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json', 'x-request-id': 'request_failed_1' },
+    });
   };
   t.after(() => { delete global.fetch; });
 
@@ -84,6 +97,77 @@ test('a failed notification never invalidates the stored submission', async (t) 
   assert.equal(stored.length, 1, 'the row survives a notification failure');
   assert.equal(stored[0].notification_state, 'failed');
   assert.equal(stored[0].notification_attempts, 1);
+  assert.equal(stored[0].notification_provider, 'resend');
+  assert.ok(stored[0].notification_attempted_at > 0);
+  assert.equal(stored[0].notification_provider_status, 500);
+  assert.equal(stored[0].notification_request_id, 'request_failed_1');
+  assert.equal(stored[0].notification_error, 'provider_status_500: provider_error: provider down');
+});
+
+test('a successful owner notification records the provider request id', async (t) => {
+  const db = openAppDb();
+  let call = 0;
+  let providerRequest = null;
+  global.fetch = async (_url, init) => {
+    call += 1;
+    if (call === 1) {
+      return new Response(JSON.stringify({
+        success: true,
+        action: 'contact',
+        hostname: 'staging.hakan.run',
+      }), { status: 200 });
+    }
+    providerRequest = JSON.parse(init.body);
+    return new Response(JSON.stringify({ id: 'email_123' }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  t.after(() => { delete global.fetch; });
+
+  const response = await handleSubmission(
+    submissionRequest(valid),
+    envWith(db, {
+      NOTIFICATIONS_ENABLED: 'true',
+      RESEND_API_KEY: 'key',
+      NOTIFICATION_SENDER: 'noreply@hakan.run',
+      NOTIFICATION_RECIPIENT: 'hakan@dndr.net',
+    }),
+    null,
+  );
+
+  assert.equal(response.status, 202);
+  assert.deepEqual(providerRequest.to, ['hakan@dndr.net']);
+  assert.equal(providerRequest.reply_to, 'test@example.com');
+  assert.match(providerRequest.text, /Received \(PT\):/);
+  assert.match(providerRequest.text, /Source: \/contact/);
+  assert.match(providerRequest.text, /Hello/);
+  const stored = db.prepare('SELECT * FROM submissions').get();
+  assert.equal(stored.notification_state, 'sent');
+  assert.equal(stored.notification_attempts, 1);
+  assert.equal(stored.notification_provider, 'resend');
+  assert.equal(stored.notification_provider_status, 200);
+  assert.equal(stored.notification_request_id, 'email_123');
+  assert.ok(stored.notification_attempted_at > 0);
+  assert.ok(stored.notified_at > 0);
+});
+
+test('disabled delivery is explicit and is not counted as a provider attempt', async (t) => {
+  const db = openAppDb();
+  global.fetch = async () => new Response(JSON.stringify({
+    success: true,
+    action: 'contact',
+    hostname: 'staging.hakan.run',
+  }), { status: 200 });
+  t.after(() => { delete global.fetch; });
+
+  await handleSubmission(submissionRequest(valid), envWith(db), null);
+  const stored = db.prepare('SELECT * FROM submissions').get();
+  assert.equal(stored.notification_state, 'disabled');
+  assert.equal(stored.notification_attempts, 0);
+  assert.equal(stored.notification_provider, 'resend');
+  assert.equal(stored.notification_attempted_at, null);
+  assert.equal(stored.notification_provider_status, null);
 });
 
 test('a failed challenge stores nothing at all', async (t) => {
@@ -116,4 +200,68 @@ test('invalid input is rejected before any challenge or write', async () => {
   );
   assert.equal(response.status, 400);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM submissions').get().n, 0);
+});
+
+test('Turnstile must return the contact action and the exact environment hostname', async (t) => {
+  const db = openAppDb();
+  for (const challenge of [
+    { success: true, action: 'login', hostname: 'staging.hakan.run' },
+    { success: true, action: 'contact', hostname: 'hakan.run' },
+  ]) {
+    global.fetch = async () => new Response(JSON.stringify(challenge), { status: 200 });
+    const response = await handleSubmission(submissionRequest(valid), envWith(db), null);
+    assert.equal(response.status, 403);
+  }
+  t.after(() => { delete global.fetch; });
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM submissions').get().n, 0);
+});
+
+test('oversized and non-string Turnstile tokens are rejected before Siteverify', async () => {
+  const db = openAppDb();
+  let called = false;
+  global.fetch = async () => { called = true; throw new Error('must not be called'); };
+  try {
+    for (const token of ['x'.repeat(2049), { token: 'x' }]) {
+      const response = await handleSubmission(
+        submissionRequest({ ...valid, turnstileToken: token }),
+        envWith(db),
+        null,
+      );
+      assert.equal(response.status, 403);
+    }
+  } finally {
+    delete global.fetch;
+  }
+  assert.equal(called, false);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM submissions').get().n, 0);
+});
+
+test('Boss submissions expose stored content and operational delivery metadata', async () => {
+  const db = openAppDb();
+  db.prepare(
+    `INSERT INTO submissions
+      (id, received_at, name, email, message, source_path, country, user_agent,
+       notification_state, notification_attempts, notification_provider,
+       notification_attempted_at, notification_provider_status,
+       notification_request_id, notified_at, request_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    'submission-1', 1_700_000_000_000, 'Owner Test', 'sender@example.com', 'Stored message',
+    '/contact', 'US', 'Browser UA', 'sent', 1, 'resend', 1_700_000_000_250, 200, 'email_123',
+    1_700_000_000_500, 'cf-ray-1',
+  );
+  const response = await handleBossApi(
+    new Request('https://staging.hakan.run/api/boss/submissions'),
+    { APP_DB: d1(db) },
+    {},
+    { email: 'hakan@dndr.net' },
+  );
+  const body = await response.json();
+  assert.equal(body.submissions[0].message, 'Stored message');
+  assert.equal(body.submissions[0].user_agent, 'Browser UA');
+  assert.equal(body.submissions[0].request_id, 'cf-ray-1');
+  assert.equal(body.submissions[0].notification_provider, 'resend');
+  assert.equal(body.submissions[0].notification_attempted_at, 1_700_000_000_250);
+  assert.equal(body.submissions[0].notification_provider_status, 200);
+  assert.equal(body.submissions[0].notification_request_id, 'email_123');
 });

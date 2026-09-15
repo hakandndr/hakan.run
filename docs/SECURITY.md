@@ -1,5 +1,16 @@
 # Security
 
+## Submission operations and Turnstile hardening — local, 2026-09-15
+
+The richer submission view remains behind Cloudflare Access plus Worker owner-token
+verification. It adds no public read path, client database access or analytics copy.
+Boss reports Resend secret presence only as a boolean and never returns a secret value.
+
+Turnstile remains fail closed. The local contract rejects missing configuration,
+non-string/oversized tokens, unavailable Siteverify responses, unsuccessful results,
+an action other than `contact`, and a hostname other than the exact environment host.
+No CSP, widget or provider resource was changed.
+
 ## Boss analytics case-insensitive reads — live, 2026-09-12
 
 Case-insensitive filtering is implemented only in bound SELECT predicates. Values

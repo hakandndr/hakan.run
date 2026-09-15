@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-037 — Delivery observability stays with the durable submission
+
+- Decision: Store minimal provider outcome metadata on the APP_DB submission, expose it in an explicit Boss Inspect view, and render owner instants with IANA zone `America/Los_Angeles`.
+- Context: The compact table hid message/request context; Resend response identity was discarded; Boss modules independently rendered UTC.
+- Alternatives considered: Copy submissions into ANALYTICS_DB, depend on the provider dashboard, store a fixed UTC-8 offset, or keep the manual page input.
+- Rationale: Submission and delivery form one operational aggregate; IANA conversion handles PST/PDT; page-range options improve navigation without changing server ordering.
+- Consequences: A forward APP_DB migration must precede deployment. Provider secret and notification activation remain independent approvals.
+- Status: Implemented and focused-verified locally on 2026-09-15; not committed, migrated, activated or deployed.
+
 ## D-036 — Operator-entered analytics text is case-insensitive in SQL
 
 - Decision: Country, browser, exact/prefix page, city and referrer filters use explicit SQLite `COLLATE NOCASE` predicates in the single Worker query builder. IP and controlled actor/source filters remain unchanged.

@@ -54,13 +54,16 @@ test('Worker-first routing carries no broader wildcard and no unrelated route', 
   }
 });
 
-test('production configuration matches the verified live contract', () => {
+test('production configuration preserves safety flags and target resources', () => {
   const config = JSON.parse(readFileSync(CONFIG_URL, 'utf8').replace(/^\s*\/\/.*$/gm, ''));
   const production = config.env.production;
   assert.equal(production.vars.ENVIRONMENT, 'production');
   assert.equal(production.vars.CMS_PRODUCTION_WRITES_ENABLED, 'false');
   assert.equal(production.vars.ANALYTICS_ENABLED, 'true');
   assert.equal(production.vars.NOTIFICATIONS_ENABLED, 'false');
+  assert.equal(production.vars.NOTIFICATION_SENDER, 'noreply@hakan.run');
+  assert.equal(production.vars.NOTIFICATION_RECIPIENT, 'hakan@dndr.net');
+  assert.equal(production.vars.TURNSTILE_EXPECTED_HOSTNAME, 'hakan.run');
   assert.match(production.vars.ACCESS_AUD_BOSS, /^[a-f0-9]{64}$/);
   assert.match(production.vars.ACCESS_TEAM_DOMAIN, /^[a-z0-9-]+\.cloudflareaccess\.com$/);
   assert.match(production.vars.TURNSTILE_SITE_KEY, /^0x[0-9A-Za-z_-]+$/);
@@ -82,4 +85,9 @@ test('production configuration matches the verified live contract', () => {
     assert.match(database.database_id, /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/);
   }
   assert.deepEqual(production.triggers.crons, []);
+});
+
+test('Turnstile hostname expectations are isolated by environment', () => {
+  assert.equal(config.env.staging.vars.TURNSTILE_EXPECTED_HOSTNAME, 'staging.hakan.run');
+  assert.equal(config.env.production.vars.TURNSTILE_EXPECTED_HOSTNAME, 'hakan.run');
 });

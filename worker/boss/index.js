@@ -188,7 +188,10 @@ const submissionList = async (url, env) => {
   const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
   const rows = await env.APP_DB.prepare(
     `SELECT id, received_at, name, email, message, source_path, country, status,
-            notification_state, notification_attempts, notification_error, notified_at
+            user_agent, request_id, notification_state, notification_attempts,
+            notification_error, notified_at, notification_provider,
+            notification_attempted_at, notification_provider_status,
+            notification_request_id
      FROM submissions ORDER BY received_at DESC, id DESC LIMIT ? OFFSET ?`,
   ).bind(limit, (page - 1) * limit).all();
   return json({ submissions: rows.results ?? [], pagination: { page, limit } });
@@ -225,6 +228,10 @@ const system = async (env) => {
   const legacyRow = bySource.find((row) => row.source === LEGACY_SOURCE) ?? null;
   const legacyOldest = legacyRow?.oldest ?? null;
   const legacyOldestDay = legacyOldest ? localDay(legacyOldest) : null;
+  const notificationsEnabled = env.NOTIFICATIONS_ENABLED === 'true';
+  const notificationSecretConfigured = Boolean(env.RESEND_API_KEY);
+  const notificationSenderConfigured = Boolean(env.NOTIFICATION_SENDER);
+  const notificationRecipientConfigured = Boolean(env.NOTIFICATION_RECIPIENT);
 
   return json({
     environment: env.ENVIRONMENT ?? 'unknown',
@@ -253,11 +260,22 @@ const system = async (env) => {
       governedByRetentionPolicy: false,
     },
     eventSources: bySource.map((row) => ({ source: row.source, retainedEvents: Number(row.value) })),
+    notificationDelivery: {
+      provider: 'resend',
+      enabled: notificationsEnabled,
+      sender: env.NOTIFICATION_SENDER || null,
+      recipient: env.NOTIFICATION_RECIPIENT || null,
+      secretConfigured: notificationSecretConfigured,
+      ready: notificationsEnabled
+        && notificationSecretConfigured
+        && notificationSenderConfigured
+        && notificationRecipientConfigured,
+    },
     bindings: {
       appDb: Boolean(env.APP_DB),
       analyticsDb: Boolean(env.ANALYTICS_DB),
       turnstile: Boolean(env.TURNSTILE_SECRET_KEY),
-      notifications: env.NOTIFICATIONS_ENABLED === 'true',
+      notifications: notificationsEnabled,
       access: Boolean(env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD_BOSS && env.BOSS_OWNER_EMAIL),
     },
   });

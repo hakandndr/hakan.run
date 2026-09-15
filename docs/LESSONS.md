@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 25. Delivery observability belongs beside the durable submission
+
+- Problem: A list can prove a row exists while hiding the content, request context and secondary delivery outcome needed to operate it.
+- Evidence / context: The original Boss table omitted message and request details, while the notification adapter discarded the provider request ID.
+- Reusable rule: Persist the product action first, attach bounded provider outcome metadata to that aggregate, and expose it only through the protected operational surface.
+- Applies when: External email, SMS or webhook delivery follows authoritative application persistence.
+- Exceptions / caveats: Provider secrets and unrestricted response bodies never belong in the record; activation remains an independent provider/secret decision.
+
 ## 24. Text-filter normalization belongs in the authoritative comparison
 
 - Problem: A UI can accept arbitrary casing while an exact database predicate silently treats equivalent operator input as different.
