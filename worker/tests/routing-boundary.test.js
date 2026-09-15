@@ -60,7 +60,7 @@ test('production configuration preserves safety flags and target resources', () 
   assert.equal(production.vars.ENVIRONMENT, 'production');
   assert.equal(production.vars.CMS_PRODUCTION_WRITES_ENABLED, 'false');
   assert.equal(production.vars.ANALYTICS_ENABLED, 'true');
-  assert.equal(production.vars.NOTIFICATIONS_ENABLED, 'false');
+  assert.equal(production.vars.NOTIFICATIONS_ENABLED, 'true');
   assert.equal(production.vars.NOTIFICATION_SENDER, 'noreply@hakan.run');
   assert.equal(production.vars.NOTIFICATION_RECIPIENT, 'hakan@dndr.net');
   assert.equal(production.vars.TURNSTILE_EXPECTED_HOSTNAME, 'hakan.run');
@@ -100,7 +100,7 @@ test('Cloudflare Email bindings restrict both sender and recipient in each envir
   }];
   assert.deepEqual(config.env.staging.send_email, expected);
   assert.deepEqual(config.env.production.send_email, expected);
-  assert.equal(config.env.production.vars.NOTIFICATIONS_ENABLED, 'false');
+  assert.equal(config.env.production.vars.NOTIFICATIONS_ENABLED, 'true');
   assert.equal(config.env.production.vars.CMS_PRODUCTION_WRITES_ENABLED, 'false');
   assert.equal(config.env.production.vars.ANALYTICS_ENABLED, 'true');
 });

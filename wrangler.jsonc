@@ -76,7 +76,7 @@
         "ENVIRONMENT": "production",
         "CMS_PRODUCTION_WRITES_ENABLED": "false",
         "ANALYTICS_ENABLED": "true",
-        "NOTIFICATIONS_ENABLED": "false",
+        "NOTIFICATIONS_ENABLED": "true",
         "NOTIFICATION_SENDER": "noreply@hakan.run",
         "NOTIFICATION_RECIPIENT": "hakan@dndr.net",
         "BOSS_OWNER_EMAIL": "hakan@dndr.net",
