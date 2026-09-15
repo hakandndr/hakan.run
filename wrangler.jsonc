@@ -54,6 +54,13 @@
           "migrations_dir": "migrations/analytics"
         }
       ],
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "destination_address": "hakan@dndr.net",
+          "allowed_sender_addresses": ["noreply@hakan.run"]
+        }
+      ],
       "triggers": { "crons": ["30 8 * * *"] },
       // The staging hostname is declared here so it is created by the first
       // deployment rather than by hand. workers.dev stays off: staging is not a
@@ -92,6 +99,13 @@
           "database_name": "hakan-run-analytics-production",
           "database_id": "a8f42365-dff2-4098-8eeb-785a34ed4a3b",
           "migrations_dir": "migrations/analytics"
+        }
+      ],
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "destination_address": "hakan@dndr.net",
+          "allowed_sender_addresses": ["noreply@hakan.run"]
         }
       ],
       "triggers": { "crons": [] },

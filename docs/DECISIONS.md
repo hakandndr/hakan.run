@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-039 — Notification delivery uses a restricted Cloudflare Email binding
+
+- Decision: Replace Resend REST delivery with `env.EMAIL.send`, restricted in each Worker environment to recipient `hakan@dndr.net` and sender `noreply@hakan.run`.
+- Context: Cloudflare Email Sending onboarding for `hakan.run` is complete, and the Worker can use the platform binding without carrying an external provider token.
+- Alternatives considered: Keep Resend and its API key; call Cloudflare Email through a separate HTTP credential; omit delivery while retaining only persistence.
+- Rationale: A native restricted binding removes a secret and external HTTP integration while retaining the existing persistence-first and observable delivery contract.
+- Consequences: The validated sender becomes reply-to only. New outcomes use provider `cloudflare_email` and map `messageId` into the existing request-identity column. No migration rewrites historical `resend` rows. Activation remains separately gated by `NOTIFICATIONS_ENABLED`.
+- Status: Approved and implemented locally; not committed, pushed, deployed or activated.
+
 ## D-038 — Request diagnostics stay with the private submission
 
 - Decision: Store the minimal Cloudflare-derived request context, including raw source IP, as nullable fields on the private APP_DB submission and retrieve the full record through a separate Access-protected Boss detail endpoint.

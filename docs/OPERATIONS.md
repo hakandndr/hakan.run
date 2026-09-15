@@ -1,5 +1,24 @@
 # Operations
 
+## Cloudflare Email provider transition order
+
+This local provider change introduces no database migration or secret operation. The
+owner-executed sequence is:
+
+1. Review and checkpoint the exact diff while `NOTIFICATIONS_ENABLED=false`.
+2. Build the exact commit and verify the restricted `EMAIL` binding in both generated
+   environment configurations.
+3. Deploy the exact commit with notifications still disabled.
+4. Verify Boss System reports the binding configured but delivery disabled, and check
+   Access/public smoke behavior without creating a contact submission.
+5. Treat `NOTIFICATIONS_ENABLED=true` as a later, independent activation. After that
+   authorization, use one controlled submission and verify APP_DB persistence before
+   the delivery outcome and binding message identity.
+
+The deployed binding must restrict destination to `hakan@dndr.net` and sender to
+`noreply@hakan.run`. No `RESEND_API_KEY`, REST provider credential or D1 migration is
+part of this sequence.
+
 ## Submission request metadata migration order
 
 The uncommitted `e9c0001` follow-up requires this owner-executed order:
@@ -23,8 +42,8 @@ This local follow-up has independent operational gates:
 1. Review and checkpoint the exact local diff.
 2. Back up the intended APP_DB, apply `0002_submission_notification_metadata.sql`,
    and verify the D1 migration ledger plus all four added columns.
-3. Separately authorize the Resend provider secret. Confirm sender and recipient
-   `hakan@dndr.net` without printing the secret.
+3. Verify the restricted Cloudflare `EMAIL` binding, sender
+   `noreply@hakan.run` and recipient `hakan@dndr.net`; no mail secret is required.
 4. Set `NOTIFICATIONS_ENABLED=true` only under explicit activation approval.
 5. Build and deploy the exact commit, then verify Access denial, Boss detail,
    PST/PDT timestamps, System delivery readiness and analytics page selection.

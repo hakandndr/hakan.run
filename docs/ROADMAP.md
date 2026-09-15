@@ -2,6 +2,14 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
+## Cloudflare Email notification provider migration
+
+- Objective: Replace the Resend REST/key dependency with the native Cloudflare Email Sending Worker binding while preserving persistence-first delivery tracking.
+- Dependencies: Existing APP_DB delivery columns, validated Contact/Turnstile flow, owner-reported `hakan.run` Email Sending onboarding and fixed sender/recipient.
+- Acceptance gates: Restricted binding config; no provider key or REST fallback; messageId mapping; disabled/missing/failure/success persistence tests; Boss readiness; lint/build/artifact/diff hygiene.
+- Authorization boundaries: Local code, tests and documentation only. COMMIT, PUSH, DEPLOY, PROVIDER and ACTIVATE remain owner-executed and independent. No migration is required.
+- Status: Implemented locally and notifications remain disabled. Provider onboarding was supplied by the owner, not remotely queried or changed by this task.
+
 ## Boss submission request metadata follow-up
 
 - Objective: Add minimal private abuse/operational request context to contact submissions without changing analytics, notification or public behavior.
@@ -16,7 +24,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Dependencies: Healthy production Worker, Access-protected Boss, APP_DB submission authority and the existing event stream.
 - Acceptance gates: Inspectable stored submission; minimal delivery metadata and owner routing; automatic PST/PDT tests; page/range dropdown synchronization; Turnstile action/hostname enforcement; focused tests, lint, build and diff hygiene.
 - Authorization boundaries: Code completion and local review only. COMMIT, PUSH, MIGRATE, SECRET, PROVIDER, ACTIVATE and DEPLOY remain owner-executed and independent.
-- Status: Implemented locally. Production notifications remain disabled and the last verified Worker had no Resend secret. Rollback cleanup remains deferred.
+- Status: Implemented locally. The newer Cloudflare Email binding decision supersedes the Resend secret path; production notifications remain disabled. Rollback cleanup remains deferred.
 
 ## Boss analytics case-insensitive filter correction
 

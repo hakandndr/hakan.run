@@ -128,6 +128,27 @@ test('Boss System reports native retention and legacy history as separate figure
   assert.equal(body.legacyAnalytics.retainedEvents, 3178, 'and the imported history is still visible');
   assert.equal(body.legacyAnalytics.governedByRetentionPolicy, false);
   assert.ok(body.eventSources.some((entry) => entry.source === 'legacy_panel'));
+  assert.equal(body.notificationDelivery.provider, 'cloudflare_email');
+  assert.equal(body.notificationDelivery.bindingConfigured, false);
+  assert.equal(body.notificationDelivery.ready, false);
+
+  const readyResponse = await handleBossApi(
+    new Request('https://staging.hakan.run/api/boss/system'),
+    {
+      ENVIRONMENT: 'staging',
+      APP_DB: {},
+      ANALYTICS_DB: analyticsDb,
+      NOTIFICATIONS_ENABLED: 'true',
+      NOTIFICATION_SENDER: 'noreply@hakan.run',
+      NOTIFICATION_RECIPIENT: 'hakan@dndr.net',
+      EMAIL: { send() {} },
+    },
+    {},
+    { email: 'hakan@dndr.net' },
+  );
+  const ready = await readyResponse.json();
+  assert.equal(ready.notificationDelivery.bindingConfigured, true);
+  assert.equal(ready.notificationDelivery.ready, true);
 });
 
 test('production opt-in never bypasses signed owner Access verification', async (t) => {

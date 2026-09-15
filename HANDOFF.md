@@ -1,24 +1,24 @@
 # hakan.run Modernization Handoff
 
-## Boss submission request metadata follow-up — local, 2026-09-15
+## Cloudflare Email notification provider migration — local, 2026-09-15
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2` / `e9c0001e3e7152ce8ccda768dcab52befe2b8a29` plus an uncommitted local implementation |
-| Current phase | Private operational request metadata for Boss submission inspection |
-| Completed | Nullable APP_DB migration; inbound Worker metadata capture; compact list plus Access-protected detail API; operational Inspect section; focused local verification |
-| Exact next action | Owner reviews, then separately checkpoints, backs up production APP_DB, applies migration `0003`, deploys the exact commit and performs read-only smoke verification |
+| Branch / HEAD | `develop/hakan-run-v2` / `4b0442eb7bf555e4d530535fc011920440854358` plus an uncommitted local implementation |
+| Current phase | Replace Resend delivery with the native Cloudflare Email Sending Worker binding |
+| Completed | Restricted `EMAIL` bindings; Cloudflare Email adapter; persisted delivery outcome mapping; Boss System readiness; focused local tests |
+| Exact next action | Owner reviews and checkpoints the diff, builds the exact commit, deploys it with notifications still disabled, verifies the binding/readiness contract, and authorizes activation separately if desired |
 | Prohibited actions | Agent-side commit/push/deploy; remote migration; APP_DB/ANALYTICS_DB/provider/DNS/Access/Turnstile mutation; notification activation; public redesign |
-| Push state | No commit or push for this follow-up; current production checkpoint is `e9c0001` |
+| Push state | No commit or push for this follow-up; current HEAD remains `4b0442e` |
 | Deploy state | Unchanged in this task; the live Worker version was not queried |
-| Infrastructure state | No remote resource was accessed or mutated; production notifications remain disabled |
+| Infrastructure state | Owner reports Cloudflare Email Sending onboarding for `hakan.run` complete; no remote resource was accessed or mutated here, and production notifications remain disabled |
 
-Migration `0003_submission_request_metadata.sql` must precede the matching Worker
-deploy because the submission insert and Boss detail query use its nullable columns.
-Existing rows remain NULL and render as unavailable. Operational request metadata is
-private APP_DB data governed by the future submission-retention policy; it never
-enters ANALYTICS_DB or a public response.
+No database migration is required. New outcomes use provider `cloudflare_email` and
+store the binding `messageId` in the existing request-identity column; historical
+`resend` rows remain readable without rewriting them. The `EMAIL` binding restricts
+delivery to `hakan@dndr.net` and sender use to `noreply@hakan.run`. The validated
+submission email is reply-to only. There is no provider API key or REST fallback.
 
 ## Boss analytics case-insensitive filters — deployed and verified, 2026-09-12
 

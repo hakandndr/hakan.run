@@ -3557,3 +3557,19 @@ later explicit DATABASE authorization and fresh target verification.
 - Deliberate non-actions: No commit, push, fetch, remote migration, database mutation, deploy, notification activation, Resend change, Turnstile/provider change, Access, DNS, analytics change, public request or broad browser suite.
 - Commit identity: No commit created. A later authorized commit must use only `Hakan Dundar <hakan@dndr.net>` with no trailers or generated attribution.
 - Exact next action: Owner reviews the diff, checkpoints it, verifies a production APP_DB backup, applies migration `0003`, deploys the exact commit and performs an authenticated read-only smoke check.
+
+## 2026-09-15 — Cloudflare Email notification provider migration
+
+- Objective: Replace the active Resend REST/key notification path with the native Cloudflare Email Sending Worker binding without changing the durable submission or public response contract.
+- Starting Git state: Clean `develop/hakan-run-v2` at `4b0442eb7bf555e4d530535fc011920440854358`.
+- Approved scope: Local code, focused tests, production build and active continuity documentation only; owner retains every Git, deployment, provider and activation operation.
+- Changed runtime: Added a `cloudflare_email` adapter over `env.EMAIL.send`; fixed sender `noreply@hakan.run`, fixed recipient `hakan@dndr.net`, validated reply-to, plain-text and escaped HTML bodies, bounded binding errors and `messageId` mapping. Removed the Resend adapter, HTTP request and API-key dependency.
+- Binding contract: Staging and production declare restricted `EMAIL` bindings. `NOTIFICATIONS_ENABLED=false`, `CMS_PRODUCTION_WRITES_ENABLED=false` and production `ANALYTICS_ENABLED=true` remain unchanged.
+- Persistence and metadata: APP_DB insert still precedes notification. Existing attempted/sent/error/attempt/provider/status/request fields are reused; provider HTTP status remains NULL because the binding exposes no equivalent. Historical `resend` rows remain readable and no migration is required.
+- Boss: System reports Cloudflare Email binding presence and readiness without a secret. Generic submission detail rendering supports both historical Resend and new Cloudflare provider values without redesign.
+- Validation: 97/97 focused Contact, Turnstile, submission, Boss UI/API, Access, routing and time tests passed. Web lint passed. The production build transformed 1,721 modules; artifact verification and `git diff --check` passed.
+- Failures and corrections: The first documentation patch missed exact current headings; it was reapplied against verified headings. No runtime or validation failure occurred.
+- Architecture/data/security implications: Native capability restrictions replace a reusable provider credential. APP_DB remains the sole submission authority; ANALYTICS_DB separation, Access, Turnstile, CSP and the public 202 response remain unchanged.
+- Deliberate non-actions: No commit, push, fetch, deploy, remote read/write, migration, database mutation, provider mutation, notification attempt or activation, DNS, Access, Turnstile, analytics or public behavior change.
+- Commit identity: No commit created. A later authorized commit must use only `Hakan Dundar <hakan@dndr.net>` with no trailers or generated attribution.
+- Exact next action: Owner reviews and checkpoints the diff, deploys the exact commit with notifications disabled, verifies the restricted binding and Boss readiness, then separately authorizes `NOTIFICATIONS_ENABLED=true` if desired.

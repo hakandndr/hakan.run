@@ -1,5 +1,16 @@
 # Environment and Resource Map
 
+## Cloudflare Email binding contract — local, 2026-09-15
+
+Both source-controlled Worker environments declare an `EMAIL` send binding with
+destination `hakan@dndr.net` and allowed sender `noreply@hakan.run`.
+`NOTIFICATIONS_ENABLED` remains `false`; activation is a separate owner operation.
+The adapter uses no mail secret, API token or REST endpoint. No provider configuration
+was queried or changed and no Worker was deployed in this local-only task.
+
+Historical `RESEND_API_KEY` entries below record earlier observed or planned states;
+they are not requirements of the current native binding architecture.
+
 ## Production provisioning — observed 2026-09-09
 
 The production environment is provisioned but not activated. All resources are

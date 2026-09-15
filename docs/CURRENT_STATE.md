@@ -1,5 +1,23 @@
 # Current State
 
+## Cloudflare Email notification provider migration — local, 2026-09-15
+
+The uncommitted local implementation replaces the Resend REST adapter and secret with
+Cloudflare Email Sending through `env.EMAIL.send`. Staging and production config bind
+`EMAIL` to the fixed destination `hakan@dndr.net` and allow only sender
+`noreply@hakan.run`. The validated submission address is reply-to only.
+
+APP_DB persistence still precedes notification. Existing delivery columns store
+provider `cloudflare_email`, the binding `messageId` as request identity, bounded
+errors and the existing attempted/sent timestamps. No migration or historical-row
+rewrite is required; old `resend` records remain readable. Boss System exposes only
+binding presence and readiness, never a secret. `NOTIFICATIONS_ENABLED` remains
+`false` in both source-controlled environments.
+
+The owner reports that Cloudflare Email Sending domain onboarding is complete. That
+provider state was not queried or changed in this local-only task. No commit, push,
+deploy, database write, provider operation or notification attempt occurred.
+
 ## Boss submission request metadata — local, 2026-09-15
 
 The clean starting checkpoint is `e9c0001`. An uncommitted narrow follow-up adds

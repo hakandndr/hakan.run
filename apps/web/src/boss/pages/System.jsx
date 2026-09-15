@@ -38,7 +38,7 @@ const System = () => {
     enabled: false,
     sender: null,
     recipient: null,
-    secretConfigured: false,
+    bindingConfigured: false,
     ready: false,
   };
 
@@ -121,9 +121,9 @@ const System = () => {
             note="Team domain, audience and owner all present"
           />
           <Binding
-            label="Notifications"
-            present={notificationDelivery.ready}
-            note={`${notificationDelivery.enabled ? 'enabled' : 'disabled'} · ${notificationDelivery.provider} · ${notificationDelivery.sender ?? 'sender absent'} → ${notificationDelivery.recipient ?? 'recipient absent'} · ${notificationDelivery.secretConfigured ? 'secret configured' : 'secret absent'}`}
+            label="Cloudflare Email"
+            present={notificationDelivery.bindingConfigured}
+            note={`${notificationDelivery.ready ? 'ready' : notificationDelivery.enabled ? 'not ready' : 'activation disabled'} · ${notificationDelivery.provider} · ${notificationDelivery.sender ?? 'sender absent'} → ${notificationDelivery.recipient ?? 'recipient absent'}`}
           />
         </div>
       </Panel>

@@ -91,3 +91,16 @@ test('Turnstile hostname expectations are isolated by environment', () => {
   assert.equal(config.env.staging.vars.TURNSTILE_EXPECTED_HOSTNAME, 'staging.hakan.run');
   assert.equal(config.env.production.vars.TURNSTILE_EXPECTED_HOSTNAME, 'hakan.run');
 });
+
+test('Cloudflare Email bindings restrict both sender and recipient in each environment', () => {
+  const expected = [{
+    name: 'EMAIL',
+    destination_address: 'hakan@dndr.net',
+    allowed_sender_addresses: ['noreply@hakan.run'],
+  }];
+  assert.deepEqual(config.env.staging.send_email, expected);
+  assert.deepEqual(config.env.production.send_email, expected);
+  assert.equal(config.env.production.vars.NOTIFICATIONS_ENABLED, 'false');
+  assert.equal(config.env.production.vars.CMS_PRODUCTION_WRITES_ENABLED, 'false');
+  assert.equal(config.env.production.vars.ANALYTICS_ENABLED, 'true');
+});

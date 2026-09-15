@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 27. Prefer a capability-scoped platform binding over a reusable provider secret
+
+- Problem: A REST mail adapter requires a bearer credential and relies on runtime code to preserve sender and recipient constraints.
+- Evidence / context: Cloudflare Email Sending can bind one Worker capability to an explicit destination and allowed sender while returning the message identity needed by the existing delivery record.
+- Reusable rule: When a native binding exposes the required capability, constrain it in deployment configuration, keep untrusted input out of sender/recipient selection, and persist the provider result through the existing application authority.
+- Applies when: A Worker sends transactional email to a fixed operational recipient after a durable write.
+- Exceptions / caveats: Binding availability and domain onboarding remain provider operations; enabling the application feature remains a separate activation gate.
+
 ## 26. Request diagnostics belong to the private product record, not analytics
 
 - Problem: Operational abuse investigation needs request context, but placing raw IP and network metadata into analytics creates another authority and expands identity scope.

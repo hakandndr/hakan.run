@@ -10,7 +10,7 @@
 
 import { json, problem } from '../lib/response.js';
 import { verifyTurnstile } from '../lib/turnstile.js';
-import { sendNotification } from '../lib/resend.js';
+import { sendNotification } from '../lib/cloudflare-email.js';
 import { formatLocalInstant } from '../lib/time.js';
 
 const MAX_FIELD = { name: 120, email: 200, message: 4000 };
@@ -81,6 +81,8 @@ export const handleSubmission = async (request, env, context) => {
   const receivedAt = Date.now();
   const requestId = request.headers.get('CF-Ray');
   const requestMetadata = submissionRequestMetadata(request);
+  const sourcePath = String(payload.sourcePath ?? '/contact').slice(0, 512);
+  const userAgent = (request.headers.get('user-agent') ?? '').slice(0, 512);
   const initialNotificationState = env.NOTIFICATIONS_ENABLED === 'true' ? 'pending' : 'disabled';
 
   // Durable first. If this throws, nothing is acknowledged and nothing is sent.
@@ -98,11 +100,11 @@ export const handleSubmission = async (request, env, context) => {
       fields.name,
       fields.email,
       fields.message,
-      String(payload.sourcePath ?? '/contact').slice(0, 512),
+      sourcePath,
       requestMetadata.country,
-      (request.headers.get('user-agent') ?? '').slice(0, 512),
+      userAgent,
       initialNotificationState,
-      'resend',
+      'cloudflare_email',
       requestId,
       requestMetadata.sourceIp,
       requestMetadata.region,
@@ -126,8 +128,22 @@ export const handleSubmission = async (request, env, context) => {
         `Name: ${fields.name}`,
         `Email: ${fields.email}`,
         `Received (PT): ${formatLocalInstant(receivedAt)}`,
-        `Source: ${String(payload.sourcePath ?? '/contact').slice(0, 512)}`,
+        `Source: ${sourcePath}`,
+        requestMetadata.sourceIp ? `Source IP: ${requestMetadata.sourceIp}` : null,
+        requestMetadata.country ? `Country: ${requestMetadata.country}` : null,
+        requestMetadata.region ? `Region: ${requestMetadata.region}` : null,
+        requestMetadata.regionCode ? `Region code: ${requestMetadata.regionCode}` : null,
+        requestMetadata.city ? `City: ${requestMetadata.city}` : null,
+        requestMetadata.continent ? `Continent: ${requestMetadata.continent}` : null,
+        requestMetadata.colo ? `Cloudflare colo: ${requestMetadata.colo}` : null,
+        requestMetadata.asn !== null ? `ASN: ${requestMetadata.asn}` : null,
+        requestMetadata.asOrganization
+          ? `ASN organization: ${requestMetadata.asOrganization}`
+          : null,
+        requestMetadata.httpProtocol ? `HTTP protocol: ${requestMetadata.httpProtocol}` : null,
+        requestMetadata.tlsVersion ? `TLS version: ${requestMetadata.tlsVersion}` : null,
         requestId ? `Cloudflare request: ${requestId}` : null,
+        userAgent ? `User agent: ${userAgent}` : null,
         '',
         fields.message,
       ].filter((line) => line !== null).join('\n'),

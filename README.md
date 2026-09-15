@@ -2,11 +2,11 @@
 
 Personal portfolio and content platform for **Hakan Dundar**, a software developer and QA automation engineer based in Irvine, California.
 
-The current local follow-up records a minimal set of Cloudflare-provided request and
-network metadata beside private contact submissions in APP_DB. Boss keeps its list
-compact and retrieves the richer record only through an Access-protected Inspect
-endpoint. The metadata is not analytics, is never exposed publicly and will follow
-the future submission-retention policy.
+The current local follow-up replaces Resend HTTP delivery with Cloudflare Email
+Sending through a restricted Worker `EMAIL` binding. Contact submissions still
+persist first in APP_DB; delivery outcomes remain attached to that record, and
+notifications remain disabled pending a separate owner activation. No email API key
+or external-provider fallback is part of the runtime.
 
 Live site: [hakan.run](https://hakan.run)
 

@@ -1,5 +1,21 @@
 # Architecture
 
+## Native Cloudflare Email delivery boundary
+
+```text
+validated Contact request
+  -> APP_DB submission insert
+  -> public 202 acknowledgement
+  -> optional env.EMAIL.send through a restricted binding
+  -> APP_DB delivery outcome on the existing submission
+```
+
+Cloudflare Email Sending is transport only. The binding fixes the destination to
+`hakan@dndr.net` and permits only `noreply@hakan.run` as sender; the validated form
+email is reply-to. The runtime has no provider HTTP endpoint, API key or fallback.
+Successful sends map the binding `messageId` to the existing request-identity field.
+Historical provider values remain valid records and are not migrated.
+
 ## Private submission request context
 
 Contact submission request context is part of the private submission aggregate in
@@ -23,8 +39,8 @@ Bounded input validation
   -> capture optional Cloudflare request context
   -> APP_DB insert with pending/disabled delivery state
   -> 202 acknowledgement
-  -> Resend attempt
-  -> APP_DB outcome, attempted/sent time, HTTP status and provider request identity
+  -> Cloudflare EMAIL binding attempt
+  -> APP_DB outcome, attempted/sent time and provider request identity
 ```
 
 Delivery metadata is part of the durable submission aggregate in APP_DB, never an

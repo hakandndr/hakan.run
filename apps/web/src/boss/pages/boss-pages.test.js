@@ -141,13 +141,14 @@ test('System renders the event-source breakdown', () => {
   assert.match(system, /entry\.retainedEvents/);
 });
 
-test('System reports notification readiness without exposing a secret', () => {
+test('System reports Cloudflare Email binding readiness without a secret dependency', () => {
   const system = source('System.jsx');
   assert.match(system, /notificationDelivery/);
   assert.match(system, /notificationDelivery\.recipient/);
-  assert.match(system, /notificationDelivery\.secretConfigured/);
+  assert.match(system, /notificationDelivery\.bindingConfigured/);
   assert.match(system, /notificationDelivery\.ready/);
   assert.ok(!system.includes('RESEND_API_KEY'));
+  assert.ok(!system.includes('secret configured'));
 });
 
 test('the two histories stay separate on the page', () => {

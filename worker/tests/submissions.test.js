@@ -2,6 +2,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { handleSubmission } from '../public/submissions.js';
 import { handleBossApi } from '../boss/index.js';
 import { openAppDb } from './helpers.js';
@@ -150,29 +151,26 @@ test('missing optional Cloudflare metadata never rejects a valid submission', as
 
 test('a failed notification never invalidates the stored submission', async (t) => {
   const db = openAppDb();
-  let call = 0;
-  global.fetch = async () => {
-    call += 1;
-    // First call is Turnstile and succeeds; the notification provider then fails.
-    if (call === 1) return new Response(JSON.stringify({
-      success: true,
-      action: 'contact',
-      hostname: 'staging.hakan.run',
-    }), { status: 200 });
-    return new Response(JSON.stringify({ name: 'provider_error', message: 'provider down' }), {
-      status: 500,
-      headers: { 'content-type': 'application/json', 'x-request-id': 'request_failed_1' },
-    });
-  };
+  global.fetch = async () => new Response(JSON.stringify({
+    success: true,
+    action: 'contact',
+    hostname: 'staging.hakan.run',
+  }), { status: 200 });
   t.after(() => { delete global.fetch; });
 
   const response = await handleSubmission(
     submissionRequest(valid),
     envWith(db, {
       NOTIFICATIONS_ENABLED: 'true',
-      RESEND_API_KEY: 'key',
       NOTIFICATION_SENDER: 'noreply@hakan.run',
       NOTIFICATION_RECIPIENT: 'hakan@dndr.net',
+      EMAIL: {
+        async send() {
+          const error = new Error('provider down');
+          error.code = 'E_DELIVERY_FAILED';
+          throw error;
+        },
+      },
     }),
     null,
   );
@@ -182,64 +180,98 @@ test('a failed notification never invalidates the stored submission', async (t) 
   assert.equal(stored.length, 1, 'the row survives a notification failure');
   assert.equal(stored[0].notification_state, 'failed');
   assert.equal(stored[0].notification_attempts, 1);
-  assert.equal(stored[0].notification_provider, 'resend');
+  assert.equal(stored[0].notification_provider, 'cloudflare_email');
   assert.ok(stored[0].notification_attempted_at > 0);
-  assert.equal(stored[0].notification_provider_status, 500);
-  assert.equal(stored[0].notification_request_id, 'request_failed_1');
-  assert.equal(stored[0].notification_error, 'provider_status_500: provider_error: provider down');
+  assert.equal(stored[0].notification_provider_status, null);
+  assert.equal(stored[0].notification_request_id, null);
+  assert.equal(stored[0].notification_error, 'E_DELIVERY_FAILED: provider down');
 });
 
 test('a successful owner notification records the provider request id', async (t) => {
   const db = openAppDb();
-  let call = 0;
   let providerRequest = null;
-  global.fetch = async (_url, init) => {
-    call += 1;
-    if (call === 1) {
-      return new Response(JSON.stringify({
-        success: true,
-        action: 'contact',
-        hostname: 'staging.hakan.run',
-      }), { status: 200 });
-    }
-    assert.equal(
-      db.prepare('SELECT COUNT(*) AS value FROM submissions').get().value,
-      1,
-      'the durable submission must exist before provider delivery begins',
-    );
-    providerRequest = JSON.parse(init.body);
-    return new Response(JSON.stringify({ id: 'email_123' }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' },
-    });
-  };
+  global.fetch = async () => new Response(JSON.stringify({
+    success: true,
+    action: 'contact',
+    hostname: 'staging.hakan.run',
+  }), { status: 200 });
   t.after(() => { delete global.fetch; });
 
   const response = await handleSubmission(
-    submissionRequest(valid),
+    submissionRequest(valid, {
+      headers: { 'CF-Ray': 'ray-email-1', 'user-agent': 'Notification Test Browser' },
+      cf: {
+        country: 'US',
+        region: 'California',
+        regionCode: 'CA',
+        city: 'Irvine',
+        continent: 'NA',
+        colo: 'LAX',
+        asn: 64500,
+        asOrganization: 'Example Network',
+        httpProtocol: 'HTTP/3',
+        tlsVersion: 'TLSv1.3',
+      },
+    }),
     envWith(db, {
       NOTIFICATIONS_ENABLED: 'true',
-      RESEND_API_KEY: 'key',
       NOTIFICATION_SENDER: 'noreply@hakan.run',
       NOTIFICATION_RECIPIENT: 'hakan@dndr.net',
+      EMAIL: {
+        async send(message) {
+          assert.equal(
+            db.prepare('SELECT COUNT(*) AS value FROM submissions').get().value,
+            1,
+            'the durable submission must exist before provider delivery begins',
+          );
+          providerRequest = message;
+          return { messageId: 'email_123' };
+        },
+      },
     }),
     null,
   );
 
   assert.equal(response.status, 202);
-  assert.deepEqual(providerRequest.to, ['hakan@dndr.net']);
-  assert.equal(providerRequest.reply_to, 'test@example.com');
+  assert.equal(providerRequest.to, 'hakan@dndr.net');
+  assert.deepEqual(providerRequest.from, { email: 'noreply@hakan.run', name: 'hakan.run' });
+  assert.equal(providerRequest.replyTo, 'test@example.com');
   assert.match(providerRequest.text, /Received \(PT\):/);
   assert.match(providerRequest.text, /Source: \/contact/);
+  assert.match(providerRequest.text, /Source IP: 203\.0\.113\.5/);
+  assert.match(providerRequest.text, /Country: US/);
+  assert.match(providerRequest.text, /Region: California/);
+  assert.match(providerRequest.text, /Region code: CA/);
+  assert.match(providerRequest.text, /City: Irvine/);
+  assert.match(providerRequest.text, /Continent: NA/);
+  assert.match(providerRequest.text, /Cloudflare colo: LAX/);
+  assert.match(providerRequest.text, /ASN: 64500/);
+  assert.match(providerRequest.text, /ASN organization: Example Network/);
+  assert.match(providerRequest.text, /HTTP protocol: HTTP\/3/);
+  assert.match(providerRequest.text, /TLS version: TLSv1\.3/);
+  assert.match(providerRequest.text, /Cloudflare request: ray-email-1/);
+  assert.match(providerRequest.text, /User agent: Notification Test Browser/);
   assert.match(providerRequest.text, /Hello/);
+  assert.match(providerRequest.html, /<pre/);
   const stored = db.prepare('SELECT * FROM submissions').get();
   assert.equal(stored.notification_state, 'sent');
   assert.equal(stored.notification_attempts, 1);
-  assert.equal(stored.notification_provider, 'resend');
-  assert.equal(stored.notification_provider_status, 200);
+  assert.equal(stored.notification_provider, 'cloudflare_email');
+  assert.equal(stored.notification_provider_status, null);
   assert.equal(stored.notification_request_id, 'email_123');
   assert.ok(stored.notification_attempted_at > 0);
   assert.ok(stored.notified_at > 0);
+
+  const detailResponse = await handleBossApi(
+    new Request(`https://staging.hakan.run/api/boss/submissions/${stored.id}`),
+    { APP_DB: d1(db) },
+    {},
+    { email: 'hakan@dndr.net' },
+  );
+  const detail = (await detailResponse.json()).submission;
+  assert.equal(detail.notification_provider, 'cloudflare_email');
+  assert.equal(detail.notification_provider_status, null);
+  assert.equal(detail.notification_request_id, 'email_123');
 });
 
 test('disabled delivery is explicit and is not counted as a provider attempt', async (t) => {
@@ -251,13 +283,44 @@ test('disabled delivery is explicit and is not counted as a provider attempt', a
   }), { status: 200 });
   t.after(() => { delete global.fetch; });
 
-  await handleSubmission(submissionRequest(valid), envWith(db), null);
+  await handleSubmission(submissionRequest(valid), envWith(db, {
+    EMAIL: { send() { throw new Error('disabled delivery must not call the binding'); } },
+  }), null);
   const stored = db.prepare('SELECT * FROM submissions').get();
   assert.equal(stored.notification_state, 'disabled');
   assert.equal(stored.notification_attempts, 0);
-  assert.equal(stored.notification_provider, 'resend');
+  assert.equal(stored.notification_provider, 'cloudflare_email');
   assert.equal(stored.notification_attempted_at, null);
   assert.equal(stored.notification_provider_status, null);
+});
+
+test('a missing Cloudflare Email binding fails delivery safely after persistence', async (t) => {
+  const db = openAppDb();
+  global.fetch = async () => new Response(JSON.stringify({
+    success: true,
+    action: 'contact',
+    hostname: 'staging.hakan.run',
+  }), { status: 200 });
+  t.after(() => { delete global.fetch; });
+
+  const response = await handleSubmission(
+    submissionRequest(valid),
+    envWith(db, {
+      NOTIFICATIONS_ENABLED: 'true',
+      NOTIFICATION_SENDER: 'noreply@hakan.run',
+      NOTIFICATION_RECIPIENT: 'hakan@dndr.net',
+    }),
+    null,
+  );
+
+  assert.equal(response.status, 202);
+  const stored = db.prepare('SELECT * FROM submissions').get();
+  assert.equal(stored.notification_state, 'failed');
+  assert.equal(stored.notification_attempts, 0);
+  assert.equal(stored.notification_provider, 'cloudflare_email');
+  assert.equal(stored.notification_error, 'notifications_not_configured');
+  assert.equal(stored.notification_attempted_at, null);
+  assert.equal(stored.notification_request_id, null);
 });
 
 test('a failed challenge stores nothing at all', async (t) => {
@@ -401,4 +464,12 @@ test('Boss detail preserves NULL request metadata for historical submissions', a
   ]) {
     assert.equal(detail[field], null, `${field} remains unavailable rather than invented`);
   }
+});
+
+test('the active notification runtime has no Resend API dependency', () => {
+  const notification = readFileSync(new URL('../lib/cloudflare-email.js', import.meta.url), 'utf8');
+  const submission = readFileSync(new URL('../public/submissions.js', import.meta.url), 'utf8');
+  const activeRuntime = `${notification}\n${submission}`;
+  assert.doesNotMatch(activeRuntime, /RESEND_API_KEY|api\.resend\.com|lib\/resend/i);
+  assert.match(activeRuntime, /env\.EMAIL\.send/);
 });

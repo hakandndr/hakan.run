@@ -239,7 +239,7 @@ const system = async (env) => {
   const legacyOldest = legacyRow?.oldest ?? null;
   const legacyOldestDay = legacyOldest ? localDay(legacyOldest) : null;
   const notificationsEnabled = env.NOTIFICATIONS_ENABLED === 'true';
-  const notificationSecretConfigured = Boolean(env.RESEND_API_KEY);
+  const notificationBindingConfigured = Boolean(env.EMAIL?.send);
   const notificationSenderConfigured = Boolean(env.NOTIFICATION_SENDER);
   const notificationRecipientConfigured = Boolean(env.NOTIFICATION_RECIPIENT);
 
@@ -271,13 +271,13 @@ const system = async (env) => {
     },
     eventSources: bySource.map((row) => ({ source: row.source, retainedEvents: Number(row.value) })),
     notificationDelivery: {
-      provider: 'resend',
+      provider: 'cloudflare_email',
       enabled: notificationsEnabled,
       sender: env.NOTIFICATION_SENDER || null,
       recipient: env.NOTIFICATION_RECIPIENT || null,
-      secretConfigured: notificationSecretConfigured,
+      bindingConfigured: notificationBindingConfigured,
       ready: notificationsEnabled
-        && notificationSecretConfigured
+        && notificationBindingConfigured
         && notificationSenderConfigured
         && notificationRecipientConfigured,
     },
@@ -285,7 +285,7 @@ const system = async (env) => {
       appDb: Boolean(env.APP_DB),
       analyticsDb: Boolean(env.ANALYTICS_DB),
       turnstile: Boolean(env.TURNSTILE_SECRET_KEY),
-      notifications: notificationsEnabled,
+      notifications: notificationBindingConfigured,
       access: Boolean(env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD_BOSS && env.BOSS_OWNER_EMAIL),
     },
   });

@@ -1,5 +1,18 @@
 # Security
 
+## Cloudflare Email binding boundary — local, 2026-09-15
+
+Notification delivery uses the native `EMAIL` Worker binding and requires no REST
+credential or provider API key. Source-controlled binding restrictions fix the only
+destination to `hakan@dndr.net` and the only permitted sender to
+`noreply@hakan.run`. Untrusted form input cannot choose either value; the validated
+sender address is used only as reply-to.
+
+The persistence-first and disabled-by-default controls are unchanged. Missing binding
+or configuration fails delivery safely after the authoritative APP_DB write. Boss
+receives a binding-presence boolean and readiness state, never provider credentials.
+No CSP, Access, Turnstile or public response contract changes are introduced.
+
 ## Private submission request metadata — local, 2026-09-15
 
 Raw source IP is intentionally permitted only on the private APP_DB submission
@@ -18,7 +31,8 @@ retention policy, independently of analytics retention.
 
 The richer submission view remains behind Cloudflare Access plus Worker owner-token
 verification. It adds no public read path, client database access or analytics copy.
-Boss reports Resend secret presence only as a boolean and never returns a secret value.
+Boss reports notification binding presence only as a boolean and never returns a
+credential or secret value.
 
 Turnstile remains fail closed. The local contract rejects missing configuration,
 non-string/oversized tokens, unavailable Siteverify responses, unsuccessful results,
