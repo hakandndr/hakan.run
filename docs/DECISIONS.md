@@ -9,7 +9,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: A generic blog; project-name categories; an iframe, API or redirect to `notes.dndr.net`; social or newsletter features in the initial design.
 - Rationale: First-party delivery and one explicit editorial authority keep the writing tied to Hakan's engineering work without adding an external runtime dependency.
 - Consequences: Article routes and content must resolve entirely on `hakan.run`. The initial local build generates one catalogue and static HTML from reviewed Markdown; adding an article requires a build. Editorial review, commit, push and deployment remain separate gates.
-- Status: Approved direction implemented and locally reviewed on 2026-09-28 with five articles; staging acceptance and production approval remain open.
+- Status: Implemented and accepted on staging on 2026-09-28 with five articles; production approval remains open.
 
 ## D-039 — Notification delivery uses a restricted Cloudflare Email binding
 

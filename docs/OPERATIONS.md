@@ -1,6 +1,6 @@
 # Operations
 
-## Local Engineering Notes build and review — 2026-09-28
+## Engineering Notes staging acceptance — 2026-09-28
 
 Edit only `apps/web/notes/*.md` for article content. Each file has one `date`
 field; the build rejects invalid metadata or unsupported Markdown blocks and
@@ -16,11 +16,33 @@ the twelve CMS sections still fail closed.
 For local review, run `npm run check`, production and staging builds, artifact
 and indexing checks, plus `tests/notes.spec.ts` and affected public route tests
 against the local preview. Inspect the five article texts and desktop/mobile
-rendering as editorial and visual gates. Staging deployment is authorized for
-the exact reviewed Notes commit; no Cloudflare asset response has yet been
-verified for it. Production deployment remains a separate approval boundary.
+rendering as editorial and visual gates. The initial Notes commit `4f74581` was
+built in staging mode and deployed with
+`npm exec --offline --yes --package wrangler@4.130.0 -- wrangler deploy --env staging`.
+Worker version `5ad9e9be-fc69-4bda-acfa-6221138470e0` was read back at 100%.
+Live hydration exposed duplicate social metadata; narrow fix `c88ba31` marks
+static Notes meta tags for React Helmet ownership. The Cloudflare-style static
+HTML regression test passed, and staging was redeployed at version
+`acacaee5-a802-4c1c-9e93-e2846fd27bd4`. All six live Notes pages then had
+single-instance description and social tags, one canonical and noindex.
+Real Cloudflare GETs returned 200 for the Notes index and five direct-open articles,
+404 with readable first-party HTML for an unknown slug, and one 307 normalization
+for trailing slashes. Each known Notes page retained its production canonical and
+staging noindex. Staging `robots.txt` disallows crawling and `sitemap.xml` is empty.
+Desktop/mobile browser checks covered navigation, reload, Back/Forward, current
+`/`, `/contact`, `/card`, and Access-protected `/boss`; application assets and
+`/api/content` loaded. No Contact submission or application-data write was used
+for acceptance. Browser analytics requests were intercepted. The Contact page's
+Turnstile iframe emitted its own console diagnostics; an isolated Notes page had
+no application console error or failed Notes-owned request.
+
 The repository-wide Playwright comparison against clean `c5666e6` is recorded
 in `PROCESS.md`; do not claim a green full suite while its baseline failures remain.
+Production deployment requires separate owner authorization. The production
+Worker readback remained `14cb9181-2ab4-40f8-acae-9f4b91344c7a` after this
+staging release. Only after approval, build the reviewed Notes code in production
+mode, deploy to the existing production Worker, then verify its route, metadata
+and health contract without changing data or adjacent infrastructure.
 
 ## Current production operation — 2026-09-28
 

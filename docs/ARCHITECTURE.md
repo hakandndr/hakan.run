@@ -20,7 +20,7 @@ remain in `APP_DB`, not analytics. Historical `resend` values are records, not a
 runtime fallback. Old Hostinger and Supabase systems remain preserved as rollback
 infrastructure, with no decommission planned in this task.
 
-Locally, Engineering Notes uses Markdown files under `apps/web/notes/` as its only
+Engineering Notes uses Markdown files under `apps/web/notes/` as its only
 article authority. A build-generated catalogue supplies article content to React;
 a small manifest derived from the same Markdown supplies exact slugs to the Worker
 and PAGE classification. The build also emits HTML
@@ -28,8 +28,9 @@ assets at `/notes` and `/notes/:slug`, with metadata and sitemap entries. Worker
 routing validates Notes paths before the existing SPA fallback, returning 404 for an
 unknown slug. Direct Notes HTML remains readable while the shared public shell
 loads its separate twelve-section APP_DB snapshot and if that load fails.
-Notes is not a CMS section, Boss editor or external content API. No Notes runtime or
-content has been deployed, and `notes.dndr.net` is not a runtime dependency.
+Notes is not a CMS section, Boss editor or external content API. This boundary is
+deployed and verified on staging only; production remains on its preceding Worker
+version. `notes.dndr.net` is not a runtime dependency.
 
 ## Native Cloudflare Email delivery boundary
 

@@ -1,8 +1,8 @@
 # Current State
 
-## Local Engineering Notes implementation — 2026-09-28
+## Engineering Notes staging acceptance — 2026-09-28
 
-Five first-party Engineering Notes articles now exist locally as Markdown under
+Five first-party Engineering Notes articles are source-controlled Markdown under
 `apps/web/notes/`. Build tooling validates them and generates a React catalogue and
 a small slug manifest shared by the Worker and analytics classifier. The build
 emits meaningful HTML, per-route title/description/canonical/social metadata and
@@ -15,20 +15,34 @@ loads, and remain readable if that request fails. The two long owner drafts were
 restored to substantive engineering narratives; all five notes received a local
 source, editorial and desktop/mobile visual review.
 
-This implementation is **not deployed to production**. Its five articles and local
-visuals have completed technical review. A same-command Playwright comparison
-against clean `c5666e6` found 32 baseline failures and 28 failures in the Notes
-tree, all overlapping; no new Notes-specific failure remained. The documentation
-reconciliation was separately committed and pushed as `a825df5`. Staging
-deployment and real Cloudflare acceptance remain to be completed for Notes.
+Notes code commit `4f7458118644481c2595c63e59fd7054f2e9bcb2` and the
+staging-discovered metadata correction `c88ba312466969066958439afa0d9ce62d3969d1`
+were pushed. The corrected code runs only on staging Worker version
+`acacaee5-a802-4c1c-9e93-e2846fd27bd4`. Real Cloudflare direct GETs returned
+200 for `/notes` and all five articles, with expected production canonical URLs
+and staging noindex. An unknown slug returned readable first-party HTML with
+HTTP 404; trailing-slash requests received one 307 normalization. The staging
+sitemap remained empty, existing public routes loaded, and Boss redirected to
+Cloudflare Access. Hydrated metadata is now single-instance on all six Notes
+pages. Desktop/mobile Notes visuals and navigation passed review.
+
+This implementation is **not deployed to production**. A read-only production
+deployment check still reported `14cb9181-2ab4-40f8-acae-9f4b91344c7a`.
+
+A same-command Playwright comparison against clean `c5666e6` found 32 baseline
+failures and 28 failures in the final Notes tree, all overlapping; the final run
+passed 149 with five skips. No new
+Notes-specific failure remained. The documentation reconciliation was separately
+committed and pushed as `a825df5`. A separate owner-approved production
+deployment remains the only Notes release step.
 
 ## Production after Cloudflare Email cutover — 2026-09-28
 
 The owner reports the final post-cutover health check as **HEALTHY**, production
 as **STABLE**, and rollback infrastructure as **PRESERVED**. The latest verified
 production Worker version supplied for this checkpoint is
-`14cb9181-2ab4-40f8-acae-9f4b91344c7a`. Repository HEAD
-`c5666e67dd96019b1a6556f223f43f8208f6d382` activates notifications after
+`14cb9181-2ab4-40f8-acae-9f4b91344c7a`. Production notification
+activation commit `c5666e67dd96019b1a6556f223f43f8208f6d382` followed the
 provider migration `e411b5fbc963fe81d740403d120fcd69daf8041a`. This task did
 not independently query the live provider.
 

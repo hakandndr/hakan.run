@@ -44,8 +44,8 @@ Five Engineering Notes articles are repository Markdown in
 `apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
 routes, with static HTML and sitemap output. Direct Notes HTML remains readable
 when the separate CMS snapshot cannot load. The five notes received local
-editorial and visual review. Staging acceptance and the owner's production
-publication decision remain; production has not received this feature.
+editorial and visual review, plus real Cloudflare staging acceptance. The owner's
+production publication decision remains; production has not received this feature.
 Snapshot failure shows an explicit error instead of bundled copy. Hash navigation,
 reload and Back/Forward use the shared scroll manager. Detailed behavior and phase
 evidence are in [Architecture](./docs/ARCHITECTURE.md) and [Operations](./docs/OPERATIONS.md).

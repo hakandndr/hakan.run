@@ -5,8 +5,11 @@
 Source-controlled `wrangler.jsonc` defines separate staging and production
 resources; this table is the current configuration map. The owner reports the
 production apex live on the Worker, Boss protected by Access, and latest verified
-production Worker version `14cb9181-2ab4-40f8-acae-9f4b91344c7a`. This
-documentation task did not query provider state.
+production Worker version `14cb9181-2ab4-40f8-acae-9f4b91344c7a`; a read-only
+deployment check after the Notes staging release confirmed that version is still
+serving production. Staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`
+was deployed from Notes commit `4f74581` plus metadata fix `c88ba31` on
+2026-09-28. No production deployment or resource mutation occurred.
 
 | Resource or setting | Staging | Production |
 | --- | --- | --- |
