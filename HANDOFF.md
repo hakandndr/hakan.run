@@ -1,36 +1,33 @@
 # hakan.run Modernization Handoff
 
-## Engineering Notes staging acceptance checkpoint — 2026-09-28
+## Engineering Notes production release — 2026-09-28
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2`; resolve this documentation checkpoint with `git rev-parse HEAD`; deployed Notes code and metadata correction end at `c88ba312466969066958439afa0d9ce62d3969d1` |
-| Current phase | Engineering Notes accepted locally and on real Cloudflare staging; production approval pending |
-| Completed | Five reviewed articles, Notes routes and metadata, local checks, clean-base Playwright comparison, separate documentation/Notes/fix commits and pushes, staging direct-open/404/visual acceptance |
-| Exact next action | Owner reviews the staging evidence and separately authorizes a production build and deployment of the reviewed Notes code, followed by production read-only route and metadata checks |
-| Prohibited actions | No production deployment or production/provider/D1/DNS/Access/Turnstile/flag change without separate approval; no OC-CA card, About image removal or rollback cleanup in this task |
-| Push state | Reconciliation `a825df5`, Notes `4f74581` and metadata fix `c88ba31` pushed normally; this final staging-evidence documentation checkpoint is the only subsequent change |
-| Deploy state | Staging Worker `acacaee5-a802-4c1c-9e93-e2846fd27bd4` from fix `c88ba31`; production readback remains `14cb9181-2ab4-40f8-acae-9f4b91344c7a` |
-| Infrastructure state | Staging uses existing isolated D1 bindings and `NOTIFICATIONS_ENABLED=false`; production remains stable with Access-protected Boss, isolated databases, native PAGE analytics and Cloudflare Email; Hostinger/Supabase rollback preserved |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve this documentation commit with `git rev-parse HEAD`; deployed source is `c6cbff32be05fbd32ba6e72955414473eac31c8d` |
+| Current phase | Engineering Notes live and smoke-verified on production |
+| Completed | Five articles, exact-slug routing, metadata and sitemap; local/staging acceptance; production deployment and bounded HTTP/browser/Worker health checks |
+| Exact next action | In a separately scoped task, prepare the OC-CA engineering-project card for Portfolio's "What I've Built" and obtain owner copy/asset review before implementation |
+| Prohibited actions | No additional deployment, D1/provider/DNS/Access/Turnstile/flag change, Contact submission, About image removal or rollback cleanup under this release checkpoint |
+| Push state | Reviewed source `c6cbff3` was pushed before deployment; resolve this release-documentation commit with `git log -1 --format=%H -- PROCESS.md` and verify upstream synchronization |
+| Deploy state | Production deployment `fd2574d5-6d6d-4cff-b7b3-e05ba7a31e3e`, Worker `df70be6e-02e6-476e-95b0-c4309b601fb5`, 100% traffic; staging remains `acacaee5-a802-4c1c-9e93-e2846fd27bd4` |
+| Infrastructure state | Existing isolated D1 bindings, Access-protected Boss, native PAGE analytics, restricted Cloudflare Email and disabled production CMS writes preserved; Hostinger/Supabase rollback preserved |
 
 Notes article authority is `apps/web/notes/*.md`; the build generates the React
 catalogue, shared slug manifest, meaningful HTML and production sitemap entries.
 Direct Notes HTML stays readable if the separate twelve-section `APP_DB` shell
-snapshot is unavailable. Unknown slugs return HTTP 404 at the Worker and are not
-PAGE events. Local editorial and visual review and real staging acceptance are
-complete. Cloudflare staging returned 200 for `/notes` and all five article direct
-GETs, 404 with readable first-party HTML for an unknown slug, and a single 307
-to normalize trailing slashes. The six Notes pages retain production canonicals
-and staging noindex; the staging sitemap is empty. Desktop/mobile navigation,
-reload, Back/Forward, existing `/`, `/contact`, `/card`, and Access-protected Boss
-were checked. `npm run check` and the focused Notes/browser regression set passed.
-Real staging revealed duplicate social tags after static HTML hydration; narrow
-fix `c88ba31` and a browser regression test
-resolved it. Under the same local preview conditions, clean `c5666e6` ran 136
-passed, 32 failed, four skipped; the final Notes tree ran 149 passed, 28 failed,
-five skipped. All 28 failures were present at the clean base. See the latest
-`PROCESS.md` entry. Earlier sections below are historical.
+snapshot is unavailable. Production GETs returned 200 for `/notes` and all five
+article routes; an unknown slug returned readable first-party HTTP 404 and is
+excluded from PAGE events. All six Notes pages are indexable, carry production
+canonicals and single hydrated description/social tags, and appear in the
+production sitemap. Desktop/mobile navigation, reload, Back/Forward, existing
+`/`, `/contact`, `/card`, `/api/config`, and Access-protected Boss passed bounded
+checks. No application-owned console or Notes network error appeared. The short
+new-version error-tail sample recorded no errors. `npm run check`, the focused
+browser set and production artifact check passed. The known full-suite 28 failures
+all occur at the clean baseline; see `PROCESS.md`. Earlier sections below are
+historical.
 
 Production notifications and PAGE analytics are enabled; CMS writes remain
 disabled in source-controlled configuration. The restricted sender/recipient

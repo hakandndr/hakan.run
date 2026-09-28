@@ -1,6 +1,33 @@
 # Operations
 
-## Engineering Notes staging acceptance — 2026-09-28
+## Engineering Notes production operation — 2026-09-28
+
+Reviewed source `c6cbff32be05fbd32ba6e72955414473eac31c8d` was built in
+production mode and deployed with
+`npm exec --offline --yes --package wrangler@4.130.0 -- wrangler deploy --env production`
+to the existing Worker. Deployment `fd2574d5-6d6d-4cff-b7b3-e05ba7a31e3e`
+activated version `df70be6e-02e6-476e-95b0-c4309b601fb5` at 100% traffic.
+Read-only production GETs confirmed 200 for `/notes`, all five articles, `/`,
+`/contact`, `/card`, `/api/config`, `robots.txt` and `sitemap.xml`; unknown Notes
+slug returned readable first-party 404 without redirect. All known Notes pages
+had indexable production canonical and singular hydrated metadata. The sitemap
+included all six Notes URLs and existing public entries. Desktop/mobile browser
+navigation, visuals, reload and history passed; unauthenticated Boss redirected
+to Access. No application-owned browser error or failed Notes asset appeared.
+A bounded error-tail sample on the new version recorded no errors while five
+read-only GETs returned their expected statuses. This sample is not a long-term
+error-rate measurement. No Contact submission, D1 mutation, provider or adjacent
+infrastructure change occurred. The previous production version
+`14cb9181-2ab4-40f8-acae-9f4b91344c7a` remains the known rollback target;
+rollback was not needed.
+
+For later Notes edits, build the exact reviewed commit in production mode and
+verify all six HTML artifacts, metadata, canonical URLs, robots policy and sitemap
+before a separately authorized deployment. After deployment, read back version
+and traffic allocation, known/unknown routes, browser hydration, Access boundary
+and bounded Worker health. Do not treat a passing build as deployment authority.
+
+## Engineering Notes staging acceptance — historical checkpoint, 2026-09-28
 
 Edit only `apps/web/notes/*.md` for article content. Each file has one `date`
 field; the build rejects invalid metadata or unsupported Markdown blocks and
@@ -38,18 +65,17 @@ no application console error or failed Notes-owned request.
 
 The repository-wide Playwright comparison against clean `c5666e6` is recorded
 in `PROCESS.md`; do not claim a green full suite while its baseline failures remain.
-Production deployment requires separate owner authorization. The production
-Worker readback remained `14cb9181-2ab4-40f8-acae-9f4b91344c7a` after this
-staging release. Only after approval, build the reviewed Notes code in production
-mode, deploy to the existing production Worker, then verify its route, metadata
-and health contract without changing data or adjacent infrastructure.
+At this staging checkpoint, production readback remained
+`14cb9181-2ab4-40f8-acae-9f4b91344c7a`; the later production release is
+recorded above.
 
 ## Current production operation — 2026-09-28
 
 The owner reports the final post-cutover health check as HEALTHY, production
 STABLE, and rollback infrastructure PRESERVED. Latest verified production Worker
-version: `14cb9181-2ab4-40f8-acae-9f4b91344c7a`. This documentation task did
-not query or change the live provider.
+version: `14cb9181-2ab4-40f8-acae-9f4b91344c7a`. This earlier documentation
+task did not query or change the live provider; the Notes release above supersedes
+that Worker version.
 
 For an authorized production check, confirm the apex Worker route, Access-protected
 Boss, isolated `APP_DB`/`ANALYTICS_DB`, native PAGE analytics, and the flags and

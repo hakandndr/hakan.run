@@ -6,24 +6,23 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 1. Reconcile active documentation with the completed production cutover — committed and pushed as `a825df5`.
 2. Design and implement first-party Engineering Notes information architecture and runtime at `/notes` — committed as `4f74581` with metadata fix `c88ba31`, pushed and accepted on staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`.
-3. Prepare and review the first curated Engineering Notes content batch — five articles technically, editorially and visually reviewed on staging; production publication approval pending.
+3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production.
 4. Add OC-CA to Portfolio's "What I've Built" as an engineering project; review card copy and assets separately.
 5. Remove the AI-generated workstation image from About without replacing it with generated imagery; rebalance the layout and retain the real owner portrait.
-6. Perform focused visual and content QA on the changed surfaces — Notes complete locally and on staging; later Portfolio/About changes still require QA.
-7. Hold a checkpoint and owner review — Notes production decision pending.
-8. Deploy only under separate explicit authorization — staging Notes complete; production not authorized.
+6. Perform focused visual and content QA on the changed surfaces — Notes complete locally, on staging and in production; later Portfolio/About changes still require QA.
+7. Hold a checkpoint and owner review — Notes release accepted; later Portfolio/About work needs its own review.
+8. Deploy only under separate explicit authorization — Notes production release complete; later releases remain separately gated.
 
-Steps 4–8 remain future work where noted. The staging Notes implementation does
-not establish a production release. Commit,
+Steps 4–7 remain future work where noted. Commit,
 push, deployment, provider, database and production activation remain independent
 authorization boundaries. Preserve the existing production visual identity unless
 the owner approves a specific change. Rollback infrastructure remains preserved;
 decommission is outside this sequence.
 
-### Engineering Notes product direction — staging accepted, production pending
+### Engineering Notes product direction — live in production
 
 The first-party `/notes` area is named **Engineering Notes**, not a generic
-personal blog. Navigation is Services → Portfolio → Notes → About in the staging build.
+personal blog. Navigation is Services → Portfolio → Notes → About in production.
 Categories describe engineering concerns: Architecture, Data & State, Delivery,
 Operations, Security, and Observability. Projects such as OC-CA or TürkiyeCennet
 may appear as context metadata, not primary categories.
@@ -40,8 +39,7 @@ The initial batch contains five Markdown articles: a write path for a mostly
 static site; moving a live static site to the edge without moving everything;
 security headers on pages the Worker never sees; reachable is not current; and
 two languages, not one translation. Their local source, editorial and visual
-reviews and staging acceptance are complete; the owner retains the production
-publication decision. Other subject directions remain editorial options rather
+reviews, staging acceptance and production release are complete. Other subject directions remain editorial options rather
 than promised articles.
 
 ## Historical roadmap snapshots (2026-09-15 and earlier)

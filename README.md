@@ -23,7 +23,7 @@ rewritten for filtering.
 
 Production cutover is complete. The modern Cloudflare Worker serves `hakan.run`,
 the canonical `www` redirect remains external and path/query preserving, production
-content comes only from the isolated production `APP_DB`, and Boss remains protected
+CMS content comes only from the isolated production `APP_DB`, and Boss remains protected
 by Cloudflare Access. Production native PAGE analytics is live for canonical public
 routes and writes to the isolated production `ANALYTICS_DB`; imported history remains
 distinguishable through `event_source`.
@@ -43,9 +43,9 @@ navigation links to sections, while Portfolio cards use published external URLs.
 Five Engineering Notes articles are repository Markdown in
 `apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
 routes, with static HTML and sitemap output. Direct Notes HTML remains readable
-when the separate CMS snapshot cannot load. The five notes received local
-editorial and visual review, plus real Cloudflare staging acceptance. The owner's
-production publication decision remains; production has not received this feature.
+when the separate CMS snapshot cannot load. The five notes are live on production
+after local, editorial, visual, staging and bounded production acceptance. Unknown
+Notes slugs return first-party HTTP 404; production Notes pages are indexable.
 Snapshot failure shows an explicit error instead of bundled copy. Hash navigation,
 reload and Back/Forward use the shared scroll manager. Detailed behavior and phase
 evidence are in [Architecture](./docs/ARCHITECTURE.md) and [Operations](./docs/OPERATIONS.md).

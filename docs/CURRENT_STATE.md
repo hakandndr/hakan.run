@@ -1,6 +1,6 @@
 # Current State
 
-## Engineering Notes staging acceptance — 2026-09-28
+## Engineering Notes production release — 2026-09-28
 
 Five first-party Engineering Notes articles are source-controlled Markdown under
 `apps/web/notes/`. Build tooling validates them and generates a React catalogue and
@@ -17,31 +17,38 @@ source, editorial and desktop/mobile visual review.
 
 Notes code commit `4f7458118644481c2595c63e59fd7054f2e9bcb2` and the
 staging-discovered metadata correction `c88ba312466969066958439afa0d9ce62d3969d1`
-were pushed. The corrected code runs only on staging Worker version
-`acacaee5-a802-4c1c-9e93-e2846fd27bd4`. Real Cloudflare direct GETs returned
-200 for `/notes` and all five articles, with expected production canonical URLs
-and staging noindex. An unknown slug returned readable first-party HTML with
-HTTP 404; trailing-slash requests received one 307 normalization. The staging
-sitemap remained empty, existing public routes loaded, and Boss redirected to
-Cloudflare Access. Hydrated metadata is now single-instance on all six Notes
-pages. Desktop/mobile Notes visuals and navigation passed review.
+were pushed. Reviewed source `c6cbff32be05fbd32ba6e72955414473eac31c8d`
+was deployed to production as deployment
+`fd2574d5-6d6d-4cff-b7b3-e05ba7a31e3e`, Worker version
+`df70be6e-02e6-476e-95b0-c4309b601fb5` at 100% traffic. Staging remains on
+`acacaee5-a802-4c1c-9e93-e2846fd27bd4`.
 
-This implementation is **not deployed to production**. A read-only production
-deployment check still reported `14cb9181-2ab4-40f8-acae-9f4b91344c7a`.
+Production direct GETs returned 200 for `/notes` and all five articles. Each
+article has its expected title, description, production canonical, one hydrated
+social metadata set, visible content and one date. All six Notes pages are
+indexable and present in the production sitemap alongside `/`, `/contact` and
+`/card`; `robots.txt` allows public crawling while retaining its existing
+`/control-room` exclusion. An unknown slug returned readable first-party HTML
+with HTTP 404 and no redirect; the exact-slug analytics gate excludes it from
+PAGE events. Desktop/mobile Notes visuals, navigation, reload and Back/Forward
+passed. Existing public routes and `/api/config` loaded; Boss redirected to
+Cloudflare Access. The bounded new-version error-tail sample recorded no errors,
+with no observed 5xx, loop or application-owned browser error. No Contact
+submission or D1 mutation was used for release acceptance.
 
 A same-command Playwright comparison against clean `c5666e6` found 32 baseline
 failures and 28 failures in the final Notes tree, all overlapping; the final run
 passed 149 with five skips. No new
 Notes-specific failure remained. The documentation reconciliation was separately
-committed and pushed as `a825df5`. A separate owner-approved production
-deployment remains the only Notes release step.
+committed and pushed as `a825df5`. The earlier staging-only statements below
+remain dated historical checkpoints.
 
 ## Production after Cloudflare Email cutover — 2026-09-28
 
 The owner reports the final post-cutover health check as **HEALTHY**, production
 as **STABLE**, and rollback infrastructure as **PRESERVED**. The latest verified
 production Worker version supplied for this checkpoint is
-`14cb9181-2ab4-40f8-acae-9f4b91344c7a`. Production notification
+`14cb9181-2ab4-40f8-acae-9f4b91344c7a` before the Notes deployment above. Production notification
 activation commit `c5666e67dd96019b1a6556f223f43f8208f6d382` followed the
 provider migration `e411b5fbc963fe81d740403d120fcd69daf8041a`. This task did
 not independently query the live provider.

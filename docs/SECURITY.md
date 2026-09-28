@@ -1,6 +1,6 @@
 # Security
 
-## Engineering Notes staging boundary — 2026-09-28
+## Engineering Notes production boundary — 2026-09-28
 
 Notes articles are source-controlled Markdown, rendered as escaped headings and
 paragraphs by the build. They have no APP_DB, Boss editor, visitor write or
@@ -8,9 +8,9 @@ paragraphs by the build. They have no APP_DB, Boss editor, visitor write or
 unknown slugs return 404 before the SPA fallback and cannot be recorded as PAGE
 events. A failed CMS snapshot request leaves only the built, source-controlled
 Notes HTML readable; it does not expose unpublished APP_DB content. The boundary
-is deployed on staging: an unknown slug returned first-party HTTP 404, known Notes
-routes retained noindex there, and unauthenticated `/boss` redirected to Access.
-Production remains unchanged.
+is deployed on production: an unknown slug returned first-party HTTP 404 and
+noindex, known Notes routes are indexable, and unauthenticated `/boss` still
+redirects to Access. Production bindings and feature flags remained unchanged.
 
 ## Current production notification and data boundary — 2026-09-28
 

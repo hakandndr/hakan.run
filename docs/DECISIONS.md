@@ -8,8 +8,8 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Context: The owner approved a place to explain reasoning, failure analysis, architectural tradeoffs and operational lessons from real systems.
 - Alternatives considered: A generic blog; project-name categories; an iframe, API or redirect to `notes.dndr.net`; social or newsletter features in the initial design.
 - Rationale: First-party delivery and one explicit editorial authority keep the writing tied to Hakan's engineering work without adding an external runtime dependency.
-- Consequences: Article routes and content must resolve entirely on `hakan.run`. The initial local build generates one catalogue and static HTML from reviewed Markdown; adding an article requires a build. Editorial review, commit, push and deployment remain separate gates.
-- Status: Implemented and accepted on staging on 2026-09-28 with five articles; production approval remains open.
+- Consequences: Article routes and content must resolve entirely on `hakan.run`. The build generates one catalogue and static HTML from reviewed Markdown; adding an article requires a build. Editorial review, commit, push and deployment remain separate gates.
+- Status: Implemented with five articles, accepted on staging and deployed to production on 2026-09-28 as Worker version `df70be6e-02e6-476e-95b0-c4309b601fb5`.
 
 ## D-039 — Notification delivery uses a restricted Cloudflare Email binding
 

@@ -29,8 +29,9 @@ routing validates Notes paths before the existing SPA fallback, returning 404 fo
 unknown slug. Direct Notes HTML remains readable while the shared public shell
 loads its separate twelve-section APP_DB snapshot and if that load fails.
 Notes is not a CMS section, Boss editor or external content API. This boundary is
-deployed and verified on staging only; production remains on its preceding Worker
-version. `notes.dndr.net` is not a runtime dependency.
+deployed and verified on production Worker
+`df70be6e-02e6-476e-95b0-c4309b601fb5`. `notes.dndr.net` is not a runtime
+dependency.
 
 ## Native Cloudflare Email delivery boundary
 
