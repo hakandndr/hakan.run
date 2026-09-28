@@ -52,7 +52,7 @@ export const writeNotesCatalog = (notes) => {
 
 const metadata = (template, title, description, pathname) => template
   .replace('<title>hakan.run</title>', `<title>${escapeHtml(title)} | Hakan Dundar</title>`)
-  .replace('<link rel="canonical" href="https://hakan.run/" />', `<link rel="canonical" href="https://hakan.run${pathname}" />\n  <meta name="description" content="${escapeHtml(description)}" />\n  <meta property="og:title" content="${escapeHtml(title)}" />\n  <meta property="og:description" content="${escapeHtml(description)}" />\n  <meta property="og:url" content="https://hakan.run${pathname}" />`);
+  .replace('<link rel="canonical" href="https://hakan.run/" />', `<link rel="canonical" href="https://hakan.run${pathname}" />\n  <meta data-react-helmet="true" name="description" content="${escapeHtml(description)}" />\n  <meta data-react-helmet="true" property="og:title" content="${escapeHtml(title)}" />\n  <meta data-react-helmet="true" property="og:description" content="${escapeHtml(description)}" />\n  <meta data-react-helmet="true" property="og:url" content="https://hakan.run${pathname}" />`);
 
 const staticLink = (note) => `<li><time datetime="${note.date}">${note.date}</time><a href="/notes/${note.slug}">${escapeHtml(note.title)}</a><p>${escapeHtml(note.deck)}</p></li>`;
 const staticArticle = (note) => `<main class="notes-page"><article class="notes-article"><a href="/notes">← Back to Notes</a><p class="notes-context">${escapeHtml(note.topic)} · ${escapeHtml(note.project)}</p><h1>${escapeHtml(note.title)}</h1><p>${escapeHtml(note.deck)}</p><time datetime="${note.date}">${note.date}</time><div class="notes-body">${note.html}</div><p>— Hakan</p></article></main>`;

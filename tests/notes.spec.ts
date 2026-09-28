@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { fulfillPublishedContent, isolatePublicWrites } from './helpers/published-content';
 import { NOTES } from '../apps/web/src/notes/catalog.js';
 
@@ -66,4 +68,24 @@ test('Notes direct-open stays readable when the CMS snapshot is unavailable', as
   await expect(page.getByText('The first model was consistent and still wrong')).toBeVisible();
   await expect(page.getByRole('heading', { level: 1, name: 'A write path for a mostly static site' })).toBeVisible();
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://hakan.run/notes/a-write-path-for-a-mostly-static-site');
+});
+
+test('Cloudflare-style static Notes HTML hydrates without duplicate metadata', async ({ page }) => {
+  const html = readFileSync(resolve('dist/apps/web/notes/reachable-is-not-current.html'), 'utf8');
+  await page.route('**/notes/reachable-is-not-current', (route) => route.fulfill({
+    status: 200,
+    contentType: 'text/html',
+    body: html,
+  }));
+  await page.goto('/notes/reachable-is-not-current');
+  await expect(page.getByRole('banner')).toBeVisible();
+  for (const selector of [
+    'meta[name="description"]',
+    'meta[property="og:title"]',
+    'meta[property="og:description"]',
+    'meta[property="og:url"]',
+  ]) {
+    await expect(page.locator(selector)).toHaveCount(1);
+  }
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://hakan.run/notes/reachable-is-not-current');
 });
