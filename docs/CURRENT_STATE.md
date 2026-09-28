@@ -1,5 +1,36 @@
 # Current State
 
+## Production after Cloudflare Email cutover — 2026-09-28
+
+The owner reports the final post-cutover health check as **HEALTHY**, production
+as **STABLE**, and rollback infrastructure as **PRESERVED**. The latest verified
+production Worker version supplied for this checkpoint is
+`14cb9181-2ab4-40f8-acae-9f4b91344c7a`. Repository HEAD
+`c5666e67dd96019b1a6556f223f43f8208f6d382` activates notifications after
+provider migration `e411b5fbc963fe81d740403d120fcd69daf8041a`. This task did
+not independently query the live provider.
+
+The Cloudflare Worker serves the apex; Boss is protected by Cloudflare Access.
+Production `APP_DB` and `ANALYTICS_DB` are isolated authorities for application
+and analytics data. Native PAGE analytics is active, with imported legacy history
+preserved separately. Source-controlled production flags are
+`NOTIFICATIONS_ENABLED=true`, `ANALYTICS_ENABLED=true`, and
+`CMS_PRODUCTION_WRITES_ENABLED=false`.
+
+Cloudflare Email is the sole active notification transport. The `EMAIL` binding
+restricts sender and recipient as documented in [ENVIRONMENTS.md](./ENVIRONMENTS.md);
+the validated visitor email is Reply-To only. A real Contact submission persisted
+in `APP_DB`, delivered successfully, and Boss readback showed
+provider `cloudflare_email`, one attempt, populated attempted/notified timestamps,
+and a provider message ID in delivery metadata. Private request diagnostics also
+remain in `APP_DB`, never `ANALYTICS_DB`. Resend has no active runtime dependency,
+secret requirement or fallback; historical `resend` rows remain historical records.
+Old Hostinger and Supabase infrastructure remain intentionally available for
+rollback. No decommission or cleanup is authorized here.
+
+The dated sections below describe earlier checkpoints, not current production
+state or pending work.
+
 ## Cloudflare Email notification provider migration — local, 2026-09-15
 
 The uncommitted local implementation replaces the Resend REST adapter and secret with
@@ -481,7 +512,7 @@ Owner local fixture acceptance is complete by owner report: **1 passed (2.9m)**.
 See [CMS V2](CONTENT-CMS-V2.md) for contracts, evidence, limitations and acceptance.
 Earlier sections below retain historical context and must not be read as newer current-state claims.
 
-## Verified current state
+## Historical Phase 1A state — legacy baseline
 
 This document records repository-backed truth for the modernization working copy. It does not prove uninspected live provider state.
 
@@ -509,7 +540,7 @@ Known security debt includes broad `TO authenticated` write access in the checke
 
 The modernization clone and branch now contain governance plus a documentation/test-only visual baseline. Application source, public content, runtime behavior, dependencies, infrastructure, provider configuration, and production have not changed.
 
-## Planned target — not implemented
+## Historical Phase 1A target specification — superseded
 
 The approved direction is a static-first public experience with a thin Cloudflare edge/runtime layer, isolated staging and production resources, explicit authorities for application and analytics data, durable first-party submissions, optional Resend notifications after persistence, and fail-closed private Boss APIs.
 

@@ -1,5 +1,34 @@
 # Environment and Resource Map
 
+## Current environment and resource map — 2026-09-28
+
+Source-controlled `wrangler.jsonc` defines separate staging and production
+resources; this table is the current configuration map. The owner reports the
+production apex live on the Worker, Boss protected by Access, and latest verified
+production Worker version `14cb9181-2ab4-40f8-acae-9f4b91344c7a`. This
+documentation task did not query provider state.
+
+| Resource or setting | Staging | Production |
+| --- | --- | --- |
+| Public hostname / Worker | `staging.hakan.run` / `hakan-run-web-staging` | `hakan.run` / `hakan-run-web-production` |
+| `APP_DB` | `hakan-run-app-staging` | `hakan-run-app-production` |
+| `ANALYTICS_DB` | `hakan-run-analytics-staging` | `hakan-run-analytics-production` |
+| Boss Access / Turnstile | Separate staging applications | Separate production applications |
+| `ANALYTICS_ENABLED` | `true` | `true` |
+| `NOTIFICATIONS_ENABLED` | `false` | `true` |
+| `CMS_PRODUCTION_WRITES_ENABLED` | Not defined | `false` |
+
+Both environments declare a restricted `EMAIL` send binding: recipient
+`hakan@dndr.net`, allowed sender `noreply@hakan.run`. Both configure
+`NOTIFICATION_SENDER=noreply@hakan.run` and
+`NOTIFICATION_RECIPIENT=hakan@dndr.net`. `RESEND_API_KEY` is not required and
+there is no active Resend fallback. Old Hostinger and Supabase remain preserved
+rollback infrastructure; decommission is not authorized.
+
+All sections below record historical provisioning observations or plans.
+Their disabled flags, uncreated-resource entries and deployment versions do not
+describe the current environment.
+
 ## Cloudflare Email binding contract — local, 2026-09-15
 
 Both source-controlled Worker environments declare an `EMAIL` send binding with
@@ -69,7 +98,7 @@ routing, activation and deployment each require separate authorization.
 
 Historical provisioning observations below remain dated evidence.
 
-## Status
+## Historical staging provisioning status — 2026-09-04
 
 Phase 2B staging is **provisioned**. Every staging resource in this document now exists and has been verified against the provider: both D1 databases with their schemas applied, the Worker with its bindings and cron trigger, the `staging.hakan.run` hostname, the Access application, the Turnstile widget, and the Turnstile secret binding. The per-resource state table below is authoritative and is updated only from an observed provider response, never from an assumption.
 
@@ -125,7 +154,7 @@ Between steps 3 and 5 the Boss surface is unreachable rather than open: `ACCESS_
 
 That window closed at step 5. Two further faults then kept the surface closed, and step 6 fixed both: the deployed `ACCESS_TEAM_DOMAIN` named an organisation that does not exist, so the JWKS fetch failed and verification denied; and without `run_worker_first` a browser navigation to a protected path never reached the Worker at all, receiving the static single-page-application fallback instead. Since step 6 the owner reaches the private surface after authenticating, and everyone else is redirected to Access.
 
-## Environment model
+## Earlier environment model — historical 2026-09-04 plan
 
 Two isolated environments. Staging and production share source, build pipeline, and schema definitions. They share no mutable resource, no database, no secret value, no identity policy, and no analytics store.
 
@@ -136,7 +165,7 @@ Two isolated environments. Staging and production share source, build pipeline, 
 | Mutable resources shared with the other environment | None | None |
 | Cutover relationship | Must pass acceptance before production work begins | Phase 10, explicitly authorized |
 
-## Worker services
+## Worker services — historical 2026-09-04 plan
 
 A single Worker service definition with per-environment deployment targets. The public site and its bounded APIs are served by the same Worker using Cloudflare Static Assets for the built React/Vite output.
 
@@ -149,7 +178,7 @@ A single Worker service definition with per-environment deployment targets. The 
 
 A single Worker rather than a separate API service keeps the edge layer thin and avoids an internal network hop for the small number of routes required. This is revisited only if the API surface outgrows the site delivery concern.
 
-## Databases
+## Databases — historical 2026-09-04 plan
 
 Two databases per environment, four in total. Application records and analytics are separate authorities and are never joined across a database boundary.
 
@@ -177,7 +206,7 @@ recorded here deliberately; secret values never are.
 
 Content lives in `APP_DB`, one isolated database per environment. Staging never reads or writes the production Supabase `site_content` table, and no second Supabase project is created. Staging content is bootstrapped once from a read-only snapshot of authoritative production content; production content is migrated separately at cutover. See decision D-020 and the staging content authority section of [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## Worker configuration
+## Worker configuration — historical 2026-09-04 plan
 
 `wrangler.jsonc` defines the service and its `staging` environment. The staging
 D1 bindings point at the created databases by identifier, the assets binding
@@ -214,11 +243,12 @@ it produced and refuses to finish if the policy is absent, and
 `npm run verify:artifact:staging --prefix apps/web` re-checks an existing `dist`
 before a deployment.
 
-## Environment variables — non-secret
+## Earlier environment-variable plan — historical
 
 Declared in source-controlled Worker configuration. None of these values is a secret.
 
-This table is the reviewable contract for `env.staging.vars` in `wrangler.jsonc`. Every name here is read by `worker/`; a variable the runtime does not read does not belong in it.
+This table records the earlier environment-variable plan. Use the current production
+contract above and `wrangler.jsonc` for today's values.
 
 | Variable | Staging value | Production value | Purpose |
 | --- | --- | --- | --- |
@@ -238,7 +268,7 @@ This table is the reviewable contract for `env.staging.vars` in `wrangler.jsonc`
 
 No `PUBLIC_SITE_URL` variable is defined. The runtime derives origin from the request and does not read one, so declaring it would be configuration that nothing enforces.
 
-## Secrets — names only
+## Earlier secret plan — historical
 
 Stored exclusively as Worker secret bindings, set out of band. Never in tracked files, never in public assets, never in build output, never in this document.
 
@@ -253,7 +283,7 @@ Rules:
 - Rotation is an authorized operation with its own record.
 - A missing required secret must cause the dependent route to fail closed, not to degrade silently.
 
-## Cloudflare Access
+## Cloudflare Access — historical 2026-09-04 plan
 
 Access protects `/boss/*` at the edge. The Worker independently verifies the resulting token; edge protection alone is not treated as authorization.
 
@@ -274,7 +304,7 @@ One-time PIN is deliberate for staging: it introduces no third-party identity pr
 
 The two applications are separate so that a staging policy change cannot widen production access.
 
-## Turnstile
+## Turnstile — historical 2026-09-04 plan
 
 | Item | Staging | Production |
 | --- | --- | --- |
@@ -289,9 +319,10 @@ An absent `TURNSTILE_SECRET_KEY` makes submission verification fail closed with 
 
 Separate widgets prevent a staging hostname from being accepted by production verification.
 
-## Resend
+## Resend plan — historical, superseded
 
-Resend is notification delivery only. It is never the record of a submission.
+This was the earlier notification delivery plan. Cloudflare Email is now the sole
+active provider; Resend is neither storage nor an active runtime dependency.
 
 | Item | Staging | Production |
 | --- | --- | --- |
@@ -301,7 +332,7 @@ Resend is notification delivery only. It is never the record of a submission.
 | Failure behavior | Recorded against the stored submission; never fails the submission | same |
 | Status | Not configured; `NOTIFICATIONS_ENABLED` is `false` until the sender domain is verified | Planned — not configured |
 
-## Domains and routes
+## Earlier domains and routes plan — historical
 
 | Item | Staging | Production |
 | --- | --- | --- |
@@ -316,7 +347,7 @@ Resend is notification delivery only. It is never the record of a submission.
 
 A staging subdomain does not alter any production record. The apex `hakan.run` remains on legacy hosting and is untouched.
 
-## Route table
+## Route table — historical 2026-09-04 plan
 
 The same route shape applies in both environments.
 
@@ -333,7 +364,7 @@ The same route shape applies in both environments.
 
 The target route table has no entry for `/run/*`, no entry for `/control-room`, and no third-party form endpoint. Those legacy surfaces do not migrate and get no compatibility route; see decisions D-017, D-018, and D-019.
 
-## Isolation rules
+## Isolation rules — historical 2026-09-04 plan
 
 1. No mutable resource is shared between staging and production.
 2. No secret value is shared between staging and production.

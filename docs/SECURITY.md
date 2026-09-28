@@ -1,5 +1,22 @@
 # Security
 
+## Current production notification and data boundary — 2026-09-28
+
+Production contact notifications are enabled through the restricted Cloudflare
+`EMAIL` binding. Its permitted sender and destination are fixed by environment
+configuration; validated visitor email is Reply-To only. Turnstile and input
+validation precede the authoritative `APP_DB` submission write. Notification
+follows persistence, and its attempt, timestamps and provider message identity
+stay with the submission. Missing binding or delivery failure cannot erase that
+record. No Resend API key or fallback is active.
+
+Boss remains behind Cloudflare Access and independent Worker checks. Private
+request diagnostics, including source IP, remain in `APP_DB` and are not copied
+to `ANALYTICS_DB`. Production CMS writes remain disabled; native analytics is
+limited to PAGE events in the separate analytics authority. The owner reports
+the post-cutover health check healthy. Earlier dated sections below describe
+their original checkpoints and do not change today's trust boundary.
+
 ## Cloudflare Email binding boundary — local, 2026-09-15
 
 Notification delivery uses the native `EMAIL` Worker binding and requires no REST
@@ -229,8 +246,9 @@ behavior in the public runtime. This is a code boundary, not an authorization
 boundary: Cloudflare Access and Worker verification remain authoritative for Boss.
 
 No provider settings, bindings, secrets, Access policy, Turnstile configuration,
-database rows or production resources changed in this phase. Production CMS writes,
-analytics and notifications remain disabled as recorded in `wrangler.jsonc`.
+database rows or production resources changed in that phase. At that checkpoint,
+production CMS writes, analytics and notifications were disabled in the then-current
+`wrangler.jsonc`; later production activation is recorded at the top of this file.
 
 ## Provisioned production trust boundary — 2026-09-09
 
@@ -271,7 +289,7 @@ The preview shell and snapshot API both pass existing Access signature, audience
 See [CMS V2](CONTENT-CMS-V2.md) for contracts, evidence, limitations and acceptance.
 Earlier sections below retain historical context and must not be read as newer current-state claims.
 
-## Verified current security state
+## Historical verified security state — legacy baseline
 
 This section describes checked-in behavior at the legacy baseline. Live policies, identities, provider dashboards, server modules, and hosted files were not inspected in Phase 1A.
 
@@ -310,7 +328,7 @@ The public `.htaccess` represents SPA fallback, HSTS, frame denial, content-type
 
 No security debt was fixed in Phase 1A.
 
-## Target security principles — not implemented
+## Historical target security principles — superseded
 
 - Fail closed when identity, policy, configuration, or required bindings are unavailable.
 - Combine edge authentication with runtime identity and owner-authorization verification.
@@ -325,7 +343,7 @@ No security debt was fixed in Phase 1A.
 
 Specific Cloudflare Access, runtime, D1, Turnstile, Resend, schema, retention, and audit implementations require future design and independent authorization.
 
-## Planned staging trust model — not implemented
+## Historical planned staging trust model — superseded
 
 This section is specification. No Access application, Turnstile widget, Resend key, database, or secret binding has been created. Resource naming is in [ENVIRONMENTS.md](./ENVIRONMENTS.md).
 

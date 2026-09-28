@@ -2,7 +2,51 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
-## Cloudflare Email notification provider migration
+## Approved next sequence — 2026-09-28
+
+1. Reconcile active documentation with the completed production cutover (this documentation-only checkpoint).
+2. Design and implement first-party Engineering Notes information architecture and runtime at `/notes`.
+3. Prepare and review the first curated Engineering Notes content batch.
+4. Add OC-CA to Portfolio's "What I've Built" as an engineering project; review card copy and assets separately.
+5. Remove the AI-generated workstation image from About without replacing it with generated imagery; rebalance the layout and retain the real owner portrait.
+6. Perform focused visual and content QA on the changed surfaces.
+7. Hold a checkpoint and owner review.
+8. Deploy only under separate explicit authorization.
+
+Steps 2–8 are approved direction, not implemented by this checkpoint. Commit,
+push, deployment, provider, database and production activation remain independent
+authorization boundaries. Preserve the existing production visual identity unless
+the owner approves a specific change. Rollback infrastructure remains preserved;
+decommission is outside this sequence.
+
+### Engineering Notes product direction — planned
+
+The first-party `/notes` area is named **Engineering Notes**, not a generic
+personal blog. Navigation is planned as Services → Portfolio → Notes → About.
+Categories describe engineering concerns: Architecture, Data & State, Delivery,
+Operations, Security, and Observability. Projects such as OC-CA or TürkiyeCennet
+may appear as context metadata, not primary categories.
+
+Writing should show Hakan's engineering reasoning: concrete failures, wrong
+first models, production constraints, tradeoffs, validation and operational
+lessons. Use Hakan's voice, avoid marketing or AI-generated prose, generic best
+practices, listicle templates and incidental runbook counts. The initial design
+has no newsletter, likes, comments or social-blog clutter; an article may sign
+off simply with “— Hakan”. `notes.dndr.net` may inform editorial work but must
+not be a runtime iframe, API, redirect authority or fallback for `hakan.run`.
+
+Curated subject directions, not article files or final titles: the engineering
+rules I stopped relearning; a write path for a mostly static site; moving a live
+static site to the edge without moving everything; security headers on pages the
+Worker never sees; reachable is not current; an approval gate between an API and
+a published page. Content preparation follows the IA/runtime task.
+
+## Historical roadmap snapshots (2026-09-15 and earlier)
+
+Statuses below record their original phase checkpoints. They are retained for
+provenance and do not authorize or describe current work.
+
+### Cloudflare Email notification provider migration
 
 - Objective: Replace the Resend REST/key dependency with the native Cloudflare Email Sending Worker binding while preserving persistence-first delivery tracking.
 - Dependencies: Existing APP_DB delivery columns, validated Contact/Turnstile flow, owner-reported `hakan.run` Email Sending onboarding and fixed sender/recipient.
@@ -10,7 +54,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Local code, tests and documentation only. COMMIT, PUSH, DEPLOY, PROVIDER and ACTIVATE remain owner-executed and independent. No migration is required.
 - Status: Implemented locally and notifications remain disabled. Provider onboarding was supplied by the owner, not remotely queried or changed by this task.
 
-## Boss submission request metadata follow-up
+### Boss submission request metadata follow-up
 
 - Objective: Add minimal private abuse/operational request context to contact submissions without changing analytics, notification or public behavior.
 - Dependencies: Production checkpoint `e9c0001`, APP_DB submission authority, existing Access-protected Inspect and Cloudflare inbound request metadata.
@@ -18,7 +62,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Local code, tests and documentation only. COMMIT, PUSH, MIGRATE and DEPLOY are owner-executed; provider, notification, Access, Turnstile, DNS and analytics mutations are prohibited.
 - Status: Implemented locally. Migration `0003` is unapplied and must precede an exact-commit deployment.
 
-## Post-cutover Boss operational follow-up
+### Post-cutover Boss operational follow-up
 
 - Objective: Improve submission operations, owner timezone consistency, contact-delivery observability and analytics page selection without starting rollback cleanup.
 - Dependencies: Healthy production Worker, Access-protected Boss, APP_DB submission authority and the existing event stream.
@@ -26,7 +70,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Code completion and local review only. COMMIT, PUSH, MIGRATE, SECRET, PROVIDER, ACTIVATE and DEPLOY remain owner-executed and independent.
 - Status: Implemented locally. The newer Cloudflare Email binding decision supersedes the Resend secret path; production notifications remain disabled. Rollback cleanup remains deferred.
 
-## Boss analytics case-insensitive filter correction
+### Boss analytics case-insensitive filter correction
 
 - Objective: Remove case sensitivity from operator-entered analytics text without changing stored data, ingestion or match modes.
 - Dependencies: Healthy production native analytics, shared SQL filter builder and Access-authenticated Boss.
@@ -34,7 +78,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Existing production Worker deploy, checkpoint commit and normal push after gates. No database mutation, APP_DB, DNS/routes, Access, Turnstile, CSP, staging or redesign authority.
 - Status: Complete. Worker version `7ba335b5-69b9-447c-9f86-d4bb567473d0` is 100% active and all requested live pairs match.
 
-## Production native analytics runtime correction
+### Production native analytics runtime correction
 
 - Objective: Restore real production PAGE ingestion at the proven client-host break point while preserving imported analytics and improving narrow Boss semantics.
 - Dependencies: Completed production cutover, populated isolated ANALYTICS_DB, enabled production analytics binding and Access-protected Boss.
@@ -42,7 +86,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: The approved task included the existing production Worker deploy, commit and normal push only after gates passed. It did not authorize DNS, redirect, Access, Turnstile, CSP, APP_DB content or imported-data mutation.
 - Status: Complete. Production version `78bb5f6d-2c81-4519-a426-20b63aefacac` is 100% active; native paths are visible in Boss and imported counts remain unchanged. Ordinary monitoring is the exact next step.
 
-## Production legacy analytics import readiness
+### Production legacy analytics import readiness
 
 - Objective: Preserve exact historical snapshot meaning across route evolution and make initial SQL refuse a non-empty analytics target.
 - Dependencies: Verified 5,154-record prefix evidence, final 5,294-record export and empty migrated production ANALYTICS_DB.
@@ -50,7 +94,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Local planner changes and read-only production verification only. COMMIT, PUSH, DATABASE execution, DEPLOY, ACTIVATE and every provider mutation remain separate.
 - Status: Gates passed; planner is READY-FOR-IMPORT. Review and a separate commit/push decision are next; production SQL execution is not authorized.
 
-## Phase 2C — Complete clean public renderer
+### Phase 2C — Complete clean public renderer
 
 - Objective: Preserve the approved public product while replacing Stats, Portfolio, About, CTA, Footer and Contact with explicit immutable snapshot-slice renderers and disposing of the temporary content context.
 - Dependencies: Owner-accepted Phase 2B renderer, strict published snapshot, centralized navigation and deterministic scroll lifecycle.
@@ -60,7 +104,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Local implementation and focused BUILD only. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER and production remain separately unauthorized.
 - Status: Implementation and focused verification complete locally at committed base `b0ca7b2`; owner visual review is next, followed only by separately authorized Git/deployment work. `/card` is the next feature phase after acceptance.
 
-## Phase 2B — Clean public renderer foundation
+### Phase 2B — Clean public renderer foundation
 
 - Objective: Preserve the approved visual product while replacing the Header, Hero and MY EXPERTISE implementation with explicit immutable snapshot-slice consumers.
 - Dependencies: Deployed strict `PublishedSiteSnapshot`, deterministic navigation/scroll lifecycle and approved visual baseline.
@@ -70,7 +114,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Local implementation and focused BUILD only. COMMIT, PUSH, DEPLOY, DATABASE, PROVIDER and production actions remain separately unauthorized.
 - Status: Complete, committed, pushed and owner-accepted on staging at `e4ea9db`. A narrow pre-Phase 2C Contact accessibility cleanup is focused-verified locally and remains uncommitted/undeployed; Phase 2C has not started.
 
-## Phase 2A — Deterministic public lifecycle completion
+### Phase 2A — Deterministic public lifecycle completion
 
 - Objective: Preserve deep scroll positions across the strict asynchronous public bootstrap and add the approved presentation-only BootIntro without creating a second content or readiness authority.
 - Dependencies: Deployed Phase 1 strict `PublishedSiteSnapshot` boundary and completed staging content authority.
@@ -79,7 +123,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Phase 2A is deployed to staging. Future COMMIT, PUSH, DEPLOY, provider/database mutation and production work remain separate boundaries.
 - Status: Complete and deployed through commit `2f2acb3`, staging Worker version `1492a0b9-d7fc-4a5a-ab54-4206ba934bf4`.
 
-## Phase 1D — Clean public-runtime foundation
+### Phase 1D — Clean public-runtime foundation
 
 - Objective: Make APP_DB published content the sole public runtime authority through an atomic snapshot and explicit bootstrap boundary.
 - Dependencies: Canonical twelve-section CMS contract, public content endpoint, existing visual baseline.
@@ -88,7 +132,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: BUILD is complete locally; content publication, DATABASE, MIGRATE, COMMIT, PUSH and DEPLOY remain separate.
 - Status: Implemented locally and not deployed. Phase 1.5 completed and strictly validated the required staging APP_DB fields through the existing Boss publication workflow. Commit, push and staging deployment remain separately unauthorized. Production content was untouched, and full historical-file disposal has not begun.
 
-## Phase 0 — Legacy baseline
+### Phase 0 — Legacy baseline
 
 - Objective: Audit the legacy implementation, document actual behavior, remove repository residue, and publish a clean baseline.
 - Dependencies: Existing repository and source-backed verification.
@@ -97,7 +141,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Documentation, hygiene, build, commit, and push were separately approved in their applicable subphases.
 - Status: Complete at `e3467d221470f5776bf435a5c770a17d0c45f7fb`.
 
-## Phase 1A — Modernization clone and governance
+### Phase 1A — Modernization clone and governance
 
 - Objective: Create an isolated clone/branch and establish the permanent governance and documentation model.
 - Dependencies: Clean synchronized Phase 0 baseline.
@@ -106,7 +150,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Clone, branch, documentation, and one local commit only; no push or deployment.
 - Status: Complete at `392d333b2da2ffc1754d6f0e3ba79c542ff0144a`.
 
-## Phase 1B — Visual/frontend baseline freeze
+### Phase 1B — Visual/frontend baseline freeze
 
 - Objective: Capture reproducible visual, responsive, navigation, interaction, and motion behavior before migration.
 - Dependencies: Phase 1A governance.
@@ -115,7 +159,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Inspection and approved baseline artifacts; build, commit, or browser automation only when separately authorized.
 - Status: Complete in the local Phase 1B commit containing the tracked visual baseline.
 
-## Phase 1C — Modernization branch publication
+### Phase 1C — Modernization branch publication
 
 - Objective: Publish the reviewed local modernization history to a same-named remote branch and establish upstream tracking.
 - Dependencies: Completed Phase 1A and Phase 1B commits, clean working tree, absent remote branch, and non-deployment workflow verification.
@@ -124,7 +168,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Documentation, one local commit, and normal push of `develop/hakan-run-v2` only; no main push, deploy, provider, or runtime change.
 - Status: Complete at `9f1d5ce444c62126fd217628717372006678e4c4`; upstream tracking established.
 
-## Phase 2A — Cloudflare staging architecture/specification
+### Phase 2A — Cloudflare staging architecture/specification
 
 - Objective: Define the reviewed architecture, resource map, environment isolation, request flows, data ownership, trust model, and operational procedures for an isolated staging delivery/runtime foundation without provisioning it.
 - Dependencies: Phase 1B baseline and completed Phase 1C branch publication.
@@ -143,7 +187,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
   10. Legacy surfaces that do not migrate recorded as durable decisions: `/run/`, Formspree, and `/control-room` are excluded from the target with no compatibility routes, and staging content authority is the isolated staging `APP_DB`.
 - Status: Complete as specification; see `docs/ARCHITECTURE.md`, `docs/ENVIRONMENTS.md`, `docs/SECURITY.md`, `docs/OPERATIONS.md`, and decisions D-017 to D-020. The remaining open items are configuration values, not architectural questions, and do not block provisioning.
 
-## Phase 2B — Cloudflare staging provisioning
+### Phase 2B — Cloudflare staging provisioning
 
 - Objective: Create the isolated staging resources defined in Phase 2A, without deploying application delivery.
 - Dependencies: Phase 2A specification accepted. The architectural questions are settled by decisions D-017 to D-020; the outstanding items are configuration values that are chosen during provisioning rather than blockers to starting it.
@@ -154,7 +198,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: PROVIDER, ACCESS, SECRET, DATABASE, and DNS each require separate explicit authorization. Provisioning does not authorize DEPLOY or ACTIVATE.
 - Status: **Complete.** Every staging resource exists and was verified against the provider: both D1 databases, the Worker `hakan-run-web-staging` (`944dbffc89f2490cbc0288a819502ad6`) with both bindings and the daily cron trigger, the `staging.hakan.run` custom domain, the Turnstile widget with its secret set as a Worker secret, and the Access application `hakan-run-boss-staging` (`4f3f249c-5a5e-4a14-a673-12f7282d96a8`) over `/boss`, `/boss/*` and `/api/boss/*` under a One-time PIN `owner-only` policy with a 24-hour session. The provisioning order was forced by the platform: a Worker begins to exist at its first deployment, the Access application needs the hostname that deployment creates, and the audience tag can only be read back afterwards. The second deployment, version `59a843f7-a5f5-44ac-8038-9233a6abd8fb`, closed that window and carries `ACCESS_AUD_BOSS`. The staging Access application now sits on the renamed account-wide team domain `dndrnet.cloudflareaccess.com`. No production resource was created or touched.
 
-## Phase 2C — Staging schema and Boss V3 foundation
+### Phase 2C — Staging schema and Boss V3 foundation
 
 - Objective: Define and apply the staging `APP_DB` and `ANALYTICS_DB` schemas, including the analytics coverage ledger, and stand up the Boss V3 shell behind Access.
 - Dependencies: Phase 2B resources complete, including the Worker, Access application and staging hostname.
@@ -163,7 +207,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: DATABASE, MIGRATE, ACCESS and DEPLOY remain separate.
 - Status: **Complete for content: schemas applied, Boss shell live, public read path serving `APP_DB`, bootstrap executed and verified. The legacy analytics import is designed, migrated and tested but not executed — it waits on a fresh production export. Outstanding: that import, and the visual-parity/caching smoke assertions.** `0001_init.sql` is applied to both staging databases and verified by reading `sqlite_master` and the `d1_migrations` ledger — the analytics coverage ledger is present from the first migration, as the design requires. The analytics query layer, Boss V3 API surface, Access verification, PAGE ingestion and submission path are implemented and covered by 41 local tests, and are deployed in the first staging version. The deployment that carries `ACCESS_AUD_BOSS` has been performed. Two defects then had to be corrected in configuration: `ACCESS_TEAM_DOMAIN` named the Access login page's organisation-name text rather than the account's Zero Trust team domain, and no `run_worker_first` routing was declared, so browser navigation to `/boss` and `/api/boss/*` was answered by the static asset fallback before the Worker ran. Both are corrected and deployed in version `a445f4e3-2cdc-4401-a9de-826b20e5cfd9`, whose private-surface and routing assertions were verified in a fresh session. Staging indexing hygiene is implemented in the build and deployed in version `3cec5ac6-a3db-4d3e-b26c-37e085d8f5fc`, whose `robots.txt`, empty sitemap and `noindex, nofollow` directive were verified live; a zone-level Cloudflare Managed Content block that prepends its own `Allow: /` is recorded as an open issue in `docs/OPERATIONS.md`. The Boss V3 frontend shell is implemented and live: six routes matching the six canonical modules, reading the existing Boss APIs only, deployed in version `bbe8f4e6-1fb3-47e7-8081-5dfb56a1e875` from commit `cefa9b1` and walked section by section behind a real Access session. The SPA 404 on an authenticated `/boss` is resolved. The public content read path now exists: `GET /api/content` serves published rows from `APP_DB` only, with source-controlled ordering and fail-closed handling of corrupt persisted content, and the frontend consumes it as its primary runtime source while distinguishing content, nothing-published, transport failure and malformed contract. The authoritative production export is in the repository and the bootstrap dataset is composed, normalised and validated: twelve canonical sections, ten from production and `typography`/`visibility` promoted out of the bundled fallback, with `contact.formEndpoint` excluded and one absolute production image URL rewritten. The contact form now posts to the Worker's `POST /api/contact` with Turnstile, and `/api/config` serves the environment's site key. The bootstrap has been executed and verified: twelve sections, twelve revisions and twelve audit events in staging `APP_DB`, all at revision 1, no drafts, no Formspree reference, and a coherence query returning zero rows. Staging version `634cf810-21f4-4c05-972e-48dc97d4027b` from commit `4c59b6e` serves production-derived content from `APP_DB`, the four portfolio cards render with local assets, and a real contact submission was accepted through the Worker with Turnstile and persisted to `APP_DB`. **`APP_DB` is the canonical content authority for staging.** Remaining: the zone decision, the legacy `/control-room` analytics history import, and the visual-parity and caching parts of the smoke matrix.
 
-## Phase 9B — Editable social / OG card
+### Phase 9B — Editable social / OG card
 
 - Objective: Generate the served social/OG card from published `APP_DB` content instead of a hand-maintained PNG.
 - Dependencies: Content authority in `APP_DB` and the Boss Content module.
@@ -173,7 +217,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Content model and deployment changes are separate.
 - Status: Planned; see decision D-023.
 
-## Phase 3 — React/Vite on Cloudflare staging
+### Phase 3 — React/Vite on Cloudflare staging
 
 - Objective: Deliver the unchanged React/Vite application on staging and demonstrate visual/behavioral parity.
 - Dependencies: Phases 1B, 2A, and completed Phase 2B provisioning. A deployment serving dynamic content additionally requires the staging `APP_DB` content schema and a completed one-time content bootstrap.
@@ -185,7 +229,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
   push and any staging deployment remain separate actions.
 - Status: Planned.
 
-## Phase 4 — First-party PAGE analytics
+### Phase 4 — First-party PAGE analytics
 
 - Objective: Introduce bounded first-party PAGE-event analytics on the Analytics V3 design — raw detail never purged automatically, aggregates read only through an explicit coverage ledger, raw fallback for uncovered/current/partial days — replacing the legacy `/run/` visitor log rather than porting it.
 - Dependencies: Stable staging runtime and approved analytics schema.
@@ -194,7 +238,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: DATABASE, MIGRATE, DEPLOY, SECRET, and production activation are separate.
 - Status: Planned.
 
-## Phase 5 — Durable submissions, Turnstile, and Resend
+### Phase 5 — Durable submissions, Turnstile, and Resend
 
 - Objective: Persist contact submissions first, validate abuse controls, and notify secondarily, replacing the third-party form endpoint rather than keeping it alongside.
 - Dependencies: Application data authority, staging runtime, approved privacy and notification design.
@@ -203,7 +247,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: DATABASE, MIGRATE, PROVIDER, SECRET, DEPLOY, and ACTIVATE are separate.
 - Status: Planned.
 
-## Phase 6 — Boss Mode B
+### Phase 6 — Boss Mode B
 
 - Objective: Implement Dashboard, Analytics, Content, Submissions, Audit, and System as a private operational surface.
 - Dependencies: Server-enforced identity, application/analytics authorities, staging resources.
@@ -212,7 +256,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: ACCESS, DATABASE, MIGRATE, SECRET, DEPLOY, and ACTIVATE are separate.
 - Status: Planned.
 
-## Phase 7 — Structured content and publishing authority
+### Phase 7 — Structured content and publishing authority
 
 - Objective: Establish one explicit content authority and defined publishing semantics.
 - Dependencies: Boss authorization and application data model.
@@ -221,7 +265,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: DATABASE, MIGRATE, DEPLOY, and content activation are separate.
 - Status: CMS V2 implemented and validated locally across twelve sections, including private saved/unsaved preview. Owner local fixture acceptance passed by owner report (1 passed, 2.9m). Separately authorized staging deployment and real Access/APP_DB acceptance remain pending. See [CMS V2](CONTENT-CMS-V2.md).
 
-## Phase 8 — Public content and positioning refinement
+### Phase 8 — Public content and positioning refinement
 
 - Objective: Refine public copy and positioning after platform and authority stabilization.
 - Dependencies: Visual baseline and structured publishing authority.
@@ -230,7 +274,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Content approval, commit, push, and deployment are separate.
 - Status: Planned.
 
-## Phase 9 — `/card`
+### Phase 9 — `/card`
 
 - Objective: Define and implement the approved `/card` product surface.
 - Dependencies: Stable public delivery, brand rules, and explicit product requirements.
@@ -239,7 +283,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: BUILD, COMMIT, PUSH, and DEPLOY are separate.
 - Status: **Implemented and focused-verified locally as Phase 3A.** The route is the physical-card QR destination, projects canonical PublishedSiteSnapshot values, uses the existing owner portrait, creates a local vCard 4.0 download and passes responsive/accessibility/navigation regression coverage. Owner visual review, commit, push and staging deployment remain separate gates. Production cutover is the next major phase after acceptance.
 
-## Phase 10 — Production cutover
+### Phase 10 — Production cutover
 
 - Objective: Move verified modernization delivery to production with rollback readiness.
 - Dependencies: Completed staging acceptance, data/security validation, approved runbook.
@@ -248,7 +292,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: DEPLOY, ACTIVATE, DNS, PROVIDER, SECRET, DATABASE, and rollback actions are separate.
 - Status: Pre-cutover content planning is READY locally. The fresh production export remains primary; an exact twelve-field, non-overriding supplement closes the reviewed legacy-schema gap with complete provenance. Planner JSON and SQL exist only as owner-held review evidence and no import, commit, push, deployment or production mutation is authorized.
 
-## Phase 11 — Optional Astro migration
+### Phase 11 — Optional Astro migration
 
 - Objective: Evaluate and, only if justified, migrate frontend architecture while preserving approved behavior.
 - Dependencies: Stable production platform, measured need, Phase 1B parity baseline.
@@ -257,7 +301,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 - Authorization boundaries: Framework/dependency changes, BUILD, COMMIT, PUSH, and DEPLOY are separate.
 - Status: Optional; not approved for implementation.
 
-## Phase 12 — Career ecosystem synchronization
+### Phase 12 — Career ecosystem synchronization
 
 - Objective: Synchronize approved public identity and positioning across the owner’s career ecosystem.
 - Dependencies: Stable canonical content and owner-approved messaging.

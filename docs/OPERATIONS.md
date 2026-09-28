@@ -1,6 +1,30 @@
 # Operations
 
-## Cloudflare Email provider transition order
+## Current production operation — 2026-09-28
+
+The owner reports the final post-cutover health check as HEALTHY, production
+STABLE, and rollback infrastructure PRESERVED. Latest verified production Worker
+version: `14cb9181-2ab4-40f8-acae-9f4b91344c7a`. This documentation task did
+not query or change the live provider.
+
+For an authorized production check, confirm the apex Worker route, Access-protected
+Boss, isolated `APP_DB`/`ANALYTICS_DB`, native PAGE analytics, and the flags and
+restricted `EMAIL` binding against [ENVIRONMENTS.md](./ENVIRONMENTS.md) and the
+deployed configuration. Prefer read-only health evidence; create a controlled
+Contact submission only when that test is separately justified and authorized.
+The completed cutover acceptance submission showed `APP_DB` persistence before
+notification, provider `cloudflare_email`, one attempt, populated timestamps and
+a provider message ID in Boss. That attempt count is historical evidence, not a
+requirement for every future submission. Do not use historical `resend` records
+to infer current provider health.
+
+For recovery, preserve the stored submission and delivery metadata and diagnose
+the binding or provider result separately. Any Worker rollback, flag change,
+provider action or deployment requires its own authorization. Legacy Hostinger
+and Supabase remain available for rollback and must not be decommissioned by
+routine health checks. This checkpoint performs no such operation.
+
+## Cloudflare Email provider transition order — completed historical procedure
 
 This local provider change introduces no database migration or secret operation. The
 owner-executed sequence is:
@@ -663,7 +687,7 @@ No native event is imported, updated or deleted. Never initialize production fro
 staging databases. September 5 counts/cutoff remain historical reconciliation facts,
 not final production totals or the final export source.
 
-## Current local CMS V2 acceptance
+## CMS V2 local acceptance — historical checkpoint
 
 CMS V2 is not deployed. Owner local fixture acceptance is complete by owner report: 1 passed (2.9m); do not repeat it as a prerequisite. The [local fixture acceptance procedure](CONTENT-CMS-V2.md#local-acceptance) remains a reproducible reference. The fixture uses no D1 and supports draft saves only. Local validation is not authorization to commit, push, deploy or publish content. Older deployment checkpoints below are historical.
 
@@ -756,7 +780,7 @@ For documentation-only phases:
 5. inspect the full diff and staged diff;
 6. confirm no runtime, dependency, generated output, test artifact, or local configuration entered scope.
 
-## Current deployment state
+## Earlier staging deployment state — historical checkpoint
 
 The legacy repository describes manual deployment of `dist/apps/web/` to a static web root and separate PHP files under `/run/`. The GitHub workflow tests only. Phase 1A did not build, push, deploy, migrate, inspect production, or alter the legacy host.
 
@@ -774,13 +798,13 @@ git push --set-upstream origin develop/hakan-run-v2
 
 This command is branch-specific. It does not authorize a push to `main`, a force push, or any deployment.
 
-## Rollback and recovery
+## Earlier rollback planning — historical checkpoint
 
 Until modernization delivery exists, the verified repository rollback/reference point is legacy `main@e3467d221470f5776bf435a5c770a17d0c45f7fb`. This is a source baseline, not a claim that a matching production artifact or provider snapshot has been archived.
 
 Future staging and production work must define artifact identity, data backup, migration recovery, activation, cache/DNS behavior, smoke tests, and rollback before cutover.
 
-## Planned staging deployment, promotion, and rollback — not implemented
+## Historical staging deployment, promotion, and rollback plan
 
 This section is specification for the Cloudflare staging foundation. No resource exists, no command here has been executed, and none is yet canonical. Resource naming and bindings are in [ENVIRONMENTS.md](./ENVIRONMENTS.md).
 

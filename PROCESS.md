@@ -3573,3 +3573,29 @@ later explicit DATABASE authorization and fresh target verification.
 - Deliberate non-actions: No commit, push, fetch, deploy, remote read/write, migration, database mutation, provider mutation, notification attempt or activation, DNS, Access, Turnstile, analytics or public behavior change.
 - Commit identity: No commit created. A later authorized commit must use only `Hakan Dundar <hakan@dndr.net>` with no trailers or generated attribution.
 - Exact next action: Owner reviews and checkpoints the diff, deploys the exact commit with notifications disabled, verifies the restricted binding and Boss readiness, then separately authorizes `NOTIFICATIONS_ENABLED=true` if desired.
+
+## 2026-09-28 — Production-state documentation reconciliation
+
+- Objective: Reconcile active documentation with the completed Cloudflare Email production cutover and record the owner's approved next product direction without implementing it.
+- Starting Git state: Clean `develop/hakan-run-v2` at `c5666e67dd96019b1a6556f223f43f8208f6d382`; recent provider migration was `e411b5fbc963fe81d740403d120fcd69daf8041a`.
+- Approved scope: Active repository documentation only. No application, test, Worker, configuration, content, asset or provider change.
+- Changed files: `README.md`, `HANDOFF.md`, `PROCESS.md`, `docs/CURRENT_STATE.md`, `docs/ROADMAP.md`, `docs/DECISIONS.md`, `docs/ENVIRONMENTS.md`, `docs/OPERATIONS.md`, `docs/SECURITY.md`, and `docs/ARCHITECTURE.md`.
+- Production evidence: Source-controlled production flags enable analytics and notifications while disabling CMS writes; the owner supplied the successful Contact/APP_DB/Cloudflare Email/Boss readback and final HEALTHY/STABLE/PRESERVED health result. Latest owner-verified Worker version is `14cb9181-2ab4-40f8-acae-9f4b91344c7a`. No live provider or D1 read was made in this task.
+- Architecture/data/security implications: Cloudflare Email is the sole active notification transport, with fixed sender/recipient and validated Reply-To. APP_DB remains the submission and private-diagnostics authority; ANALYTICS_DB remains separate. Historical `resend` rows and preserved Hostinger/Supabase rollback infrastructure are not changed.
+- Planned direction: First-party `/notes` Engineering Notes with concern-based categories and curated writing; later OC-CA Portfolio card; later removal of the AI-generated About workstation image while retaining the real owner portrait; focused QA and owner checkpoint before any separately authorized deployment.
+- Validation: `git diff --check` passed; changed-file list contains only the ten documentation files named above. Stale-assertion search found only dated historical checkpoints or staging values; attribution search found no added attribution. `PROCESS.md` diff is an append-only 16-line entry. No application suite ran.
+- Failures and corrections: The first README patch missed a multi-line match and applied no changes; a narrower patch succeeded. No runtime failure occurred.
+- Deliberate non-actions: No commit, push, deploy, database query or mutation, provider, DNS, Access, Turnstile, Contact, notification, feature-flag or rollback cleanup operation; no full application test suite.
+- Commit identity: No commit created. Any future authorized commit must use only `Hakan Dundar <hakan@dndr.net>` with no attribution trailers.
+- Push/deploy/migration state: None performed for this checkpoint; production remains at the owner-reported healthy cutover state.
+- Exact next action: In a separate bounded implementation task, design and implement Engineering Notes information architecture/runtime at `/notes`; prepare the first curated content batch afterward. Deployment requires separate explicit authorization.
+
+## 2026-09-28 — Documentation checkpoint review corrections
+
+- Objective and starting state: Correct only the documentation issues found in the review of the uncommitted reconciliation diff on `develop/hakan-run-v2` at `c5666e67dd96019b1a6556f223f43f8208f6d382`.
+- Approved scope and changed files: Documentation only; this follow-up refined `README.md`, `HANDOFF.md`, `docs/ARCHITECTURE.md`, `docs/CURRENT_STATE.md`, `docs/DECISIONS.md`, `docs/ENVIRONMENTS.md`, `docs/OPERATIONS.md`, `docs/ROADMAP.md`, `docs/SECURITY.md`, and appended this entry to `PROCESS.md`.
+- Corrections: The preceding reconciliation entry overstated the stale-assertion search result. The review found undated historical resource/roadmap statuses and an incorrect 202-before-email ordering claim. Current resource values now have one map, older plans are visibly historical, the ordering follows the durable-write invariant, and future operations do not require another production submission merely to repeat the acceptance test.
+- Architecture/data/security implications: No runtime or data change. First-party Notes authority is planned and remains unimplemented; production submission and analytics authorities are unchanged.
+- Validation and failures: `git diff --check` passed; ten changed paths are documentation only; a byte-normalized check confirmed the committed `PROCESS.md` remains an unchanged prefix. Stale-expression matches are confined to labeled historical sections or current statements that explicitly reject Resend. The attribution scan found no new markers, and no application suite ran. The review findings above were documentation defects, not runtime failures.
+- Deliberate non-actions and Git state: No code, tests, configuration, content data, assets, provider, database, DNS, Access, Turnstile, feature flag or production action; no commit, push, deploy or migration. No commit identity exists for this checkpoint; a later authorized commit must use only `Hakan Dundar <hakan@dndr.net>` without trailers.
+- Exact next action: Review the corrected documentation diff as one checkpoint. Notes implementation, editorial work, commit/push and deployment each remain separate authorized steps.

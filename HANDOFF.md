@@ -1,5 +1,28 @@
 # hakan.run Modernization Handoff
 
+## Production notification cutover and documentation checkpoint — 2026-09-28
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2` / `c5666e67dd96019b1a6556f223f43f8208f6d382` at the start of this documentation-only task |
+| Current phase | Production cutover stable; documentation reconciliation, then approved Engineering Notes work |
+| Completed | Cloudflare Email onboarding, restricted binding deployment, production notification activation, successful Contact persistence/delivery and Boss readback; owner-reported final post-cutover health check: HEALTHY |
+| Exact next action | Review the corrected documentation diff as one checkpoint; commit and push each require separate authorization. Then scope first-party `/notes` architecture/runtime work separately |
+| Prohibited actions | This task does not authorize code, content, asset, provider, database, DNS, Access or Turnstile changes; no commit, push, deployment or rollback cleanup |
+| Push state | HEAD is the production activation commit; no push is authorized or performed for this documentation checkpoint; remote tip not checked here |
+| Deploy state | Owner-reported latest production Worker version `14cb9181-2ab4-40f8-acae-9f4b91344c7a`; no deployment in this task |
+| Infrastructure state | Owner-reported production STABLE; apex on Cloudflare Worker, Boss behind Access, isolated `APP_DB` and `ANALYTICS_DB`, native PAGE analytics active, Cloudflare Email sole active notification provider; legacy Hostinger and Supabase retained for rollback |
+
+Production notifications and PAGE analytics are enabled; CMS writes remain
+disabled in source-controlled configuration. The restricted sender/recipient
+binding is recorded in [ENVIRONMENTS.md](./docs/ENVIRONMENTS.md), and validated
+visitor email is Reply-To only. The successful controlled submission persisted in
+`APP_DB` before delivery; Boss readback showed `cloudflare_email`, one attempt, populated
+attempted/notified times and a provider message ID. Historical `resend` rows remain
+records, not an active provider path. The earlier sections below are dated
+checkpoints, not current operational instructions.
+
 ## Cloudflare Email notification provider migration — local, 2026-09-15
 
 | Field | Current value |

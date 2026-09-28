@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-040 — Engineering Notes is first-party engineering writing
+
+- Decision: Publish Engineering Notes as first-party content at `/notes` on `hakan.run`. Source-controlled articles are the initial editorial authority unless a later decision explicitly changes that boundary. `notes.dndr.net` may serve as editorial reference but cannot be a runtime dependency or article authority.
+- Context: The owner approved a place to explain reasoning, failure analysis, architectural tradeoffs and operational lessons from real systems.
+- Alternatives considered: A generic blog; project-name categories; an iframe, API or redirect to `notes.dndr.net`; social or newsletter features in the initial design.
+- Rationale: First-party delivery and one explicit editorial authority keep the writing tied to Hakan's engineering work without adding an external runtime dependency.
+- Consequences: Article routes and content must resolve entirely on `hakan.run`. Navigation labels, taxonomy and initial article order remain design choices in the roadmap. Editorial review and deployment remain separate gates.
+- Status: Approved product direction on 2026-09-28; not implemented.
+
 ## D-039 — Notification delivery uses a restricted Cloudflare Email binding
 
 - Decision: Replace Resend REST delivery with `env.EMAIL.send`, restricted in each Worker environment to recipient `hakan@dndr.net` and sender `noreply@hakan.run`.
@@ -9,7 +18,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Keep Resend and its API key; call Cloudflare Email through a separate HTTP credential; omit delivery while retaining only persistence.
 - Rationale: A native restricted binding removes a secret and external HTTP integration while retaining the existing persistence-first and observable delivery contract.
 - Consequences: The validated sender becomes reply-to only. New outcomes use provider `cloudflare_email` and map `messageId` into the existing request-identity column. No migration rewrites historical `resend` rows. Activation remains separately gated by `NOTIFICATIONS_ENABLED`.
-- Status: Approved and implemented locally; not committed, pushed, deployed or activated.
+- Status: Implemented, committed in `e411b5f`, and activated in production by `c5666e6`; owner-reported post-cutover health check healthy. Historical `resend` rows remain records only.
 
 ## D-038 — Request diagnostics stay with the private submission
 
@@ -18,7 +27,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Trust `X-Forwarded-For`, copy the data to ANALYTICS_DB, create a fingerprint/profile table, return every field in the compact list, or depend on transient provider logs.
 - Rationale: `CF-Connecting-IP` and `request.cf` provide bounded request context at the platform boundary; the submission is the single operational authority and Inspect is the only consumer.
 - Consequences: Migration `0003` must precede deployment. Existing rows remain NULL. The metadata follows the future submission-retention policy, not analytics retention, and remains unavailable publicly.
-- Status: Implemented and focused-verified locally on 2026-09-15; not committed, migrated or deployed.
+- Status: Implemented locally on 2026-09-15, committed in `4b0442e`, migrated and deployed before the successful production Contact/Boss readback supplied for the 2026-09-28 checkpoint.
 
 ## D-037 — Delivery observability stays with the durable submission
 
@@ -27,7 +36,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Copy submissions into ANALYTICS_DB, depend on the provider dashboard, store a fixed UTC-8 offset, or keep the manual page input.
 - Rationale: Submission and delivery form one operational aggregate; IANA conversion handles PST/PDT; page-range options improve navigation without changing server ordering.
 - Consequences: A forward APP_DB migration must precede deployment. Provider secret and notification activation remain independent approvals.
-- Status: Implemented and focused-verified locally on 2026-09-15; not committed, migrated, activated or deployed.
+- Status: Implemented locally on 2026-09-15, committed in `e9c0001`, migrated and deployed before the successful production Contact/Boss readback supplied for the 2026-09-28 checkpoint. Notification activation followed separately in `c5666e6`.
 
 ## D-036 — Operator-entered analytics text is case-insensitive in SQL
 

@@ -2,11 +2,10 @@
 
 Personal portfolio and content platform for **Hakan Dundar**, a software developer and QA automation engineer based in Irvine, California.
 
-The current local follow-up replaces Resend HTTP delivery with Cloudflare Email
-Sending through a restricted Worker `EMAIL` binding. Contact submissions still
-persist first in APP_DB; delivery outcomes remain attached to that record, and
-notifications remain disabled pending a separate owner activation. No email API key
-or external-provider fallback is part of the runtime.
+Production contact notifications use Cloudflare Email Sending through a restricted
+Worker `EMAIL` binding. Contact submissions persist first in `APP_DB`; delivery
+outcomes remain attached to that record. Notifications are enabled in production,
+with no Resend API key or provider fallback in the active runtime.
 
 Live site: [hakan.run](https://hakan.run)
 
@@ -35,52 +34,15 @@ assets, APIs, Boss routes and unknown routes cannot become PAGE events. Boss exp
 separate `native` and `legacy_panel` filters. Its oldest-event Dashboard card is
 explicitly native-scoped because it describes the native raw-detail retention action.
 
-The modernization branch has a deployed staging clean public-runtime boundary.
-Public paths render only after one complete, validated, immutable twelve-section
-snapshot has been read from `GET /api/content` and therefore from `APP_DB`. Before
-React, the static root is empty over a uniform `#090909` canvas. Runtime loading
-remains a blank, childless `#090909` surface; any authority or contract failure shows an explicit
-error and never source-bundled copy. Public, Boss and preview have separate entry
-trees. The Phase 1 checkpoint is committed, pushed and deployed to staging; production
-is untouched.
-
-[CMS V2](./docs/CONTENT-CMS-V2.md) provides the private twelve-section editor and
-saved/unsaved preview. The authorized Phase 1.5 publication completed the missing
-canonical fields in staging APP_DB, and a fresh public API readback passes the strict
-snapshot contract. Production content was not changed; commit, push and staging code
-deployment remain separate authorization gates for subsequent work.
-
-Phase 2A deterministic history-entry scroll restoration, first-entry-only BootIntro,
-immutable intro canvas, blank React LOADING and Footer mark parity are deployed to
-staging. Commit `9e99fe1` also deletes the earlier static HTML skeleton and its inline
-rules, leaving an empty pre-React root. Commit `2f2acb3` keeps one
-`ScrollManager` but records continuous scroll motion in entry-keyed memory and writes
-History API state only at stable checkpoints. This prevents smooth scrolling from
-exhausting browser history frequency limits and preserves indefinite hash-to-hash
-PUSH navigation, reload restoration and Back/Forward semantics.
-
-Phase 2B and Phase 2C are committed, pushed, deployed and owner-accepted on staging.
-Every public section consumes an explicit immutable snapshot slice; the temporary
-`ContentContext`, superseded section components and source-backed Project renderer
-are deleted. Contact keeps its labels, autocomplete, Turnstile and Worker behavior.
-
-Phase 3A implements `/card` locally as the QR destination for Hakan's physical
-business card. The compact route projects identity, the real owner portrait,
-Portfolio, LinkedIn, GitHub and email from the validated snapshot and offers a local
-vCard 4.0 download. It adds no CMS section, fallback content or third-party contact
-service. Owner visual review is pending; `/card` is not committed or deployed.
-
-Production content cutover planning now has a local migration-only supplement
-contract for the twelve strict fields absent from the legacy production model. It
-accepts only those paths, refuses to overwrite production values, binds the reviewed
-staging evidence and records complete provenance. The planner is offline; generated
-SQL is review evidence only and has not been executed.
-
-The legacy analytics planner now binds each verified prefix to its versioned
-public-route classification contract, while appended records use current routes.
-Initial import SQL fails before any write unless all six analytics tables are empty.
-The final 5,294-record production plan and full in-memory reconciliation are ready
-for review; no analytics SQL has been executed against D1.
+Public paths render from a complete, validated twelve-section `APP_DB` snapshot;
+the public application has no source-bundled content fallback. Public, Boss and
+preview have separate entry trees. [CMS V2](./docs/CONTENT-CMS-V2.md) provides
+the private editor and preview; production CMS writes remain disabled. The React
+public shell serves `/`, `/contact`, and the snapshot-derived `/card`; the home
+navigation links to sections, while Portfolio cards use published external URLs.
+Snapshot failure shows an explicit error instead of bundled copy. Hash navigation,
+reload and Back/Forward use the shared scroll manager. Detailed behavior and phase
+evidence are in [Architecture](./docs/ARCHITECTURE.md) and [Operations](./docs/OPERATIONS.md).
 
 ## Legacy technology reference
 
@@ -123,7 +85,7 @@ Portfolio cards require published external destinations.
 
 - Public content is validated atomically and fails closed; partial or legacy-bearing data is never rendered.
 - `/boss`, `/boss/*`, and `/api/boss/*` remain protected by Cloudflare Access plus independent Worker verification and owner identity checks.
-- Production CMS writes, first-party analytics, and notifications remain disabled in source-controlled production configuration.
+- Production CMS writes remain disabled; first-party PAGE analytics and contact notifications are enabled in source-controlled production configuration.
 - APP_DB and ANALYTICS_DB resources are isolated between staging and production.
 - Contact persistence remains authoritative before any optional notification attempt.
 

@@ -1,18 +1,45 @@
 # Architecture
 
+## Implemented production topology — 2026-09-28
+
+The Cloudflare Worker serves the `hakan.run` apex and delivers static public
+assets with purpose-specific API routes. Boss is protected by Cloudflare Access
+and independent Worker authorization. Production and staging mutable resources
+are isolated. Production `APP_DB` is the authority for published content and
+contact submissions; production `ANALYTICS_DB` is the separate PAGE analytics
+authority. Imported legacy analytics remain distinguished from native events.
+Production CMS writes are disabled.
+
+Cloudflare Email is the only active notification transport. A validated Contact
+request passes Turnstile and persists in `APP_DB` before notification work begins.
+After the durable write, notification runs through `waitUntil` in the deployed
+Worker; the public 202 response does not wait for delivery outcome. Delivery
+status, attempt times and provider message ID are stored on the same submission.
+The visitor email is validated Reply-To only. Private request diagnostics also
+remain in `APP_DB`, not analytics. Historical `resend` values are records, not a
+runtime fallback. Old Hostinger and Supabase systems remain preserved as rollback
+infrastructure, with no decommission planned in this task.
+
+The proposed Engineering Notes area is a future first-party `/notes` route on
+`hakan.run`; it has no implemented runtime or content yet and cannot depend on
+`notes.dndr.net` for delivery or authority.
+
 ## Native Cloudflare Email delivery boundary
 
 ```text
 validated Contact request
   -> APP_DB submission insert
-  -> public 202 acknowledgement
-  -> optional env.EMAIL.send through a restricted binding
+  -> deferred env.EMAIL.send through a restricted binding
   -> APP_DB delivery outcome on the existing submission
 ```
 
-Cloudflare Email Sending is transport only. The binding fixes the destination to
-`hakan@dndr.net` and permits only `noreply@hakan.run` as sender; the validated form
-email is reply-to. The runtime has no provider HTTP endpoint, API key or fallback.
+The public 202 response follows the durable insert without awaiting the
+notification outcome; its exact timing relative to the email attempt is not
+guaranteed.
+
+Cloudflare Email Sending is transport only. The binding fixes the destination and
+permitted sender to the values in [ENVIRONMENTS.md](./ENVIRONMENTS.md); the validated
+form email is Reply-To. The runtime has no provider HTTP endpoint, API key or fallback.
 Successful sends map the binding `messageId` to the existing request-identity field.
 Historical provider values remain valid records and are not migrated.
 
@@ -381,7 +408,7 @@ The editor and Worker share the explicit section schema. Full objects are retain
 See [CMS V2](CONTENT-CMS-V2.md) for contracts, evidence, limitations and acceptance.
 Earlier sections below retain historical context and must not be read as newer current-state claims.
 
-## Verified current architecture
+## Historical verified architecture — legacy baseline
 
 This section describes the implementation inherited from legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb`. It does not prove live provider configuration.
 
@@ -432,7 +459,7 @@ Remote sections replace fallback sections shallowly. Public Header, About, proje
 
 The repository builds the frontend into ignored `dist/apps/web/`. GitHub Actions runs Playwright tests and does not contain a deployment job. The documented legacy deployment model is manual static artifact upload plus separate PHP files. Live hosting state was not inspected in Phase 1A.
 
-## Planned target — not implemented
+## Historical target specification — superseded
 
 Everything in this section is specification. No Cloudflare, Supabase, Resend, Turnstile, DNS, or Access resource has been created, bound, or configured, and no production behavior has changed. Resource naming and bindings are recorded in [ENVIRONMENTS.md](./ENVIRONMENTS.md).
 
