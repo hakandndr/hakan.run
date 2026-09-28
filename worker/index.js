@@ -16,12 +16,22 @@ import { handleSubmission } from './public/submissions.js';
 import { handlePublicContent } from './public/content.js';
 import { handlePublicConfig } from './public/config.js';
 import { aggregationStatements, lastCompleteDay } from './analytics/aggregate.js';
+import { isKnownNoteSlug } from '../apps/web/src/notes/manifest.js';
 
 const isBossPath = (path) => path === '/boss' || path.startsWith('/boss/');
 const isBossApi = (path) => path.startsWith('/api/boss/');
 
 const denied = (reason) =>
   json({ error: 'forbidden', reason }, 403, { 'cache-control': 'no-store' });
+
+const missingNote = (method) => new Response(method === 'HEAD' ? null : `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>404 — Note Not Found | Hakan Dundar</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#090909;color:#eee;font:1.1rem/1.6 system-ui,sans-serif}main{max-width:38rem;padding:2rem}a{color:#57b8ff}</style>
+</head><body><main><p>Engineering Notes</p><h1>404 — Note not found</h1><p>This note does not exist.</p><a href="/notes">← Back to Notes</a></main></body></html>`, {
+  status: 404,
+  headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' },
+});
 
 export default {
   async fetch(request, env, context) {
@@ -73,6 +83,18 @@ export default {
     // An unmatched API path is not found; it never falls through to the SPA
     // shell, which would return 200 HTML to a broken client call.
     if (path.startsWith('/api/')) return notFound();
+
+    // Notes are source-controlled. Validate the exact route before the SPA
+    // fallback can turn an unknown article URL into a successful response.
+    if (path === '/notes' || path === '/notes/' || path.startsWith('/notes/')) {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+      const normalized = path.replace(/\/$/, '') || '/';
+      const slug = normalized.slice('/notes/'.length);
+      const valid = normalized === '/notes' || (slug && !slug.includes('/') && isKnownNoteSlug(slug));
+      if (!valid) return missingNote(request.method);
+      if (!env.ASSETS) return problem('assets_unavailable', 503);
+      return env.ASSETS.fetch(request);
+    }
 
     if (!env.ASSETS) return problem('assets_unavailable', 503);
     return env.ASSETS.fetch(request);

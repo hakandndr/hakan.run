@@ -1,5 +1,27 @@
 # Current State
 
+## Local Engineering Notes implementation — 2026-09-28
+
+Five first-party Engineering Notes articles now exist locally as Markdown under
+`apps/web/notes/`. Build tooling validates them and generates a React catalogue and
+a small slug manifest shared by the Worker and analytics classifier. The build
+emits meaningful HTML, per-route title/description/canonical/social metadata and
+production sitemap entries for `/notes` and each article. The Worker returns 404 for
+unknown Notes slugs before the SPA fallback; those slugs cannot become PAGE events.
+The homepage includes a small Notes section and the public navigation inserts
+Notes between Portfolio and About; `/card` has a direct Notes link.
+Directly opened Notes retain their built HTML while the separate CMS snapshot
+loads, and remain readable if that request fails. The two long owner drafts were
+restored to substantive engineering narratives; all five notes received a local
+source, editorial and desktop/mobile visual review.
+
+This implementation is **not deployed to production**. Its five articles and local
+visuals have completed technical review. A same-command Playwright comparison
+against clean `c5666e6` found 32 baseline failures and 28 failures in the Notes
+tree, all overlapping; no new Notes-specific failure remained. The documentation
+reconciliation was separately committed and pushed as `a825df5`. Staging
+deployment and real Cloudflare acceptance remain to be completed for Notes.
+
 ## Production after Cloudflare Email cutover — 2026-09-28
 
 The owner reports the final post-cutover health check as **HEALTHY**, production

@@ -5,12 +5,15 @@
 // system paths. Read queries therefore carry no path allow-list, which keeps
 // their index selection simple and predictable.
 
-export const CANONICAL_PAGES = ['/', '/card', '/contact'];
+import { isKnownNoteSlug } from '../../apps/web/src/notes/manifest.js';
+
+export const CANONICAL_PAGES = ['/', '/card', '/contact', '/notes'];
 export const PROJECT_PREFIX = '/project/';
 
 /** True when a normalized path is a public page worth recording. */
 export const isPublicPage = (path) => {
   if (CANONICAL_PAGES.includes(path)) return true;
+  if (path.startsWith('/notes/')) return isKnownNoteSlug(path.slice('/notes/'.length));
   if (!path.startsWith(PROJECT_PREFIX)) return false;
   const slug = path.slice(PROJECT_PREFIX.length).replace(/\/$/, '');
   return slug.length > 0 && slug.length <= 128 && /^[a-z0-9-]+$/.test(slug);

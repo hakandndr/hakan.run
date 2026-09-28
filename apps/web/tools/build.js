@@ -35,6 +35,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { applyIndexingPolicy, verifyIndexingPolicy } from './indexing.js';
 import { isolationProblem } from './dependency-isolation.js';
+import { readNotes, writeNotesArtifact, writeNotesCatalog } from './notes.js';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = path.resolve(appDirectory, '../..');
@@ -47,6 +48,8 @@ const argument = (name, fallback) => {
 
 const mode = argument('mode', 'production');
 const outputDirectory = path.resolve(appDirectory, argument('out-dir', '../../dist/apps/web'));
+const notes = readNotes();
+writeNotesCatalog(notes);
 
 const fail = (message) => {
   process.stderr.write(`\nbuild failed: ${message}\n`);
@@ -123,6 +126,7 @@ if (!fs.existsSync(path.join(outputDirectory, 'index.html'))) {
 for (const action of applyIndexingPolicy(outputDirectory, mode)) {
   console.log(`indexing policy : ${action}`);
 }
+console.log(`notes artifact  : ${writeNotesArtifact(outputDirectory, mode, notes)} static entry pages`);
 if (mode !== 'staging') {
   console.log('indexing policy : production build, artifact left untouched');
 }

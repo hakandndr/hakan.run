@@ -52,11 +52,11 @@ test('day ranges are inclusive and bounded', () => {
 });
 
 test('only public pages are recordable', () => {
-  for (const path of ['/', '/card', '/contact', '/project/full-stack-development']) {
+  for (const path of ['/', '/card', '/contact', '/project/full-stack-development', '/notes', '/notes/a-write-path-for-a-mostly-static-site']) {
     assert.equal(isPublicPage(path), true, `${path} should be recordable`);
   }
   for (const path of ['/assets/index.js', '/api/boss/system', '/boss', '/run/get_log.php',
-                      '/project/', '/project/Bad_Slug', '/control-room']) {
+                      '/project/', '/project/Bad_Slug', '/control-room', '/notes/not-a-real-note']) {
     assert.equal(isPublicPage(path), false, `${path} must never reach the event table`);
   }
 });

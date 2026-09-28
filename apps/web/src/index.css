@@ -171,3 +171,8 @@ body[data-spacing="spacious"] section { padding-top: 10rem !important; padding-b
     animation-delay: 0ms !important;
   }
 }
+/* Engineering Notes uses the existing type palette with a narrower reading measure. */
+.notes-prose { color: #b7b7bd; font-size: 1.0625rem; line-height: 1.85; }
+.notes-prose p { margin: 0 0 1.5rem; }
+.notes-prose h2 { color: #f5f5f5; font-size: 1.5rem; font-weight: 650; line-height: 1.35; margin: 2.8rem 0 1rem; }
+@media (min-width: 640px) { .notes-prose { font-size: 1.125rem; } }

@@ -7,6 +7,7 @@ import PublicExpertise from '@/public/components/PublicExpertise';
 import PublicHero from '@/public/components/PublicHero';
 import PublicPortfolio from '@/public/components/PublicPortfolio';
 import PublicStats from '@/public/components/PublicStats';
+import { NotesHomeSection } from '@/notes/NotesPages';
 
 const PublicHome = ({ snapshot }) => {
   const { content } = snapshot;
@@ -26,6 +27,7 @@ const PublicHome = ({ snapshot }) => {
       {visibility.portfolio !== false && (
         <SectionAnimator><PublicPortfolio portfolio={content.portfolio} /></SectionAnimator>
       )}
+      <NotesHomeSection />
       {visibility.about !== false && <PublicAbout about={content.about} />}
       {visibility.cta !== false && <SectionAnimator><PublicCTA cta={content.cta} /></SectionAnimator>}
     </>

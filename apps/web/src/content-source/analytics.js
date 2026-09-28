@@ -1,8 +1,12 @@
+import { isKnownNoteSlug } from '../notes/manifest.js';
+
 export const normalizePagePath = (pathname) => {
   if (typeof pathname !== 'string') return null;
   const path = pathname.replace(/\/+$/, '') || '/';
 
   if (path === '/' || path === '/card' || path === '/contact') return path;
+  if (path === '/notes') return path;
+  if (path.startsWith('/notes/')) return isKnownNoteSlug(path.slice('/notes/'.length)) ? path : null;
 
   if (/^\/project\/[^/]+$/.test(path)) {
     return path;

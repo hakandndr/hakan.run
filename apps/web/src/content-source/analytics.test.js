@@ -11,6 +11,8 @@ test('normalizes supported public paths', () => {
   assert.equal(normalizePagePath('/card/'), '/card');
   assert.equal(normalizePagePath('/contact/'), '/contact');
   assert.equal(normalizePagePath('/project/dndr-labs/'), '/project/dndr-labs');
+  assert.equal(normalizePagePath('/notes/'), '/notes');
+  assert.equal(normalizePagePath('/notes/reachable-is-not-current/'), '/notes/reachable-is-not-current');
 });
 
 test('rejects private, API, asset and unknown routes', () => {
@@ -24,6 +26,7 @@ test('rejects private, API, asset and unknown routes', () => {
     '/missing',
     '/project/',
     '/project/example/extra',
+    '/notes/not-a-real-note',
   ]) {
     assert.equal(normalizePagePath(path), null, path);
   }
@@ -34,6 +37,9 @@ test('records canonical pages on the explicit production and staging hostnames',
     assert.equal(shouldTrackPage(hostname, '/'), true);
     assert.equal(shouldTrackPage(hostname, '/card'), true);
     assert.equal(shouldTrackPage(hostname, '/contact'), true);
+    assert.equal(shouldTrackPage(hostname, '/notes'), true);
+    assert.equal(shouldTrackPage(hostname, '/notes/reachable-is-not-current'), true);
+    assert.equal(shouldTrackPage(hostname, '/notes/not-a-real-note'), false);
   }
   assert.equal(shouldTrackPage('localhost', '/'), false);
   assert.equal(shouldTrackPage('www.hakan.run', '/'), false);

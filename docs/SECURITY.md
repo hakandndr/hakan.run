@@ -1,5 +1,15 @@
 # Security
 
+## Local Engineering Notes boundary — 2026-09-28
+
+Notes articles are source-controlled Markdown, rendered as escaped headings and
+paragraphs by the build. They have no APP_DB, Boss editor, visitor write or
+`notes.dndr.net` runtime path. The Worker accepts only exact generated slugs;
+unknown slugs return 404 before the SPA fallback and cannot be recorded as PAGE
+events. A failed CMS snapshot request leaves only the built, source-controlled
+Notes HTML readable; it does not expose unpublished APP_DB content. These local
+changes have not been deployed.
+
 ## Current production notification and data boundary — 2026-09-28
 
 Production contact notifications are enabled through the restricted Cloudflare

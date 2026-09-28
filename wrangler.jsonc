@@ -14,7 +14,7 @@
     // verification never executing. Listing these routes runs the Worker
     // first for them; every other path keeps the default asset-first
     // behaviour, so static delivery is unchanged.
-    "run_worker_first": ["/api/*", "/boss", "/boss/*"]
+    "run_worker_first": ["/api/*", "/boss", "/boss/*", "/notes", "/notes/*"]
   },
   "observability": { "enabled": true },
 

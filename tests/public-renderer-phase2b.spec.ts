@@ -65,7 +65,8 @@ const serve = async (page: Page, changes: Record<string, unknown> = {}) => {
   });
 };
 
-test('Header renders its snapshot slice and delegates desktop navigation', async ({ page }) => {
+test('Header renders its snapshot slice and delegates desktop navigation', async ({ page, isMobile }) => {
+  test.skip(isMobile, 'Desktop navigation is hidden behind the mobile menu.');
   await serve(page, { header: PUBLISHED_HEADER });
   await page.goto('/');
   await waitForPublishedSite(page);
@@ -73,10 +74,11 @@ test('Header renders its snapshot slice and delegates desktop navigation', async
   const primary = page.getByRole('navigation', { name: 'Primary navigation' });
   await expect(page.locator('header')).toContainText('SNAPSHOT HEADER');
   await expect(page.locator('header')).not.toContainText('PUBLISHED SITE');
-  await expect(primary.locator('a')).toHaveText([/Services/, /Portfolio/, /About/]);
+  await expect(primary.locator('a')).toHaveText([/Services/, /Portfolio/, /Notes/, /About/]);
   expect(await primary.locator('a').evaluateAll(links => links.map(link => link.getAttribute('href')))).toEqual([
     '/#services',
     '/#portfolio',
+    '/notes',
     '/#about',
   ]);
   await expect(page.locator('[data-header-logo-slash]').first()).toHaveAttribute('fill', '#ffffff');

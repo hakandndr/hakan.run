@@ -4,9 +4,9 @@
 // not_found_handling "single-page-application", a top-level navigation that
 // matches no file receives index.html and the Worker never runs, so
 // verifyAccess never executes and /api/* returns HTML instead of JSON.
-// run_worker_first is what makes the protected and API paths reach the Worker
-// first. Dropping or widening it silently disables Worker-side verification for
-// browser navigation, which is why it is pinned here rather than left to review.
+// run_worker_first makes protected, API, and Notes paths reach the Worker
+// first. Notes needs exact-slug validation before the SPA fallback. Dropping
+// or widening these patterns changes their HTTP contract.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,7 +22,7 @@ const parseJsonc = (raw) =>
 const config = parseJsonc(readFileSync(fileURLToPath(CONFIG_URL), 'utf8'));
 const assets = config.assets ?? {};
 
-const EXPECTED_WORKER_FIRST = ['/api/*', '/boss', '/boss/*'];
+const EXPECTED_WORKER_FIRST = ['/api/*', '/boss', '/boss/*', '/notes', '/notes/*'];
 
 test('the SPA fallback is still what makes Worker-first routing necessary', () => {
   assert.equal(assets.not_found_handling, 'single-page-application');
@@ -35,7 +35,7 @@ test('Worker-first routing is declared', () => {
   );
 });
 
-test('Worker-first routing covers exactly the protected and API paths', () => {
+test('Worker-first routing covers exactly the protected, API and Notes paths', () => {
   assert.deepEqual([...assets.run_worker_first].sort(), [...EXPECTED_WORKER_FIRST].sort());
 });
 

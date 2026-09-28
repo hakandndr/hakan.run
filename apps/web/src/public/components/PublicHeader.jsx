@@ -4,6 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
+import { withNotesNavigation } from '@/notes/navigation';
 
 const HeaderMark = () => (
   <svg
@@ -45,6 +46,7 @@ const PublicHeader = ({ header }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigateTo = usePublicNavigation();
+  const navLinks = withNotesNavigation(header.navLinks);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -93,7 +95,7 @@ const PublicHeader = ({ header }) => {
           </Link>
 
           <nav className="hidden md:flex items-center gap-1" aria-label="Primary navigation">
-            {header.navLinks.map((link) => (
+            {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
@@ -172,7 +174,7 @@ const PublicHeader = ({ header }) => {
               </div>
 
               <nav className="flex-grow flex flex-col justify-center items-center gap-8" aria-label="Mobile navigation">
-                {header.navLinks.map((link, index) => (
+                {navLinks.map((link, index) => (
                   <motion.a
                     key={link.name}
                     href={link.href}

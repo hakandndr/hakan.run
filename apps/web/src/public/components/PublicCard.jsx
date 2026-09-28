@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowDownToLine, ArrowUpRight, Briefcase, Github, Linkedin, Mail } from 'lucide-react';
 import { useCanonicalUrl } from '@/head/useCanonicalUrl';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
+import { Link } from 'react-router-dom';
 import {
   CARD_PRODUCT_CONFIG,
   createCardModel,
@@ -104,7 +105,7 @@ const PublicCard = ({ snapshot }) => {
                 >
                   <CardBrandMark />
                 </a>
-                <span className="font-mono text-xs uppercase tracking-[0.18em] text-[#52525B]">digital_card</span>
+                <Link to="/notes" className="font-mono text-xs uppercase tracking-[0.18em] text-[#57B8FF] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#57B8FF]">Notes</Link>
               </div>
 
               <div className="mt-9 flex items-center gap-5 lg:mt-14 lg:block">

@@ -1,5 +1,27 @@
 # Operations
 
+## Local Engineering Notes build and review — 2026-09-28
+
+Edit only `apps/web/notes/*.md` for article content. Each file has one `date`
+field; the build rejects invalid metadata or unsupported Markdown blocks and
+regenerates `apps/web/src/notes/catalog.js` and the small slug manifest beside it.
+`npm run build --prefix apps/web`
+creates `/notes` and article HTML assets and adds their canonical URLs to the
+production sitemap. A staging build retains its empty sitemap and noindex policy.
+The Worker validates exact article slugs before asset delivery; unknown Notes
+paths return HTTP 404 and are excluded from PAGE ingestion.
+Direct Notes HTML stays readable if the separate public CMS snapshot fails;
+the twelve CMS sections still fail closed.
+
+For local review, run `npm run check`, production and staging builds, artifact
+and indexing checks, plus `tests/notes.spec.ts` and affected public route tests
+against the local preview. Inspect the five article texts and desktop/mobile
+rendering as editorial and visual gates. Staging deployment is authorized for
+the exact reviewed Notes commit; no Cloudflare asset response has yet been
+verified for it. Production deployment remains a separate approval boundary.
+The repository-wide Playwright comparison against clean `c5666e6` is recorded
+in `PROCESS.md`; do not claim a green full suite while its baseline failures remain.
+
 ## Current production operation — 2026-09-28
 
 The owner reports the final post-cutover health check as HEALTHY, production

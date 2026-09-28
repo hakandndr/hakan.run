@@ -188,6 +188,8 @@ test('interactive controls are keyboard reachable with visible focus', async ({ 
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Return to hakan.run' })).toBeFocused();
   await page.keyboard.press('Tab');
+  await expect(page.getByRole('link', { name: 'Notes' })).toBeFocused();
+  await page.keyboard.press('Tab');
   const addContact = page.locator('[data-card-add-contact]');
   await expect(addContact).toBeFocused();
   expect(await addContact.evaluate(node => getComputedStyle(node).outlineStyle)).not.toBe('none');

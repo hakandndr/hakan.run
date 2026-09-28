@@ -34,12 +34,18 @@ assets, APIs, Boss routes and unknown routes cannot become PAGE events. Boss exp
 separate `native` and `legacy_panel` filters. Its oldest-event Dashboard card is
 explicitly native-scoped because it describes the native raw-detail retention action.
 
-Public paths render from a complete, validated twelve-section `APP_DB` snapshot;
-the public application has no source-bundled content fallback. Public, Boss and
+The existing CMS public paths render from a complete, validated twelve-section `APP_DB` snapshot;
+the public application has no source-bundled fallback for its twelve CMS sections. Public, Boss and
 preview have separate entry trees. [CMS V2](./docs/CONTENT-CMS-V2.md) provides
 the private editor and preview; production CMS writes remain disabled. The React
-public shell serves `/`, `/contact`, and the snapshot-derived `/card`; the home
+public shell serves `/`, `/contact`, `/notes`, known article routes, and the snapshot-derived `/card`; the home
 navigation links to sections, while Portfolio cards use published external URLs.
+Five Engineering Notes articles are repository Markdown in
+`apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
+routes, with static HTML and sitemap output. Direct Notes HTML remains readable
+when the separate CMS snapshot cannot load. The five notes received local
+editorial and visual review. Staging acceptance and the owner's production
+publication decision remain; production has not received this feature.
 Snapshot failure shows an explicit error instead of bundled copy. Hash navigation,
 reload and Back/Forward use the shared scroll manager. Detailed behavior and phase
 evidence are in [Architecture](./docs/ARCHITECTURE.md) and [Operations](./docs/OPERATIONS.md).
@@ -69,7 +75,7 @@ docs/           Architecture, security, content, CI, and operations documentatio
 
 ## Public content model
 
-`GET /api/content` is the only public runtime content source. A response must contain
+`GET /api/content` is the only public runtime source for the twelve CMS sections. A response must contain
 exactly `colors`, `typography`, `visibility`, `header`, `hero`, `services`, `about`,
 `portfolio`, `stats`, `cta`, `contact`, and `footer`. The frontend validates the
 whole response before mounting, applies the validated visual tokens, then passes one

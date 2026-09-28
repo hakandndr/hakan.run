@@ -1,8 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { fulfillPublishedContent, isolatePublicWrites } from './helpers/published-content';
 
 // Skip the one-time terminal boot animation so content is immediately testable.
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.sessionStorage.setItem('booted', '1'));
+  await page.addInitScript(() => window.sessionStorage.setItem('hakan.run:boot-intro-seen', '1'));
+  await page.route('**/api/content', fulfillPublishedContent);
+  await isolatePublicWrites(page);
 });
 
 test.describe('Home page', () => {
@@ -23,6 +26,7 @@ test.describe('Home page', () => {
     await expect(page.locator('header nav a')).toHaveText([
       /Services/i,
       /Portfolio/i,
+      /Notes/i,
       /About/i,
     ]);
   });
