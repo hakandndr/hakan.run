@@ -7,13 +7,15 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 1. Reconcile active documentation with the completed production cutover — committed and pushed as `a825df5`.
 2. Design and implement first-party Engineering Notes information architecture and runtime at `/notes` — committed as `4f74581` with metadata fix `c88ba31`, pushed and accepted on staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`.
 3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production.
-4. Add OC-CA to Portfolio's "What I've Built" as an engineering project; review card copy and assets separately.
-5. Remove the AI-generated workstation image from About without replacing it with generated imagery; rebalance the layout and retain the real owner portrait.
-6. Perform focused visual and content QA on the changed surfaces — Notes complete locally, on staging and in production; later Portfolio/About changes still require QA.
-7. Hold a checkpoint and owner review — Notes release accepted; later Portfolio/About work needs its own review.
-8. Deploy only under separate explicit authorization — Notes production release complete; later releases remain separately gated.
+4. Add OC-CA to Portfolio's "What I've Built" as an engineering project — published in APP_DB revision 2 with the approved five-project order.
+5. Remove the AI-generated workstation image from rendered About and rebalance the lower layout — deployed; real portrait retained.
+6. Perform focused visual and content QA — local desktop/mobile and production smoke passed for the deployed changes.
+7. Hold the final release checkpoint and owner review — the owner deferred the separate About APP_DB Beyond the IDE copy update to a later task.
+8. Deploy only under separate explicit authorization — current product commit deployed; any further release remains independently gated.
 
-Steps 4–7 remain future work where noted. Commit,
+The product commit is pushed and deployed, and the temporary Portfolio CMS
+write window is closed. The About copy update is the next bounded product task,
+subject to its own APP_DB authorization. Commit,
 push, deployment, provider, database and production activation remain independent
 authorization boundaries. Preserve the existing production visual identity unless
 the owner approves a specific change. Rollback infrastructure remains preserved;

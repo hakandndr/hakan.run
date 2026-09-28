@@ -1,5 +1,46 @@
 # hakan.run Modernization Handoff
 
+## Portfolio media fit production checkpoint — 2026-09-28
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `7d85b243d86a2bb7d3c9a4b06fed32375c3e2015` |
+| Current phase | Portfolio media fit deployed; Beyond the IDE About copy remains deferred |
+| Completed | Portfolio artwork is fully visible inside the compact 160px/144px media area; card size, grid, order and copy unchanged; production route and desktop/mobile smoke passed |
+| Exact next action | In a separate task, review and publish only the Beyond the IDE body through the canonical About APP_DB workflow if the owner authorizes it |
+| Prohibited actions | No APP_DB change, direct SQL, ANALYTICS_DB mutation, CMS flag change, DNS, Access, Turnstile, Email/provider, Notes change or rollback cleanup without separate authorization |
+| Push state | Product and documentation checkpoints pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production Worker version `5f89b48e-f049-4916-af0b-420d3797b2e1` serves `7d85b24`; previous version `3868bb97-094a-4c74-a478-7c20e799a68e` is the rollback target |
+| Infrastructure state | `CMS_PRODUCTION_WRITES_ENABLED=false`; bindings and other flags unchanged; rollback infrastructure preserved |
+
+The checkpoint below is historical.
+
+## Portfolio polish production checkpoint — 2026-09-28
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `e80a0fb32479236baad5d6490ae22c7a8e2d4e4c` |
+| Current phase | Portfolio and visual polish deployed; the owner deferred the Beyond the IDE APP_DB copy update to a separate task |
+| Completed | Compact Portfolio cards, five-card OC-CA publication, homepage Notes width alignment, About desk rendering removal and narrower lower text measure; production route and browser smoke passed |
+| Exact next action | In a separate task, review and publish only the Beyond the IDE body through the canonical About APP_DB workflow if the owner authorizes it |
+| Prohibited actions | No other APP_DB section or field changes, direct SQL, ANALYTICS_DB mutation, DNS, Access, Turnstile, Email/provider, Notes content or rollback cleanup |
+| Push state | Product and release-documentation checkpoints pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production Worker `3868bb97-094a-4c74-a478-7c20e799a68e` serves the reviewed product commit; temporary CMS write window closed |
+| Infrastructure state | `CMS_PRODUCTION_WRITES_ENABLED=false`, existing production bindings and other flags retained; rollback infrastructure preserved |
+
+Portfolio is APP_DB-owned and now has revision 2 with DNDR Labs,
+TürkiyeCennet, OC-CA, AmericaWhat and TurkCyber in that order. All other eleven
+sections retained revision 1. The OC-CA card uses the real project brand asset;
+the one-time local fixture and preview tool were removed. The desk asset and
+existing About APP_DB image field remain historical data but are no longer
+rendered; the real portrait remains. The current About body still starts
+"Outside of engineering" by owner direction; no About draft was saved or
+published. Local lint, build, artifact and focused browser
+checks passed, as did production desktop/mobile and route smoke. The Notes
+release checkpoint below is historical.
+
 ## Engineering Notes production release — 2026-09-28
 
 | Field | Current value |

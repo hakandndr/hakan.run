@@ -1,5 +1,39 @@
 # Operations
 
+## Portfolio media fit production operation — 2026-09-28
+
+Reviewed commit `7d85b243d86a2bb7d3c9a4b06fed32375c3e2015` was built in
+production mode, passed artifact verification, and was dry-run with
+`npm exec --offline --yes --package wrangler@4.130.0 -- wrangler deploy --env production --dry-run`,
+confirming `CMS_PRODUCTION_WRITES_ENABLED=false`. The same command without
+`--dry-run` deployed version `5f89b48e-f049-4916-af0b-420d3797b2e1`.
+Read-only production GETs returned 200 for `/`, `/notes`, `/contact`, `/card`,
+`/api/config`, `robots.txt` and `sitemap.xml`. Browser smoke at 1440px and 390px
+showed all five cards loaded in the approved order with full artwork, unchanged
+card sizes, no horizontal overflow and no page error. No APP_DB, ANALYTICS_DB,
+flag or provider change occurred. Rollback target:
+`3868bb97-094a-4c74-a478-7c20e799a68e`.
+
+## Portfolio polish production operation — 2026-09-28
+
+Reviewed product commit `e80a0fb32479236baad5d6490ae22c7a8e2d4e4c`
+was built in production mode and deployed to the existing Worker. The owner
+separately authorized a temporary `CMS_PRODUCTION_WRITES_ENABLED=true` window
+for canonical Boss publication. A one-line local configuration change was
+dry-run and deployed as Worker version `08d1d870-605d-4b8a-8731-4798c13dd16f`;
+it was never committed. Boss saved and published only Portfolio revision 2,
+then reported no saved draft. The public content API returned the exact five
+cards in the approved order while the other eleven sections retained revision
+1. The configuration was restored byte-for-byte to the source-controlled
+`false` value, dry-run again, and deployed as Worker version
+`3868bb97-094a-4c74-a478-7c20e799a68e`.
+
+Desktop/mobile smoke confirmed the five cards, real OC-CA asset, removed desk
+rendering, retained portrait, shorter lower About measures, healthy Notes and
+existing public routes, with no application error or new 5xx. The Beyond the
+IDE body in APP_DB was not changed in this Portfolio-only publication window;
+the owner deferred its replacement to a separate task.
+
 ## Engineering Notes production operation — 2026-09-28
 
 Reviewed source `c6cbff32be05fbd32ba6e72955414473eac31c8d` was built in

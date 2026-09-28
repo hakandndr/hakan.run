@@ -1,5 +1,39 @@
 # Current State
 
+## Portfolio media fit — 2026-09-28
+
+Product commit `7d85b243d86a2bb7d3c9a4b06fed32375c3e2015` is deployed on
+production Worker version `5f89b48e-f049-4916-af0b-420d3797b2e1`. Every
+Portfolio card image uses `object-contain` on a dark `#111112` media
+background, so the full artwork fits inside the compact 160px desktop and 144px
+mobile media area without cropping or stretching. The previous OC-CA-only
+override was removed. Card dimensions, grid, APP_DB content and order are
+unchanged. The hover `scale-105` effect is retained and trims about 4px of the
+artwork edges only while hovered. `CMS_PRODUCTION_WRITES_ENABLED` remains
+`false`.
+
+## Portfolio polish production checkpoint — 2026-09-28
+
+Product commit `e80a0fb32479236baad5d6490ae22c7a8e2d4e4c` is deployed on
+production Worker version `3868bb97-094a-4c74-a478-7c20e799a68e`. The
+homepage Notes container aligns with Portfolio/About at desktop widths;
+`/notes` and article reading widths are unchanged. Portfolio media is 160px
+on desktop and 144px on mobile, with tighter card spacing.
+
+Portfolio remains APP_DB-owned. The canonical Boss workflow published revision
+2 with DNDR Labs, TürkiyeCennet, OC-CA, AmericaWhat and TurkCyber in that
+order. OC-CA uses the real `oc-ca-full.png` project brand asset and a compact
+engineering summary. The four existing cards and all other Portfolio fields
+were preserved; the other eleven sections remain at revision 1.
+
+About no longer renders the AI-generated workstation image. The real portrait
+remains; the lower stories use two desktop text columns with narrower paragraph
+measures and one mobile column. The desk asset and old APP_DB image field are
+retained as historical data. The requested Beyond the IDE copy is not live:
+the owner deferred that separate APP_DB About update to a later task. About
+remains at revision 1, with no saved draft. Production CMS writes were returned to `false` after
+the authorized Portfolio publication window. No other infrastructure changed.
+
 ## Engineering Notes production release — 2026-09-28
 
 Five first-party Engineering Notes articles are source-controlled Markdown under
