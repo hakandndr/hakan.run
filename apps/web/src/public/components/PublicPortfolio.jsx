@@ -27,9 +27,9 @@ const PublicPortfolio = ({ portfolio }) => (
             className="group border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:border-accent-purple/40 transition-all duration-300 hover:-translate-y-1 flex flex-col"
             style={{ backgroundColor: '#1A1A1A' }}
           >
-            <div className="relative aspect-[16/9] overflow-hidden shrink-0">
+            <div className="relative h-36 sm:h-40 overflow-hidden shrink-0">
               <img
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className={`w-full h-full ${project.slug === 'oc-ca' ? 'object-contain bg-[#faf7f2]' : 'object-cover'} group-hover:scale-105 transition-transform duration-500`}
                 alt={project.description}
                 src={project.imgSrc}
               />
@@ -41,7 +41,7 @@ const PublicPortfolio = ({ portfolio }) => (
               </div>
             </div>
 
-            <div className="p-5 flex flex-col flex-1">
+            <div className="p-4 flex flex-col flex-1">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <GitBranch className="w-3.5 h-3.5 text-accent-purple shrink-0" />
@@ -51,10 +51,10 @@ const PublicPortfolio = ({ portfolio }) => (
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-gray-600 group-hover:text-accent-purple transition-colors shrink-0 ml-2" />
               </div>
-              <p className="text-[14px] text-gray-500 leading-relaxed line-clamp-2 flex-1 mb-4">
+              <p className="text-[14px] text-gray-500 leading-relaxed line-clamp-2 flex-1 mb-3">
                 {project.description}
               </p>
-              <div className="flex items-center justify-between pt-3 border-t border-white/[0.06]">
+              <div className="flex items-center justify-between pt-2 border-t border-white/[0.06]">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full shrink-0 bg-blue-400" />
                   <span className="font-mono text-[10px] text-gray-600">{project.technology}</span>

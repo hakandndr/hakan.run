@@ -18,7 +18,7 @@ const NoteLink = ({ note }) => (
 
 export const NotesHomeSection = () => (
   <section id="notes" data-public-section="notes" className="bg-[#0D0D0D] border-y border-white/[0.06] py-20 sm:py-24">
-    <div className="container mx-auto px-6 max-w-6xl">
+    <div className="container mx-auto px-6">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent-purple/80">Engineering / Notes</p>
       <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-5">
         <div><h2 className="text-3xl sm:text-4xl font-bold text-white">Engineering Notes</h2><p className="mt-3 text-gray-400 max-w-2xl">{intro}</p></div>

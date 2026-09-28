@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 const viewport = { once: true, amount: 0.15 };
 const transition = { duration: 0.65, ease: 'easeOut' };
 
-const Story = ({ sections }) => (
+const Story = ({ sections, split = false }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={viewport}
     transition={transition}
-    className="space-y-10"
+    className={split ? 'grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16' : 'space-y-10'}
   >
     {sections.map((section, index) => (
       <div key={`${section.title}-${index}`} className="relative pl-6 border-l-2 border-[#57B8FF]/20">
@@ -20,7 +20,7 @@ const Story = ({ sections }) => (
           </span>
         )}
         <h3 className="font-mono text-sm font-bold text-[#F4F4F5] mb-3">{section.title}</h3>
-        <p className="text-[15px] text-[#A1A1AA] leading-[1.7]">{section.body}</p>
+        <p className={`text-[15px] text-[#A1A1AA] leading-[1.7] ${split ? 'max-w-[32rem]' : ''}`}>{section.body}</p>
       </div>
     ))}
   </motion.div>
@@ -86,10 +86,7 @@ const PublicAbout = ({ about }) => {
                 {block2.heading} <span className="text-[#57B8FF]">{block2.headingAccent}</span>
               </h2>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:items-center">
-              <Story sections={block2.sections} />
-              <Portrait image={block2.image} imageAlt={block2.imageAlt} delay={0.12} />
-            </div>
+            <Story sections={block2.sections} split />
           </>
         )}
       </div>
