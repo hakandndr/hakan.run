@@ -27,9 +27,9 @@ const PublicPortfolio = ({ portfolio }) => (
             className="group border border-white/10 rounded-xl overflow-hidden cursor-pointer hover:border-accent-purple/40 transition-all duration-300 hover:-translate-y-1 flex flex-col"
             style={{ backgroundColor: '#1A1A1A' }}
           >
-            <div className="relative h-36 sm:h-40 overflow-hidden shrink-0">
+            <div className="relative h-36 sm:h-40 overflow-hidden shrink-0 bg-[#111112]">
               <img
-                className={`w-full h-full ${project.slug === 'oc-ca' ? 'object-contain bg-[#faf7f2]' : 'object-cover'} group-hover:scale-105 transition-transform duration-500`}
+                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                 alt={project.description}
                 src={project.imgSrc}
               />
