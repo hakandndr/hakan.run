@@ -44,7 +44,7 @@ export const FRAMING_POLICY = "frame-ancestors 'none'; base-uri 'self'; object-s
 
 // 'report-only' observes the full policy while enforcing framing protection;
 // 'enforce' makes the full policy the single enforced Content-Security-Policy.
-export const CSP_MODE = 'report-only';
+export const CSP_MODE = 'enforce';
 
 export const documentHeaders = (mode = CSP_MODE) => Object.freeze(mode === 'enforce'
   ? { 'X-Frame-Options': 'DENY', 'Content-Security-Policy': CONTENT_SECURITY_POLICY }

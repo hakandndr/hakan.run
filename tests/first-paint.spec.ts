@@ -52,17 +52,19 @@ const withoutScripts = async (browser: Browser, path: string, isMobile: boolean,
   return result;
 };
 
+// The signature source is inlined into the init script rather than evaluated at
+// runtime: the enforced Content Security Policy forbids eval in the page.
 const recordBeforeModules = async (page: Page) => {
-  await page.addInitScript(`(${(source: string) => {
+  await page.addInitScript(`(${((measure: () => unknown) => {
     window.sessionStorage.setItem('hakan.run:boot-intro-seen', '1');
     document.addEventListener('readystatechange', () => {
       if (document.readyState !== 'interactive') return;
       const w = window as unknown as Record<string, unknown>;
       // Deferred module scripts have not executed yet at this point.
-      w.__beforeModules = (0, eval)(source)();
+      w.__beforeModules = measure();
       w.__firstPaintNode = document.getElementById('root')?.firstElementChild ?? null;
     });
-  }})(${JSON.stringify(`(${signature.toString()})`)})`);
+  }).toString()})(${signature.toString()})`);
 };
 
 for (const path of PAGES) {
