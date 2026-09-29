@@ -1,0 +1,46 @@
+{
+  "purpose": "Cloudflare provider contract for hakan.run HTTP-to-HTTPS and www redirects. Operational evidence only; the Worker does not read this file.",
+  "zone": "hakan.run",
+  "zoneId": "530a14656780a0a9a60dfc12f16b5ad2",
+  "phase": "http_request_dynamic_redirect",
+  "rulesetId": "b6ee288b50b04bb0a82b0e92834b3fb5",
+  "rules": [
+    {
+      "ref": "ebeebf21e91340aba655ad52ec734e13",
+      "origin": "pre-existing",
+      "purpose": "Canonical HTTPS www to apex",
+      "expression": "(http.request.full_uri wildcard r\"https://www.hakan.run/*\")",
+      "target": "wildcard_replace(http.request.full_uri, r\"https://www.hakan.run/*\", r\"https://hakan.run/${1}\")",
+      "status": 301,
+      "preserveQuery": true
+    },
+    {
+      "ref": "hakan-run-https-hosts",
+      "origin": "security release 2026-09-29",
+      "purpose": "HTTP to HTTPS on the same host for the Worker-served hostnames",
+      "expression": "(not ssl and http.host in {\"hakan.run\" \"staging.hakan.run\"})",
+      "target": "concat(\"https://\", http.host, http.request.uri.path)",
+      "status": 301,
+      "preserveQuery": true
+    },
+    {
+      "ref": "hakan-run-https-www",
+      "origin": "security release 2026-09-29",
+      "purpose": "HTTP www straight to the HTTPS apex, without the legacy Hostinger origin",
+      "expression": "(not ssl and http.host eq \"www.hakan.run\")",
+      "target": "concat(\"https://hakan.run\", http.request.uri.path)",
+      "status": 301,
+      "preserveQuery": true
+    }
+  ],
+  "probes": [
+    { "url": "http://hakan.run/", "status": 301, "location": "https://hakan.run/" },
+    { "url": "http://hakan.run/notes?x=1", "status": 301, "location": "https://hakan.run/notes?x=1" },
+    { "url": "http://hakan.run/contact", "status": 301, "location": "https://hakan.run/contact" },
+    { "url": "http://staging.hakan.run/contact?a=b", "status": 301, "location": "https://staging.hakan.run/contact?a=b" },
+    { "url": "http://www.hakan.run/notes?z=1", "status": 301, "location": "https://hakan.run/notes?z=1" },
+    { "url": "https://www.hakan.run/notes?z=1", "status": 301, "location": "https://hakan.run/notes?z=1" },
+    { "url": "https://hakan.run/", "status": 200 }
+  ],
+  "rollback": "Delete only the rules with refs hakan-run-https-hosts and hakan-run-https-www (DELETE /zones/{zoneId}/rulesets/{rulesetId}/rules/{ruleId}). The pre-existing www rule and every other provider setting stay as they are."
+}

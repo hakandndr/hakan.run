@@ -18,6 +18,7 @@ import { handlePublicConfig } from './public/config.js';
 import { serveDocument } from './public/document.js';
 import { aggregationStatements, lastCompleteDay } from './analytics/aggregate.js';
 import { isKnownNoteSlug } from '../apps/web/src/notes/manifest.js';
+import { withSecurityHeaders } from './lib/security-headers.js';
 
 const isBossPath = (path) => path === '/boss' || path.startsWith('/boss/');
 // Public documents rendered by the Worker. Notes articles are added after their
@@ -37,77 +38,84 @@ const missingNote = (method) => new Response(method === 'HEAD' ? null : `<!docty
   headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' },
 });
 
+// Every Worker response leaves through the shared security policy
+// (worker/lib/security-headers.js); asset-first responses get the same policy
+// from the generated Static Assets _headers file.
+const route = async (request, env, context) => {
+  const url = new URL(request.url);
+  const path = url.pathname;
+
+  // Private surface: edge Access is necessary but not sufficient. The Worker
+  // verifies the assertion itself and then checks the owner allowlist, on
+  // every request, including the shell.
+  if (isBossPath(path) || isBossApi(path)) {
+    const verification = await verifyAccess(request, env);
+    if (!verification.ok) return denied(verification.reason);
+    if (path === PREVIEW_PATH) {
+      if (request.method !== 'GET') return methodNotAllowed('GET');
+      return previewShell(request, env);
+    }
+    if (isBossApi(path)) {
+      return handleBossApi(request, env, context, verification.identity);
+    }
+    // The private shell itself carries no privileged data; every figure it
+    // shows arrives through a separately verified API call.
+    return env.ASSETS ? env.ASSETS.fetch(request) : notFound();
+  }
+
+  if (path === '/api/analytics/page') {
+    if (request.method !== 'POST') return methodNotAllowed('POST');
+    return handlePageEvent(request, env);
+  }
+
+  // Public content authority. Reads published rows from APP_DB and nothing
+  // else; there is no Supabase client in this Worker.
+  if (path === '/api/content') {
+    if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+    return handlePublicContent(request, env);
+  }
+
+  // Public, non-secret runtime configuration. The Turnstile site key is
+  // environment-specific, so the environment supplies it rather than the build.
+  if (path === '/api/config') {
+    if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+    return handlePublicConfig(request, env);
+  }
+
+  if (path === '/api/contact') {
+    if (request.method !== 'POST') return methodNotAllowed('POST');
+    return handleSubmission(request, env, context);
+  }
+
+  // An unmatched API path is not found; it never falls through to the SPA
+  // shell, which would return 200 HTML to a broken client call.
+  if (path.startsWith('/api/')) return notFound();
+
+  // Notes are source-controlled. Validate the exact route before the SPA
+  // fallback can turn an unknown article URL into a successful response.
+  if (path === '/notes' || path === '/notes/' || path.startsWith('/notes/')) {
+    if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+    const normalized = path.replace(/\/$/, '') || '/';
+    const slug = normalized.slice('/notes/'.length);
+    const valid = normalized === '/notes' || (slug && !slug.includes('/') && isKnownNoteSlug(slug));
+    if (!valid) return missingNote(request.method);
+    if (!env.ASSETS) return problem('assets_unavailable', 503);
+    return serveDocument(request, env);
+  }
+
+  if (RENDERED_DOCUMENTS.has(path)) {
+    if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+    if (!env.ASSETS) return problem('assets_unavailable', 503);
+    return serveDocument(request, env);
+  }
+
+  if (!env.ASSETS) return problem('assets_unavailable', 503);
+  return env.ASSETS.fetch(request);
+};
+
 export default {
   async fetch(request, env, context) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    // Private surface: edge Access is necessary but not sufficient. The Worker
-    // verifies the assertion itself and then checks the owner allowlist, on
-    // every request, including the shell.
-    if (isBossPath(path) || isBossApi(path)) {
-      const verification = await verifyAccess(request, env);
-      if (!verification.ok) return denied(verification.reason);
-      if (path === PREVIEW_PATH) {
-        if (request.method !== 'GET') return methodNotAllowed('GET');
-        return previewShell(request, env);
-      }
-      if (isBossApi(path)) {
-        return handleBossApi(request, env, context, verification.identity);
-      }
-      // The private shell itself carries no privileged data; every figure it
-      // shows arrives through a separately verified API call.
-      return env.ASSETS ? env.ASSETS.fetch(request) : notFound();
-    }
-
-    if (path === '/api/analytics/page') {
-      if (request.method !== 'POST') return methodNotAllowed('POST');
-      return handlePageEvent(request, env);
-    }
-
-    // Public content authority. Reads published rows from APP_DB and nothing
-    // else; there is no Supabase client in this Worker.
-    if (path === '/api/content') {
-      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
-      return handlePublicContent(request, env);
-    }
-
-    // Public, non-secret runtime configuration. The Turnstile site key is
-    // environment-specific, so the environment supplies it rather than the build.
-    if (path === '/api/config') {
-      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
-      return handlePublicConfig(request, env);
-    }
-
-    if (path === '/api/contact') {
-      if (request.method !== 'POST') return methodNotAllowed('POST');
-      return handleSubmission(request, env, context);
-    }
-
-    // An unmatched API path is not found; it never falls through to the SPA
-    // shell, which would return 200 HTML to a broken client call.
-    if (path.startsWith('/api/')) return notFound();
-
-    // Notes are source-controlled. Validate the exact route before the SPA
-    // fallback can turn an unknown article URL into a successful response.
-    if (path === '/notes' || path === '/notes/' || path.startsWith('/notes/')) {
-      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
-      const normalized = path.replace(/\/$/, '') || '/';
-      const slug = normalized.slice('/notes/'.length);
-      const valid = normalized === '/notes' || (slug && !slug.includes('/') && isKnownNoteSlug(slug));
-      if (!valid) return missingNote(request.method);
-      if (!env.ASSETS) return problem('assets_unavailable', 503);
-      return serveDocument(request, env);
-    }
-
-    if (RENDERED_DOCUMENTS.has(path)) {
-      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
-      if (!env.ASSETS) return problem('assets_unavailable', 503);
-      return serveDocument(request, env);
-    }
-
-    if (!env.ASSETS) return problem('assets_unavailable', 503);
-    return env.ASSETS.fetch(request);
+    return withSecurityHeaders(request, await route(request, env, context));
   },
 
   // Scheduled aggregation. It aggregates the last complete local day and marks

@@ -38,6 +38,7 @@ import { isolationProblem } from './dependency-isolation.js';
 import { readNotes, writeNotesArtifact, writeNotesCatalog } from './notes.js';
 import { verifyDocumentArtifact } from './document-artifact.js';
 import { toModuleUrl } from '../../../tools/module-url.js';
+import { renderHeadersFile } from '../../../worker/lib/security-headers.js';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = path.resolve(appDirectory, '../..');
@@ -168,6 +169,11 @@ for (const action of applyIndexingPolicy(outputDirectory, mode)) {
   console.log(`indexing policy : ${action}`);
 }
 console.log(`notes artifact  : ${writeNotesArtifact(outputDirectory, mode, notes, renderer.renderNotesFallback)} static entry pages`);
+
+// Security headers for asset-first responses, rendered from the same policy
+// module the Worker applies to its own responses.
+fs.writeFileSync(path.join(outputDirectory, '_headers'), renderHeadersFile(), 'utf8');
+console.log('security headers: _headers generated from worker/lib/security-headers.js');
 if (mode !== 'staging') {
   console.log('indexing policy : production build, artifact left untouched');
 }

@@ -30,14 +30,23 @@ const assetFile = (pathname) => {
   return path.join(root, 'index.html');
 };
 
+// Static Assets apply the generated _headers file to asset responses. The
+// build emits a single "/*" rule, which is all this emulation supports.
+const assetHeaders = () => {
+  const file = path.join(root, '_headers');
+  if (!fs.existsSync(file)) return [];
+  return fs.readFileSync(file, 'utf8').split('\n')
+    .filter((line) => /^\s+\S/.test(line))
+    .map((line) => { const index = line.indexOf(':'); return [line.slice(0, index).trim(), line.slice(index + 1).trim()]; });
+};
+
 const ASSETS = {
   async fetch(request) {
     const file = assetFile(new URL(request.url).pathname);
     if (!file) return new Response('Not found', { status: 404 });
-    return new Response(fs.readFileSync(file), {
-      status: 200,
-      headers: { 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'public, max-age=0, must-revalidate' },
-    });
+    const headers = new Headers({ 'content-type': TYPES[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'public, max-age=0, must-revalidate' });
+    for (const [name, value] of assetHeaders()) headers.set(name, value);
+    return new Response(fs.readFileSync(file), { status: 200, headers });
   },
 };
 

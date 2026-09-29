@@ -1,11 +1,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { renderHeadersFile } from '../../../worker/lib/security-headers.js';
 
 // The first-paint contract of a built artifact. Public documents are rendered
 // by the Worker into the empty application root (or between the Notes outlet
 // markers) using the server build, and the BootIntro overlay is static markup
 // outside that root. A missing piece means the Worker cannot compose the page.
-export const verifyDocumentArtifact = (outputDirectory, serverDirectory) => {
+/** Count <script> elements that execute inline code (JSON data blocks excepted). */
+export const inlineExecutableScripts = (html) => [...html.matchAll(/<script\b([^>]*)>/gi)]
+  .filter(([, attributes]) => !/\bsrc\s*=/i.test(attributes) && !/\btype\s*=\s*"application\/json"/i.test(attributes))
+  .length;
+
+export const verifyDocumentArtifact =(outputDirectory, serverDirectory) => {
   const problems = [];
   if (!fs.existsSync(path.join(serverDirectory, 'entry-server.mjs'))) problems.push('server renderer entry-server.mjs is missing');
   const index = fs.readFileSync(path.join(outputDirectory, 'index.html'), 'utf8');
@@ -20,6 +26,14 @@ export const verifyDocumentArtifact = (outputDirectory, serverDirectory) => {
       problems.push(`${name}: static body is not the component-rendered Notes fallback`);
     }
     if (!html.includes('<!--/ssr-fallback--></div>')) problems.push(`${name}: Notes outlet end marker is missing`);
+  }
+  // Asset-first security headers must be exactly the policy module's output.
+  const headersFile = path.join(outputDirectory, '_headers');
+  if (!fs.existsSync(headersFile)) problems.push('_headers is missing');
+  else if (fs.readFileSync(headersFile, 'utf8') !== renderHeadersFile()) problems.push('_headers differs from worker/lib/security-headers.js');
+  // The Content Security Policy allows no inline script; only JSON data blocks may be inline.
+  for (const file of [path.join(outputDirectory, 'index.html'), ...notes]) {
+    if (inlineExecutableScripts(fs.readFileSync(file, 'utf8')) > 0) problems.push(`${path.relative(outputDirectory, file)}: inline executable script`);
   }
   return problems;
 };
