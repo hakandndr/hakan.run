@@ -15,10 +15,14 @@ import { handlePageEvent } from './analytics/ingest.js';
 import { handleSubmission } from './public/submissions.js';
 import { handlePublicContent } from './public/content.js';
 import { handlePublicConfig } from './public/config.js';
+import { serveDocument } from './public/document.js';
 import { aggregationStatements, lastCompleteDay } from './analytics/aggregate.js';
 import { isKnownNoteSlug } from '../apps/web/src/notes/manifest.js';
 
 const isBossPath = (path) => path === '/boss' || path.startsWith('/boss/');
+// Public documents rendered by the Worker. Notes articles are added after their
+// slug is validated below. Other paths keep the static SPA fallback.
+const RENDERED_DOCUMENTS = new Set(['/', '/contact', '/card']);
 const isBossApi = (path) => path.startsWith('/api/boss/');
 
 const denied = (reason) =>
@@ -93,7 +97,13 @@ export default {
       const valid = normalized === '/notes' || (slug && !slug.includes('/') && isKnownNoteSlug(slug));
       if (!valid) return missingNote(request.method);
       if (!env.ASSETS) return problem('assets_unavailable', 503);
-      return env.ASSETS.fetch(request);
+      return serveDocument(request, env);
+    }
+
+    if (RENDERED_DOCUMENTS.has(path)) {
+      if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
+      if (!env.ASSETS) return problem('assets_unavailable', 503);
+      return serveDocument(request, env);
     }
 
     if (!env.ASSETS) return problem('assets_unavailable', 503);

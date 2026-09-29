@@ -43,8 +43,9 @@ export const NotesIndex = () => (
   </section>
 );
 
-export const NotesArticle = () => {
-  const { slug } = useParams();
+export const NotesArticle = ({ slug: fixedSlug }) => {
+  const params = useParams();
+  const slug = fixedSlug ?? params.slug;
   const note = getNote(slug);
   if (!note) return <NotFound />;
   return (

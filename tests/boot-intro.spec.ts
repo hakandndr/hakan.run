@@ -9,7 +9,7 @@ test.beforeEach(async ({ page }) => {
   await isolatePublicWrites(page);
 });
 
-test('built document paints only a uniform canvas before React executes', async ({ page, request }) => {
+test('static degraded document keeps an empty application root and a uniform canvas', async ({ page, request }) => {
   const response = await request.get('/');
   expect(response.ok()).toBe(true);
   const html = await response.text();
@@ -115,7 +115,8 @@ test('seen intro leaves a blank stable loading canvas until READY', async ({ pag
   });
 
   await page.goto('/', { waitUntil: 'load' });
-  await expect(page.locator('[data-boot-intro="presentation"]')).toHaveCount(0);
+  // The overlay is static document markup; a seen session suppresses it before paint.
+  await expect(page.locator('[data-boot-intro="presentation"]')).toBeHidden();
 
   const shell = page.locator('[data-public-bootstrap="loading"]');
   await expect(shell).toBeVisible();
@@ -148,7 +149,8 @@ test('BootIntro is claimed once per tab session and does not replay on reload or
 
   await page.reload({ waitUntil: 'load' });
   await expect(page.locator('form')).toBeVisible();
-  await expect(page.locator('[data-boot-intro="presentation"]')).toHaveCount(0);
+  await expect(page.locator('[data-boot-intro="presentation"]')).toBeHidden();
+  await expect(page.locator('html')).toHaveAttribute('data-boot-intro', 'off');
 });
 
 test('footer canonical mark renders its slash in white', async ({ page }) => {

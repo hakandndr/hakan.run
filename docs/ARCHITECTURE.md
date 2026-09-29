@@ -26,8 +26,19 @@ a small manifest derived from the same Markdown supplies exact slugs to the Work
 and PAGE classification. The build also emits HTML
 assets at `/notes` and `/notes/:slug`, with metadata and sitemap entries. Worker-first
 routing validates Notes paths before the existing SPA fallback, returning 404 for an
-unknown slug. Direct Notes HTML remains readable while the shared public shell
-loads its separate twelve-section APP_DB snapshot and if that load fails.
+unknown slug.
+
+Public documents (`/`, `/contact`, `/card`, `/notes` and known articles) are
+server-rendered by the Worker (`worker/public/document.js`). It reads the same
+published APP_DB rows as `/api/content`, renders the public React tree with the
+Vite server build in `dist/server/entry-server.mjs`, writes the published theme
+tokens onto `<html>`/`<body>`, and embeds the payload for `hydrateRoot`. The first
+paint is the hydrated page's markup; the client does not refetch content. If
+APP_DB or rendering is unavailable the static asset is served unchanged: the
+homepage falls back to the empty-root client bootstrap, and Notes HTML shows its
+article, rendered at build time by the same Notes components, without the
+APP_DB-owned header and footer. BootIntro is static document markup outside the
+application root, decided before paint by the `index.html` head script.
 
 Client routing uses `apps/web/src/router/TransitionRouter.jsx`, a minimal
 `BrowserRouter` equivalent over the same `@remix-run/router` browser history. Its

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
@@ -7,8 +6,9 @@ import { isRouteTransitionCommit } from '@/router/transition-scope';
 
 const PublicHero = ({ hero, socialLinks }) => {
   const navigateTo = usePublicNavigation();
-  // The entrance is first-load presentation. A route view transition already
-  // blends the hero in, so it starts visible when mounted by one.
+  // The entrance is first-load presentation and runs in CSS from the first
+  // paint. A route view transition already blends the hero in, so the hero
+  // starts visible when mounted by one.
   const [entrance] = useState(() => !isRouteTransitionCommit());
 
   const navigate = (href) => {
@@ -28,11 +28,7 @@ const PublicHero = ({ hero, socialLinks }) => {
       <div className="w-full px-6 py-20 lg:py-0 lg:min-h-screen lg:flex lg:items-center">
         <div className="max-w-[1120px] mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-center">
-            <motion.div
-              initial={entrance ? { opacity: 0, y: 24 } : false}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.75 }}
-            >
+            <div className={entrance ? 'enter-hero-copy' : undefined}>
               <div className="inline-flex items-center gap-0 px-3 py-1.5 mb-8 border border-[#2a3a50] rounded-md bg-[#0d1117] max-w-full">
                 <span className="font-mono text-xs text-[#57B8FF]/60 shrink-0 select-none mr-2">&gt;_ $</span>
                 <span className="font-mono text-xs text-[#57B8FF] tracking-wide truncate">{hero.badge}</span>
@@ -84,14 +80,9 @@ const PublicHero = ({ hero, socialLinks }) => {
                   ))}
                 </div>
               )}
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={entrance ? { opacity: 0, x: 24 } : false}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.85, delay: 0.18 }}
-              className="hidden lg:flex justify-center lg:justify-end"
-            >
+            <div className={`hidden lg:flex justify-center lg:justify-end${entrance ? ' enter-hero-profile' : ''}`}>
               <div className="relative w-full max-w-[300px] lg:max-w-[320px] xl:max-w-[340px]">
                 <div className="absolute top-6 -left-5 z-20 bg-[#181818] border border-white/[0.12] rounded-xl px-3 py-2.5 shadow-xl">
                   <p className="font-mono text-[22px] font-bold text-white leading-tight">{hero.profile.topValue}</p>
@@ -129,7 +120,7 @@ const PublicHero = ({ hero, socialLinks }) => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Application from '@/Application';
-import BootIntro from '@/components/BootIntro';
 import { loadPublishedSiteSnapshot } from '@/content-source/published-site';
 import { applyPublishedVisualTokens } from '@/content-source/visual-tokens';
 
@@ -69,12 +68,7 @@ const PublicBootstrap = () => {
       ? <PublicFailure onRetry={() => setAttempt((value) => value + 1)} />
       : <NeutralPublicShell />;
 
-  return (
-    <>
-      <BootIntro />
-      {publicSurface}
-    </>
-  );
+  return publicSurface;
 };
 
 export default PublicBootstrap;

@@ -13,8 +13,10 @@
     // /api/boss/* return HTML instead of JSON, with Worker-side Access
     // verification never executing. Listing these routes runs the Worker
     // first for them; every other path keeps the default asset-first
-    // behaviour, so static delivery is unchanged.
-    "run_worker_first": ["/api/*", "/boss", "/boss/*", "/notes", "/notes/*"]
+    // behaviour, so static delivery is unchanged. Public documents at /,
+    // /contact, /card and /notes* are rendered by the Worker from APP_DB so the
+    // first paint matches the hydrated application.
+    "run_worker_first": ["/", "/contact", "/card", "/api/*", "/boss", "/boss/*", "/notes", "/notes/*"]
   },
   "observability": { "enabled": true },
 

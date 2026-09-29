@@ -179,6 +179,30 @@ body[data-spacing="spacious"] section { padding-top: 10rem !important; padding-b
 .notes-prose a { color: rgb(var(--color-accent-rgb)); text-decoration: underline; text-decoration-color: rgb(var(--color-accent-rgb) / 0.4); text-underline-offset: 3px; }
 .notes-prose a:hover { text-decoration-color: currentColor; }
 
+/* Page entrances run in CSS so they start with the first paint of a
+   server-rendered document and do not wait for JavaScript. Durations, delays
+   and curves are the values the framer-motion versions used: its default tween
+   curve is easeInOut, `easeOut` is cubic-bezier(0, 0, 0.58, 1), and
+   `anticipate` is sampled into linear(). */
+@keyframes public-enter {
+  from { opacity: 0; transform: translate(var(--enter-x, 0px), var(--enter-y, 0px)); }
+}
+.enter-hero-copy { --enter-y: 24px; animation: public-enter 750ms cubic-bezier(0.42, 0, 0.58, 1) both; }
+.enter-hero-profile { --enter-x: 24px; animation: public-enter 850ms cubic-bezier(0.42, 0, 0.58, 1) 180ms both; }
+.enter-card { --enter-y: 12px; animation: public-enter 450ms cubic-bezier(0, 0, 0.58, 1) both; }
+.enter-contact-page {
+  --enter-y: 20px;
+  animation: public-enter 500ms cubic-bezier(0.42, 0, 0.58, 1) both;
+  animation: public-enter 500ms linear(0, -0.0042, -0.0156, -0.0288, -0.0391, -0.0421, -0.0336, -0.0096, 0.0338, 0.1015, 0.1982, 0.3288, 0.5, 0.7194, 0.8425, 0.9116, 0.9504, 0.9722, 0.9844, 0.9912, 0.9951, 0.9972, 0.9984, 0.9991, 1) both;
+}
+.enter-contact-intro { --enter-x: -30px; animation: public-enter 800ms cubic-bezier(0.42, 0, 0.58, 1) 200ms both; }
+.enter-contact-links { animation: public-enter 500ms cubic-bezier(0.42, 0, 0.58, 1) 900ms both; }
+.enter-contact-form { --enter-y: 30px; animation: public-enter 800ms cubic-bezier(0.42, 0, 0.58, 1) 500ms both; }
+@media (prefers-reduced-motion: reduce) {
+  .enter-hero-copy, .enter-hero-profile, .enter-card, .enter-contact-page,
+  .enter-contact-intro, .enter-contact-links, .enter-contact-form { animation: none !important; }
+}
+
 /* Route view transitions (see src/router/TransitionRouter.jsx) blend the
    previous page into the next with the site's standard 300ms chrome motion,
    the same duration and curve as the header's own scrolled-state change. The

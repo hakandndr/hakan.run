@@ -10,6 +10,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verifyIndexingPolicy } from './indexing.js';
+import { verifyDocumentArtifact } from './document-artifact.js';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -21,13 +22,14 @@ const argument = (name, fallback) => {
 const mode = argument('mode', 'production');
 const outputDirectory = path.resolve(appDirectory, argument('out-dir', '../../dist/apps/web'));
 
-const problems = verifyIndexingPolicy(outputDirectory, mode);
+const serverDirectory = path.resolve(appDirectory, '../../dist/server');
+const problems = [...verifyIndexingPolicy(outputDirectory, mode), ...verifyDocumentArtifact(outputDirectory, serverDirectory)];
 
 if (problems.length > 0) {
   process.stderr.write(
-    `\n${outputDirectory} does not satisfy the ${mode} indexing policy:\n  - ${problems.join('\n  - ')}\n`,
+    `\n${outputDirectory} does not satisfy the ${mode} indexing and document policy:\n  - ${problems.join('\n  - ')}\n`,
   );
   process.exit(1);
 }
 
-console.log(`${outputDirectory} satisfies the ${mode} indexing policy`);
+console.log(`${outputDirectory} satisfies the ${mode} indexing and document policy`);

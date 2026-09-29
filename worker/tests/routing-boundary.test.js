@@ -5,8 +5,10 @@
 // matches no file receives index.html and the Worker never runs, so
 // verifyAccess never executes and /api/* returns HTML instead of JSON.
 // run_worker_first makes protected, API, and Notes paths reach the Worker
-// first. Notes needs exact-slug validation before the SPA fallback. Dropping
-// or widening these patterns changes their HTTP contract.
+// first. Notes needs exact-slug validation before the SPA fallback. The exact
+// public document paths /, /contact and /card are server-rendered by the
+// Worker so their first paint matches the hydrated application. Dropping or
+// widening these patterns changes their HTTP contract.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -22,7 +24,7 @@ const parseJsonc = (raw) =>
 const config = parseJsonc(readFileSync(fileURLToPath(CONFIG_URL), 'utf8'));
 const assets = config.assets ?? {};
 
-const EXPECTED_WORKER_FIRST = ['/api/*', '/boss', '/boss/*', '/notes', '/notes/*'];
+const EXPECTED_WORKER_FIRST = ['/', '/contact', '/card', '/api/*', '/boss', '/boss/*', '/notes', '/notes/*'];
 
 test('the SPA fallback is still what makes Worker-first routing necessary', () => {
   assert.equal(assets.not_found_handling, 'single-page-application');
@@ -35,7 +37,7 @@ test('Worker-first routing is declared', () => {
   );
 });
 
-test('Worker-first routing covers exactly the protected, API and Notes paths', () => {
+test('Worker-first routing covers exactly the protected, API, Notes and public document paths', () => {
   assert.deepEqual([...assets.run_worker_first].sort(), [...EXPECTED_WORKER_FIRST].sort());
 });
 
@@ -46,11 +48,13 @@ test('Worker-first routing carries no broader wildcard and no unrelated route', 
       `unexpected run_worker_first entry: ${pattern}`,
     );
     // A root-level wildcard would send every request, including every static
-    // asset, through the Worker and would change static delivery.
+    // asset, through the Worker and would change static delivery. Patterns
+    // glob only with "*", so the exact "/" matches the homepage document alone.
     assert.ok(
-      !['*', '/', '/*', '/**'].includes(pattern),
+      !['*', '/*', '/**'].includes(pattern),
       `run_worker_first must not carry a root wildcard: ${pattern}`,
     );
+    if (!pattern.endsWith('/*')) assert.ok(!pattern.includes('*'), `unexpected glob: ${pattern}`);
   }
 });
 

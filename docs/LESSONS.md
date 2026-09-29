@@ -309,3 +309,11 @@
 - Reusable rule: Bind the classification contract to the snapshot, verify historical bytes and counts with that contract, and apply current semantics only to appended data. Report current full-plan drift explicitly.
 - Applies when: Append-only imports classify records using application policy that can evolve between snapshots.
 - Exceptions / caveats: The historical contract is evidence, not permission to classify new records under obsolete rules; byte-prefix verification remains mandatory.
+
+## 21. A first paint needs the same markup authority as the application
+
+- Problem: A static page layer written separately from the application components is a second site. Whatever it paints first is replaced later, and every difference in markup or styling becomes a visible flash.
+- Evidence / context: Notes HTML used a hand-written template with inline `system-ui` styles and no header. A cold load painted it for about 0.4–0.9 s until `/api/content` returned and React replaced `#root`; screenshots of the two states showed different headers, fonts, heading sizes and widths. The homepage painted an empty canvas for about 1 s for the same reason.
+- Reusable rule: Produce first-paint HTML with the same components and the same content authority the client hydrates, and hydrate rather than replace. Test it by comparing the document before any module runs with the stable document, including DOM node identity, and by rendering with JavaScript disabled.
+- Applies when: A page is prerendered, server-rendered or given a static fallback while its client application renders the same route.
+- Exceptions / caveats: A degraded fallback may omit parts owned by an unavailable authority, but it must be rendered by the same components and must not be the normal path.

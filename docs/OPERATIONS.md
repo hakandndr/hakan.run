@@ -73,8 +73,12 @@ creates `/notes` and article HTML assets and adds their canonical URLs to the
 production sitemap. A staging build retains its empty sitemap and noindex policy.
 The Worker validates exact article slugs before asset delivery; unknown Notes
 paths return HTTP 404 and are excluded from PAGE ingestion.
-Direct Notes HTML stays readable if the separate public CMS snapshot fails;
-the twelve CMS sections still fail closed.
+The build also produces the Worker's server renderer in `dist/server/` (never a
+public asset); Wrangler bundles it at deploy, so build before `wrangler deploy`.
+Artifact verification checks the renderer, the empty `index.html` root, the
+single BootIntro overlay and each Notes fallback outlet. First-paint checks run
+against `tests/support/document-server.mjs`, which executes the real Worker over
+the built assets with fixture APP_DB content.
 
 For local review, run `npm run check`, production and staging builds, artifact
 and indexing checks, plus `tests/notes.spec.ts` and affected public route tests

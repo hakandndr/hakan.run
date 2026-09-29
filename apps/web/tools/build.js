@@ -36,6 +36,8 @@ import { fileURLToPath } from 'node:url';
 import { applyIndexingPolicy, verifyIndexingPolicy } from './indexing.js';
 import { isolationProblem } from './dependency-isolation.js';
 import { readNotes, writeNotesArtifact, writeNotesCatalog } from './notes.js';
+import { verifyDocumentArtifact } from './document-artifact.js';
+import { toModuleUrl } from '../../../tools/module-url.js';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repositoryRoot = path.resolve(appDirectory, '../..');
@@ -48,6 +50,8 @@ const argument = (name, fallback) => {
 
 const mode = argument('mode', 'production');
 const outputDirectory = path.resolve(appDirectory, argument('out-dir', '../../dist/apps/web'));
+// The server build is imported by the Worker and must never be a public asset.
+const serverDirectory = path.resolve(repositoryRoot, 'dist/server');
 const notes = readNotes();
 writeNotesCatalog(notes);
 
@@ -122,20 +126,57 @@ if (!fs.existsSync(path.join(outputDirectory, 'index.html'))) {
   fail(`vite reported success but ${outputDirectory} has no index.html`);
 }
 
+// 2b. Server build of the same application source. The Worker imports it to
+//     render public documents, and this build uses it to render the static
+//     Notes bodies and the BootIntro overlay, so no page markup is written by
+//     hand outside the React components.
+try {
+  await vite.build({
+    root: appDirectory,
+    mode,
+    logLevel: 'warn',
+    ssr: { target: 'webworker', noExternal: true, resolve: { conditions: ['worker', 'browser'], externalConditions: ['worker'] } },
+    build: {
+      ssr: 'src/entry-server.jsx',
+      outDir: serverDirectory,
+      emptyOutDir: true,
+      copyPublicDir: false,
+      minify: true,
+      rollupOptions: { output: { format: 'es', entryFileNames: 'entry-server.mjs', inlineDynamicImports: true } },
+    },
+  });
+} catch (error) {
+  fail(`vite server build failed: ${error.message}`);
+}
+const rendererFile = path.join(serverDirectory, 'entry-server.mjs');
+if (!fs.existsSync(rendererFile)) fail(`vite reported success but ${rendererFile} is missing`);
+const renderer = await import(toModuleUrl(rendererFile));
+console.log(`server renderer : ${path.relative(repositoryRoot, rendererFile)}`);
+
+// The BootIntro overlay sits outside the hydrated root in every document; the
+// pre-paint script in index.html decides whether this tab session presents it.
+const indexFile = path.join(outputDirectory, 'index.html');
+const indexHtml = fs.readFileSync(indexFile, 'utf8');
+if (!/<body[^>]*>/.test(indexHtml) || indexHtml.includes('<div data-boot-intro="presentation"')) {
+  fail('index.html has no body element to receive the BootIntro overlay, or already contains one');
+}
+const bootIntro = renderer.renderBootIntro();
+fs.writeFileSync(indexFile, indexHtml.replace(/<body[^>]*>/, (tag) => `${tag}\n  ${bootIntro}`), 'utf8');
+
 // 3. Indexing policy, applied after Vite has copied the public directory.
 for (const action of applyIndexingPolicy(outputDirectory, mode)) {
   console.log(`indexing policy : ${action}`);
 }
-console.log(`notes artifact  : ${writeNotesArtifact(outputDirectory, mode, notes)} static entry pages`);
+console.log(`notes artifact  : ${writeNotesArtifact(outputDirectory, mode, notes, renderer.renderNotesFallback)} static entry pages`);
 if (mode !== 'staging') {
   console.log('indexing policy : production build, artifact left untouched');
 }
 
 // 4. Read the artifact back. The policy is a safety property, so the build
 //    proves it rather than assuming the previous step worked.
-const problems = verifyIndexingPolicy(outputDirectory, mode);
+const problems = [...verifyIndexingPolicy(outputDirectory, mode), ...verifyDocumentArtifact(outputDirectory, serverDirectory)];
 if (problems.length > 0) {
   fail(`the built artifact does not satisfy the ${mode} indexing policy:\n  - ${problems.join('\n  - ')}`);
 }
 
-console.log(`verified        : ${outputDirectory} satisfies the ${mode} indexing policy`);
+console.log(`verified        : ${outputDirectory} satisfies the ${mode} indexing and document policy`);

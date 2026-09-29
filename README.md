@@ -43,7 +43,8 @@ navigation links to sections, while Portfolio cards use published external URLs.
 Ten Engineering Notes articles are repository Markdown in
 `apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
 routes, with static HTML and sitemap output. Front matter selects the three homepage
-notes. Direct Notes HTML remains readable when the separate CMS snapshot cannot load.
+notes. The Worker server-renders public documents from APP_DB and the browser
+hydrates them, so the first paint is the final page; see D-041.
 In-app pathname changes into, within and out of Notes are committed inside a same-document
 view transition (300ms, the site's standard chrome motion) under a persistent header;
 hash navigation, document loads, reloads and reduced-motion navigation do not use it.

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { motion } from 'framer-motion';
 import { ArrowDownToLine, ArrowUpRight, Briefcase, Github, Linkedin, Mail } from 'lucide-react';
 import { useCanonicalUrl } from '@/head/useCanonicalUrl';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
@@ -71,13 +70,9 @@ const PublicCard = ({ snapshot }) => {
   useCanonicalUrl(CARD_PRODUCT_CONFIG.canonicalUrl);
 
   return (
-    <motion.main
+    <main
       data-public-section="card"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      transition={{ duration: 0.45, ease: 'easeOut' }}
-      className="relative min-h-screen overflow-x-hidden bg-[#090909] text-white"
+      className="enter-card relative min-h-screen overflow-x-hidden bg-[#090909] text-white"
     >
       <Helmet>
         <title>{card.identity.name} — Digital Business Card</title>
@@ -168,7 +163,7 @@ const PublicCard = ({ snapshot }) => {
           </div>
         </div>
       </div>
-    </motion.main>
+    </main>
   );
 };
 

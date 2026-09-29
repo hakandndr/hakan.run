@@ -21,10 +21,21 @@ export default defineConfig({
   ],
 
   // Build the app and serve it before the tests start.
-  webServer: {
-    command: 'npm run build --prefix apps/web && npm run start --prefix apps/web',
-    url: 'http://localhost:4173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  webServer: [
+    {
+      command: 'npm run build --prefix apps/web && npm run start --prefix apps/web',
+      url: 'http://localhost:4173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+    {
+      // The real Worker over the built assets, for first-paint tests. Its
+      // readiness URL is a static file so the server renderer is not loaded
+      // before the build above has produced it.
+      command: 'node tests/support/document-server.mjs 4175',
+      url: 'http://localhost:4175/robots.txt',
+      reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
+    },
+  ],
 });

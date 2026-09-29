@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-041 — Public documents are server-rendered from the same tree and hydrated
+
+- Decision: The Worker renders `/`, `/contact`, `/card`, `/notes` and known Notes articles with the public React tree (`apps/web/src/entry-server.jsx`, built by Vite into `dist/server`) from the published payload `/api/content` serves, writes the theme tokens onto `<html>`/`<body>`, and embeds the payload. The browser hydrates that markup with the embedded payload. BootIntro is static markup outside the application root, decided before paint by the `index.html` head script. Mount entrances for Hero, Contact and `/card` are CSS with the former framer-motion timings.
+- Context: Cold loads painted a different document before the application. Notes HTML carried a hand-written article template with its own inline styles (no header, `system-ui`, different heading scale and width) that React replaced after `/api/content`; the homepage painted an empty canvas until the same fetch. Two markup authorities, and a first paint that depended on a client round-trip.
+- Alternatives considered: Keep D-027's empty root everywhere (a blank first frame and no meaningful Notes HTML); hide the static layer until React starts; bake an APP_DB snapshot into the build (a second content authority that goes stale on publish); migrate to a framework with SSR.
+- Rationale: One component tree and one content authority produce both the first paint and the hydrated state. The Worker already reads the same D1 rows for `/api/content`, so the per-view read moves from after JavaScript to before the first byte.
+- Consequences: `run_worker_first` includes the exact paths `/`, `/contact` and `/card`. First paint and hydrated markup are structurally equivalent and the painted DOM survives hydration (`tests/first-paint.spec.ts`). If APP_DB or rendering is unavailable, the Worker serves the static asset unchanged: D-027's empty-root path for `/`, and for Notes a body rendered by the same Notes components without the APP_DB-owned header and footer. Unknown non-Notes paths keep the static SPA fallback. Contact loses its exit animation (accepted in the motion release).
+- Status: Implemented; supersedes D-027's empty-root first paint for rendered routes and D-028's React-rendered BootIntro. Staging only until owner visual review.
+
 ## D-040 — Engineering Notes is first-party engineering writing
 
 - Decision: Publish Engineering Notes as first-party content at `/notes` on `hakan.run`. Source-controlled articles are the initial editorial authority unless a later decision explicitly changes that boundary. `notes.dndr.net` may serve as editorial reference but cannot be a runtime dependency or article authority.

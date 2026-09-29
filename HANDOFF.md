@@ -1,5 +1,21 @@
 # hakan.run Modernization Handoff
 
+## First-paint rendering architecture staging checkpoint — 2026-09-29
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve with `git rev-parse HEAD`; product commit message "Fix first-paint rendering architecture" |
+| Current phase | Server-rendered, hydrated public documents on staging for owner visual review (D-041); production unchanged |
+| Completed | Worker renders `/`, `/contact`, `/card` and Notes from APP_DB with the public React tree; browser hydrates the embedded payload; divergent Notes template removed; BootIntro static and pre-paint; CSS entrances; first-paint invariant tests |
+| Exact next action | Owner hammer-refreshes the staging URLs; on approval, deploy the same commit to production and smoke-check first paint, routes and transitions |
+| Prohibited actions | No production deploy before owner approval; no security-header, HTTPS-redirect, DNS, Access, Turnstile, Email, APP_DB or CMS flag change in this task |
+| Push state | Product commit pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Staging only (see PROCESS.md for the version); production Worker `cf7b110f-24dc-49d3-b2d7-7025f6c54114` unchanged |
+| Infrastructure state | `run_worker_first` adds exact `/`, `/contact`, `/card`; bindings, flags and rollback infrastructure unchanged; `CMS_PRODUCTION_WRITES_ENABLED=false` |
+
+The security-header and HTTP-to-HTTPS work is paused until this release is closed. The checkpoint below is historical.
+
 ## Engineering Notes motion production checkpoint — 2026-09-29
 
 | Field | Current value |

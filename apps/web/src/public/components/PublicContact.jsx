@@ -1,15 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { motion } from 'framer-motion';
 import { CONTACT_RESULT, submitContact } from '@/content-source/contact';
 import { TURNSTILE_STATE, useTurnstile } from '@/content-source/useTurnstile';
 
-const pageVariants = {
-  initial: { opacity: 0, y: 20 },
-  in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -20 },
-};
-const pageTransition = { type: 'tween', ease: 'anticipate', duration: 0.5 };
 
 const PublicContact = ({ contact, preview = false }) => {
   const [status, setStatus] = useState('');
@@ -65,14 +58,7 @@ const PublicContact = ({ contact, preview = false }) => {
   const isError = status && !isSending && !isSuccess;
 
   return (
-    <motion.div
-      data-public-section="contact"
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-    >
+    <div data-public-section="contact" className="enter-contact-page">
       <Helmet>
         <title>{contact.pageTitle}</title>
         <meta name="description" content={contact.metaDescription} />
@@ -87,11 +73,7 @@ const PublicContact = ({ contact, preview = false }) => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
+            <div className="enter-contact-intro">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white uppercase font-mono tracking-tight mb-6 leading-tight">
                 {contact.heading} <span className="text-accent-purple">{contact.headingAccent}</span>
               </h1>
@@ -119,12 +101,7 @@ const PublicContact = ({ contact, preview = false }) => {
                 ))}
               </div>
 
-              <motion.div
-                className="flex flex-wrap gap-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.9 }}
-              >
+              <div className="enter-contact-links flex flex-wrap gap-4">
                 {contact.socialLinks.map((link) => (
                   <a
                     key={link.name}
@@ -137,13 +114,11 @@ const PublicContact = ({ contact, preview = false }) => {
                     {link.name}
                   </a>
                 ))}
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
+            <div
+              className="enter-contact-form"
             >
               <div className="border border-white/10 rounded-xl overflow-hidden" style={{ backgroundColor: '#1A1A1A' }}>
                 <div
@@ -244,11 +219,11 @@ const PublicContact = ({ contact, preview = false }) => {
                   )}
                 </form>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 };
 

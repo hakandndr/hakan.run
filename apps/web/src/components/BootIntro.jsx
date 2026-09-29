@@ -9,23 +9,11 @@ const BOOT_LINES = [
   { delay: 850, text: '> boot sequence complete', className: 'text-accent-purple' },
 ];
 
-const claimFirstEntry = () => {
-  try {
-    if (window.sessionStorage.getItem(BOOT_INTRO_SEEN_KEY) === '1') return false;
-    window.sessionStorage.setItem(BOOT_INTRO_SEEN_KEY, '1');
-    return true;
-  } catch {
-    // Storage denial must never block the public application.
-    return true;
-  }
-};
-
-// This state is presentation eligibility only. It is independent of the
-// published snapshot, READY, route navigation and scroll restoration.
+// Presentation only. The build renders this markup into every static public
+// document, outside the hydrated application root, and the pre-paint script in
+// index.html decides before the first paint whether this tab session presents
+// it. It is independent of the published snapshot, READY, routing and scroll.
 const BootIntro = () => {
-  const [showIntro] = React.useState(claimFirstEntry);
-  if (!showIntro) return null;
-
   return (
     <div
       data-boot-intro="presentation"

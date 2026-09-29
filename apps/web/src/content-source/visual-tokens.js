@@ -11,15 +11,25 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 };
 
-export const applyPublishedVisualTokens = (content) => {
-  const root = document.documentElement;
-  const { colors, typography } = content;
+// One definition of the published theme tokens. The browser applies it after
+// loading a snapshot; the Worker writes the same values into server-rendered
+// documents so the first paint already carries them.
+export const publishedVisualTokens = ({ colors, typography }) => ({
+  properties: {
+    '--color-accent-rgb': hexToRgbChannels(colors.accentPurple),
+    '--color-bg': colors.background,
+    '--color-card-bg': colors.cardBackground,
+    '--color-hero-overlay': hexToRgba(colors.heroOverlay, 0.4),
+  },
+  bodyAttributes: {
+    'data-heading-font': typography.headingFont,
+    'data-body-size': typography.bodySize,
+    'data-spacing': typography.sectionSpacing,
+  },
+});
 
-  root.style.setProperty('--color-accent-rgb', hexToRgbChannels(colors.accentPurple));
-  root.style.setProperty('--color-bg', colors.background);
-  root.style.setProperty('--color-card-bg', colors.cardBackground);
-  root.style.setProperty('--color-hero-overlay', hexToRgba(colors.heroOverlay, 0.4));
-  document.body.setAttribute('data-heading-font', typography.headingFont);
-  document.body.setAttribute('data-body-size', typography.bodySize);
-  document.body.setAttribute('data-spacing', typography.sectionSpacing);
+export const applyPublishedVisualTokens = (content) => {
+  const { properties, bodyAttributes } = publishedVisualTokens(content);
+  for (const [name, value] of Object.entries(properties)) document.documentElement.style.setProperty(name, value);
+  for (const [name, value] of Object.entries(bodyAttributes)) document.body.setAttribute(name, value);
 };
