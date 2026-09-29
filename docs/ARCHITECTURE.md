@@ -28,6 +28,15 @@ assets at `/notes` and `/notes/:slug`, with metadata and sitemap entries. Worker
 routing validates Notes paths before the existing SPA fallback, returning 404 for an
 unknown slug. Direct Notes HTML remains readable while the shared public shell
 loads its separate twelve-section APP_DB snapshot and if that load fails.
+
+Client routing uses `apps/web/src/router/TransitionRouter.jsx`, a minimal
+`BrowserRouter` equivalent over the same `@remix-run/router` browser history. Its
+single history listener commits PUSH, POP and REPLACE updates; pathname changes
+between `/` and Notes, or within Notes, are committed synchronously with
+`flushSync` inside `document.startViewTransition()`. The route tree is no longer
+keyed by pathname, so the layout and header persist and `ScrollManager` settles
+scroll inside the committed state. The motion layer is presentation only: it
+does not affect routes, metadata, static Notes HTML, 404 handling or PAGE analytics.
 Notes is not a CMS section, Boss editor or external content API. This boundary is
 deployed and verified on production Worker
 `df70be6e-02e6-476e-95b0-c4309b601fb5`. `notes.dndr.net` is not a runtime

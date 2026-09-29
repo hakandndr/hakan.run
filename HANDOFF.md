@@ -1,5 +1,21 @@
 # hakan.run Modernization Handoff
 
+## Engineering Notes motion production checkpoint — 2026-09-29
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `2af025569c67408b81711cb1f17d52afb940b892` |
+| Current phase | Notes view-transition motion and editorial refinement live after owner staging approval |
+| Completed | Same-document route transition with persistent header; ten edited Notes; featured trio Moving / Write path / Single failed probes; production route, motion and regression smoke passed |
+| Exact next action | Separately scoped security task: apex HTTP-to-HTTPS 301 (zone change, own authorization), then HSTS, baseline headers and CSP Report-Only |
+| Prohibited actions | No APP_DB change, direct SQL, ANALYTICS_DB mutation, CMS flag change, DNS, Access, Turnstile, Email/provider change or rollback cleanup without separate authorization |
+| Push state | Product and documentation commits pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production deployment `56f630b5-e4f0-4c6b-91bf-30705675b32a`, Worker `cf7b110f-24dc-49d3-b2d7-7025f6c54114` at 100% serves `2af0255`; rollback target `58866745-74d1-4c9d-b29c-6eb6a4aa0716`; staging `fa8a5e2e-1ce6-47e3-9265-eee9fdd4081f` |
+| Infrastructure state | `CMS_PRODUCTION_WRITES_ENABLED=false`; bindings, routes, flags and rollback infrastructure unchanged |
+
+The checkpoint below is historical.
+
 ## Engineering Notes expansion production checkpoint — 2026-09-29
 
 | Field | Current value |

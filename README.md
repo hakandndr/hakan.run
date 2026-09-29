@@ -44,7 +44,9 @@ Ten Engineering Notes articles are repository Markdown in
 `apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
 routes, with static HTML and sitemap output. Front matter selects the three homepage
 notes. Direct Notes HTML remains readable when the separate CMS snapshot cannot load.
-In-app navigation into Notes uses a short opacity fade; document loads do not animate.
+In-app pathname changes into, within and out of Notes are committed inside a same-document
+view transition (300ms, the site's standard chrome motion) under a persistent header;
+hash navigation, document loads, reloads and reduced-motion navigation do not use it.
 The ten notes are live on production after local, visual, staging and bounded
 production acceptance. Unknown
 Notes slugs return first-party HTTP 404; production Notes pages are indexable.

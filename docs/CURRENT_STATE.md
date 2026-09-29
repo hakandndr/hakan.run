@@ -1,5 +1,33 @@
 # Current State
 
+## Engineering Notes motion and editorial release — 2026-09-29
+
+Owner-approved product commit `2af025569c67408b81711cb1f17d52afb940b892` is
+deployed on production Worker version `cf7b110f-24dc-49d3-b2d7-7025f6c54114`
+(deployment `56f630b5-e4f0-4c6b-91bf-30705675b32a`, 100%; rollback target
+`58866745-74d1-4c9d-b29c-6eb6a4aa0716`) after staging review on
+`fa8a5e2e-1ce6-47e3-9265-eee9fdd4081f`. In-app pathname changes between `/` and
+Notes, and within Notes, now blend the previous rendered state into the next
+through a same-document view transition (300ms,
+`cubic-bezier(0.4, 0, 0.2, 1)`), with a persistent layout and a header that is
+excluded from the crossfade. Hash navigation, direct-open, reload and
+reduced-motion navigation start no transition; browsers without the API navigate
+normally. The earlier `.route-enter` fade and the pathname-keyed
+`AnimatePresence` were removed; Contact keeps its entry motion but no longer has
+an exit animation.
+
+Ten Notes remain live from source-controlled Markdown after a restrained
+editorial pass. The homepage features Moving a live static site to the edge
+without moving everything, A write path for a mostly static site, and Why the
+status page ignores single failed probes. Production returned 200 for `/`,
+`/notes`, all ten articles, `/contact` and `/card`, and first-party HTTP 404 for
+an unknown slug. APP_DB is unchanged (Portfolio revision 2 with the approved
+five-project order; About and the other sections at revision 1), and
+`CMS_PRODUCTION_WRITES_ENABLED` remains `false`. The apex HTTP-to-HTTPS redirect
+and public security headers remain a separate follow-up task.
+
+The checkpoint below is historical; its `.route-enter` fade has been replaced.
+
 ## Engineering Notes expansion — 2026-09-29
 
 Product commit `5282dc06130782be16e6c7a15dd04a6f09c49a8a` is deployed on
