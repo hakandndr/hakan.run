@@ -175,4 +175,14 @@ body[data-spacing="spacious"] section { padding-top: 10rem !important; padding-b
 .notes-prose { color: #b7b7bd; font-size: 1.0625rem; line-height: 1.85; }
 .notes-prose p { margin: 0 0 1.5rem; }
 .notes-prose h2 { color: #f5f5f5; font-size: 1.5rem; font-weight: 650; line-height: 1.35; margin: 2.8rem 0 1rem; }
+.notes-prose code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.86em; color: #dcdce2; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 4px; padding: 0.08em 0.32em; overflow-wrap: anywhere; }
+.notes-prose a { color: rgb(var(--color-accent-rgb)); text-decoration: underline; text-decoration-color: rgb(var(--color-accent-rgb) / 0.4); text-underline-offset: 3px; }
+.notes-prose a:hover { text-decoration-color: currentColor; }
+
+/* In-app navigation into Notes replaces the page body at once. A short fade
+   gives that swap the same soft entry as the rest of the site. Presentation
+   only: routing, scroll restoration and document loads are unchanged. */
+.route-enter { animation: route-enter 180ms ease-out both; }
+@keyframes route-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .route-enter { animation: none; } }
 @media (min-width: 640px) { .notes-prose { font-size: 1.125rem; } }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
 import NotFound from '@/pages/NotFound';
-import { getNote, NOTES } from './catalog';
+import { FEATURED_NOTES, getNote, NOTES } from './catalog';
 
 const intro = 'Engineering decisions, failures and operational lessons from systems I have built.';
 
@@ -25,7 +25,7 @@ export const NotesHomeSection = () => (
         <Link to="/notes" className="font-mono text-sm text-accent-purple hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-purple">View all notes →</Link>
       </div>
       <ul className="mt-10 grid gap-6 md:grid-cols-3">
-        {NOTES.slice(0, 3).map((note) => <li key={note.slug} className="border-t border-white/15 pt-5"><Link className="group block rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-purple" to={`/notes/${note.slug}`}><span className="font-mono text-xs text-accent-purple/70">{note.topic}</span><h3 className="mt-2 text-lg font-semibold group-hover:text-accent-purple transition-colors">{note.title}</h3><p className="mt-2 text-sm text-gray-400 leading-relaxed">{note.deck}</p></Link></li>)}
+        {FEATURED_NOTES.map((note) => <li key={note.slug} className="border-t border-white/15 pt-5"><Link className="group block rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent-purple" to={`/notes/${note.slug}`}><span className="font-mono text-xs text-accent-purple/70">{note.topic}</span><h3 className="mt-2 text-lg font-semibold group-hover:text-accent-purple transition-colors">{note.title}</h3><p className="mt-2 text-sm text-gray-400 leading-relaxed">{note.deck}</p></Link></li>)}
       </ul>
     </div>
   </section>

@@ -89,3 +89,64 @@ test('Cloudflare-style static Notes HTML hydrates without duplicate metadata', a
   }
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://hakan.run/notes/reachable-is-not-current');
 });
+
+test('homepage shows exactly the three selected Notes and /notes lists all of them', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('#notes li h3')).toHaveText([
+    'The engineering rules I stopped relearning',
+    'A write path for a mostly static site',
+    'Moving a live static site to the edge without moving everything',
+  ]);
+  await page.goto('/notes');
+  await expect(page.locator('[data-public-section="notes-index"] li h2')).toHaveCount(NOTES.length);
+  await expect(page.locator('[data-public-section="notes-index"] li h2')).toHaveText(NOTES.map((note) => note.title));
+});
+
+test('in-app navigation into Notes uses the short fade without replaying the boot intro', async ({ page }) => {
+  const enter = page.locator('[data-route-enter="notes"]');
+  const animation = () => enter.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return `${style.animationName} ${style.animationDuration}`;
+  });
+
+  await page.goto('/notes/reachable-is-not-current');
+  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
+  await expect(enter).toHaveCount(0);
+
+  await page.goto('/');
+  await expect(page.locator('#notes')).toBeVisible();
+  const boot = page.locator('[data-boot-intro]');
+  const bootCount = await boot.count();
+  if (bootCount) await boot.evaluate((element) => { element.dataset.firstEntry = 'kept'; });
+  await page.locator('#notes').scrollIntoViewIfNeeded();
+
+  await page.locator('#notes a[href="/notes"]').click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+  await expect(enter).toHaveCount(1);
+  expect(await animation()).toBe('route-enter 0.18s');
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await expect(boot).toHaveCount(bootCount);
+  if (bootCount) await expect(boot).toHaveAttribute('data-first-entry', 'kept');
+
+  await page.getByRole('link', { name: /A write path for a mostly static site/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'A write path for a mostly static site' })).toBeVisible();
+  await expect(enter).toHaveCount(1);
+  await page.getByRole('link', { name: '← Back to Notes' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+  await expect(enter).toHaveCount(1);
+
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'A write path for a mostly static site' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+  await page.goBack();
+  await expect(page.locator('#notes')).toBeVisible();
+  await expect(enter).toHaveCount(0);
+  await page.goForward();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.getByRole('link', { name: /Reachable is not current/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
+  expect((await animation()).split(' ')[0]).toBe('none');
+});

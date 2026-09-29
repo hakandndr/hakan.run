@@ -1,41 +1,54 @@
 ---
 title: A write path for a mostly static site
-deck: TürkiyeCennet needed visitor questions and useful notes without turning its place pages into a database application.
+deck: TürkiyeCennet needed visitor questions, answers and useful notes on its place pages without turning an Astro build into a database application.
 date: 2026-09-28
 topic: Architecture
 project: TürkiyeCennet
+featured: 2
 ---
 
-TürkiyeCennet began with a useful constraint. Places, routes and editorial copy were built with Astro and served as static assets. The place identity, coordinates, sources and images came from the repository. Turkish and English had their own prose. A visitor could read a place page without a database read deciding what that page was.
+TürkiyeCennet started from a useful constraint. Places, routes and guides are Markdown collections that Astro builds into static HTML. The repository decides what a place is: its canonical identity, coordinates, sources, imagery and the Turkish and English prose. Once a build is deployed, nothing a visitor does can change that document, and no database read sits between a request and the page.
 
-Then visitors needed to ask a question about a place, answer one and share a useful field note. Those records could arrive after a build, and some would need to be hidden or corrected. I wanted that capability without making every place page an application shell or requiring visitor accounts to contribute.
+Community broke that assumption in a narrow way. Visitors needed to ask a question about a place, answer one, and leave a short useful note. Those records arrive after the build has shipped, some must never become public, and the ones that do may later need to be hidden. I wanted that without turning every place page into an application shell, without visitor accounts, and without letting mutable state leak into the part of the site the repository still owns.
 
-## Put the write where the decision is made
+## Two authorities, one boundary
 
-The static page remains the editorial frame. A narrow public API reads the published Community projection and accepts new submissions. The site Worker handles public delivery and forwarding; a separate API Worker owns validation, Turnstile verification and writes to APP_DB. Boss is another Worker behind Access, where moderation and official answers happen. A browser may submit a pending record. It cannot publish one by declaring a status in its request.
+The split is by data class, not by page. Git and the Astro build remain the publication authority for editorial content. APP_DB, a D1 database, is the authority for Community records and their state transitions. Nothing crosses in the other direction: Boss does not edit place content, and the build never reads APP_DB.
 
-APP_DB is the durable authority for the record and its state changes. Public reads omit private submission context and unpublished content. Keeping that projection separate matters because the same database must support review, abuse handling and a public place page without exposing the material collected for the first two jobs.
+The request path is where that boundary becomes concrete. The public site is a Worker serving the static build through its asset binding. It forwards `/api/community/*` to a separate API Worker over a service binding. The API Worker has no route, no workers.dev hostname and no preview URL; the only way to reach it is through the site Worker, so the browser stays same-origin and there is no CORS policy to get wrong. The API owns Turnstile verification, rate limiting on a salted hash, field validation and every write to APP_DB. Boss is a third Worker on its own hostname behind Cloudflare Access, and it verifies the Access JWT itself instead of assuming the edge policy is configured correctly.
+
+A browser can create a pending record. It cannot publish one, choose its ID or declare its status. Identifiers are generated server-side, fields pass through an allowlist, and an answer is written with an `INSERT … SELECT` from a publicly visible parent question, so an answer to a hidden or unknown question simply inserts zero rows.
+
+## Public projection and private record
+
+One database serves three jobs: the public thread on a place page, moderation, and abuse handling. They need different data. The operational record includes private request context — the client IP taken only from Cloudflare's edge, the user agent and similar signals — in its own table, with its own retention, owner-only export and purge. The public read path is a projection defined once in SQL: published entries with a visible parent, and no private columns. Keeping that projection explicit is what allows moderation data to exist without every new query becoming a potential disclosure.
+
+## Moderation is a state machine
+
+A new entry starts `pending`. Review publishes or rejects it. A published entry can be hidden and restored, and a rejected one can be reopened for review. Erasure is final: it removes the visitor's text, nickname and hash, but the row remains so the audit trail stays intact. Every owner action is a conditional `UPDATE` against a version number, so a decision made from a stale form returns HTTP 409 instead of overwriting a newer one, and each transition appends an event to an audit table that is never rewritten.
+
+Reports are separate records with open, resolved and dismissed states. They create review work and never hide content automatically, because a report is an allegation, not a moderation decision. Official answers can only be created from Boss with the verified Access identity, and schema constraints keep them free of visitor fields. A single `published` boolean could not explain why an entry disappeared, whether a report was reviewed, or who answered on behalf of the site.
+
+The write path also separates acceptance from notification. The entry, its private context and its first audit event are committed in one D1 batch before any owner alert is attempted, and the alert is sent after the response through `waitUntil`. If Email Sending fails, the submission is still accepted and still visible in Boss. Notification is a downstream signal, not part of the transaction.
 
 ## The first model was consistent and still wrong
 
-The first conversation key included the page language. A question submitted on the Turkish Patara page belonged to Patara plus Turkish; the English page queried Patara plus English. Each query and test was consistent with that model. When a real Turkish question and official answer were published, switching the place page to English made the conversation disappear.
+The first conversation key included the page language. A question asked on the Turkish Patara page belonged to Patara-in-Turkish, and the English page queried Patara-in-English. The schema, the visibility query and the tests all agreed with each other. When a real Turkish question with an official answer was published, switching the place page to English made the whole conversation disappear.
 
-The failure was in the identity I had chosen, not in a broken join. The subject of the conversation is Patara. The language of the page from which a visitor submitted it is useful provenance, but it does not make a different Patara. The publication key became the language-neutral place identity. Submission page language remains metadata; the visitor's words are not translated. The same question or useful note appears on both place pages, while the interface uses the page language and quietly marks an entry from the other page. A later owner submission of a real useful note confirmed the same behavior.
+Nothing was wrong with the join. The identity was wrong. The subject of the thread is Patara; the language of the page a visitor used is provenance, not a second place. Public visibility is now scoped by the language-neutral place identity, so both localized pages show every published thread. Visitor text is not translated, the page language only localizes the interface around it, and a small marker shows when an entry came from the other language's page. No schema change was needed — answers still carry their question's locale under a database trigger — because only the publication boundary moved.
 
-That distinction is easy to miss if the only test is whether a Turkish submission appears on the Turkish page. The first model passed that test. It took a real published conversation and a language switch to expose the wrong boundary.
+The first model passed the obvious test: a Turkish submission appears on the Turkish page. It took a real published thread and one language switch to show that the boundary had been drawn around the wrong entity.
 
-## Moderation is state, not a switch
+## A release invariant between independent Workers
 
-A new record starts pending. Review may publish or reject it; a published record may be hidden or restored. Reports create review work rather than hiding content automatically. Official answers are authored in Boss. Those operations have separate audit events. A single published boolean would not explain why a record disappeared, whether a report had been reviewed or who made an official response.
+The site and the API must agree on which places can receive records. The API validates a place against a registry generated from the places collection. In one content release the site gained places while the separately deployed API and Boss still held the older registry. Each Worker was healthy on its own, and the new pages rendered a Community form the API would reject.
 
-The write path also separates acceptance from notification. The submission and its private context are stored before an owner alert is attempted. Email can fail after the write; that must not erase a durable record or tell the visitor that an accepted submission failed. Boss reads the stored record, so notification is a downstream signal rather than the source of truth.
+The root cause was release topology rather than code. Content releases went to the site Worker; the API and Boss were deployed separately, and the branch that shipped content did not carry the generator or the test that compared the two. "Remember to update both" was a procedure, and procedures are skipped precisely when a release feels routine.
 
-## A second boundary showed up at release time
+The generated registry now exports a fingerprint: a truncated SHA-256 of its canonical JSON. The API publishes it, with place and pair counts, on a database-free `no-store` endpoint. Before a candidate site version is promoted, a release check recomputes the fingerprint from the candidate's content and fails if the deployed API reports a different one. On drift, the API and Boss are deployed from the same commit first and the site is promoted after. What had been a reminder became a release invariant.
 
-The site and API must agree on which places can receive records. In one content release the site gained places while the separately deployed API and Boss still had an older place registry. All three services could be healthy by themselves, yet the new place pages and the stateful services disagreed about what a valid place was.
+## Rollback seams
 
-The registry is now generated from content and fingerprinted. Before a candidate site build is promoted, the release path compares its registry with the deployed API registry and stops if they differ. “Remember to update both” had been an operational instruction; the mismatch made it a release invariant. The API and Boss remain separate deployment units rather than being moved into the public site merely to avoid coordination.
+Three Workers are a real cost, and I kept them deliberately. Each has its own version history, so a site release can be rolled back without touching Community rows, and an API rollback does not take place pages offline. Reads, intake, reports and email are separate flags on the API, each enabled only by the exact string `"true"`, so intake can be closed without a site release. A successful build proves the build; the registry check, a candidate version and those independent seams are what make the release itself safe to undo.
 
-The same separation shapes rollback. A site version can be withheld or rolled back without rewriting Community rows. Intake can be stopped without taking static place pages away. Previewing a candidate and checking the registry before promotion are useful because a successful build alone cannot prove that independently deployed authorities agree.
-
-The site is still mostly static. The harder work was choosing which facts can be fixed at build time and which records need an authority after the build has shipped. The Patara mistake was a reminder that even a clean separation can preserve the wrong model until a real use case crosses it.
+The site is still mostly static. The design work was deciding which facts can be fixed at build time and which records need an authority after the build has shipped — and accepting that even a clean separation can preserve the wrong model until a real thread crosses it.
