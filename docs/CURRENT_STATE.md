@@ -1,5 +1,32 @@
 # Current State
 
+## First-paint rendering architecture — 2026-09-29
+
+Product commit `11c1e3bb8c92947f758831838b647ead6b1b12dd` is deployed on production
+Worker version `1f706882-4c85-400a-b5f3-7263f7d4b3a5` (deployment
+`c2de9c8d-4105-4dce-b519-21b9d53cdb2f`, 100%; rollback target
+`cf7b110f-24dc-49d3-b2d7-7025f6c54114`) after owner approval of staging
+`fce4e149-b8b6-4dbd-821a-14ae4b759f01`. The Worker server-renders `/`,
+`/contact`, `/card`, `/notes` and known articles from the published APP_DB
+payload with the public React tree, writes the theme tokens into the document
+and embeds the payload; the browser hydrates that markup without refetching
+content (D-041). Invariant: first-paint markup and hydrated markup are
+structurally equivalent and the painted DOM survives hydration.
+
+Production cold-load acceptance: first painted frame versus stable frame differed
+by 0.00% on 80 cold loads of `/notes` and three articles across desktop and mobile;
+`/`, `/contact` and `/card` differ only by their CSS entrance at t=0 and are
+complete before JavaScript attaches. Every checked route kept its painted DOM
+node through hydration, made no `/api/content` request and logged no application
+error; JavaScript-disabled rendering shows the same header, fonts and heading
+scale. View transitions, Back/Forward scroll restoration, reduced motion,
+direct-open, reload, the unknown-Note 404, metadata, canonicals, the sitemap,
+Contact Turnstile (`ready`), Portfolio revision 2 and About are unchanged, and
+`CMS_PRODUCTION_WRITES_ENABLED` remains `false`. The apex HTTP-to-HTTPS redirect
+and public security headers remain a separate, paused task.
+
+The checkpoint below is historical.
+
 ## Engineering Notes motion and editorial release — 2026-09-29
 
 Owner-approved product commit `2af025569c67408b81711cb1f17d52afb940b892` is

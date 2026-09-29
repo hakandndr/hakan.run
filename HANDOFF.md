@@ -1,5 +1,21 @@
 # hakan.run Modernization Handoff
 
+## First-paint rendering architecture production checkpoint — 2026-09-29
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `11c1e3bb8c92947f758831838b647ead6b1b12dd` |
+| Current phase | Server-rendered, hydrated public documents live in production (D-041); first-paint invariant enforced by `tests/first-paint.spec.ts` |
+| Completed | Owner approved staging `fce4e149-b8b6-4dbd-821a-14ae4b759f01`; production deployed and cold-load, hydration, navigation and regression acceptance passed |
+| Exact next action | Separately authorized security task: apex HTTP-to-HTTPS 301 (zone change), then HSTS, baseline headers and CSP Report-Only |
+| Prohibited actions | No APP_DB change, direct SQL, ANALYTICS_DB mutation, CMS flag change, DNS, Access, Turnstile, Email/provider change or rollback cleanup without separate authorization |
+| Push state | Product and documentation commits pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production deployment `c2de9c8d-4105-4dce-b519-21b9d53cdb2f`, Worker `1f706882-4c85-400a-b5f3-7263f7d4b3a5` at 100% serves `11c1e3b`; rollback target `cf7b110f-24dc-49d3-b2d7-7025f6c54114`; staging `fce4e149-b8b6-4dbd-821a-14ae4b759f01` |
+| Infrastructure state | `run_worker_first` includes exact `/`, `/contact`, `/card`; `CMS_PRODUCTION_WRITES_ENABLED=false`; bindings, flags and rollback infrastructure unchanged; security work paused |
+
+The checkpoint below is historical.
+
 ## First-paint rendering architecture staging checkpoint — 2026-09-29
 
 | Field | Current value |

@@ -9,7 +9,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: Keep D-027's empty root everywhere (a blank first frame and no meaningful Notes HTML); hide the static layer until React starts; bake an APP_DB snapshot into the build (a second content authority that goes stale on publish); migrate to a framework with SSR.
 - Rationale: One component tree and one content authority produce both the first paint and the hydrated state. The Worker already reads the same D1 rows for `/api/content`, so the per-view read moves from after JavaScript to before the first byte.
 - Consequences: `run_worker_first` includes the exact paths `/`, `/contact` and `/card`. First paint and hydrated markup are structurally equivalent and the painted DOM survives hydration (`tests/first-paint.spec.ts`). If APP_DB or rendering is unavailable, the Worker serves the static asset unchanged: D-027's empty-root path for `/`, and for Notes a body rendered by the same Notes components without the APP_DB-owned header and footer. Unknown non-Notes paths keep the static SPA fallback. Contact loses its exit animation (accepted in the motion release).
-- Status: Implemented; supersedes D-027's empty-root first paint for rendered routes and D-028's React-rendered BootIntro. Staging only until owner visual review.
+- Status: Implemented and live in production (Worker `1f706882-4c85-400a-b5f3-7263f7d4b3a5`, 2026-09-29) after owner staging review; supersedes D-027's empty-root first paint for rendered routes and D-028's React-rendered BootIntro.
 
 ## D-040 — Engineering Notes is first-party engineering writing
 
