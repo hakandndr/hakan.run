@@ -1,5 +1,45 @@
 # Current State
 
+## First security-hardening phase — 2026-09-29
+
+Product commit `7e0093272e1aa571af747bfc178321b626a59b0d` is deployed on
+production Worker version `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be` (deployment
+`18163308-2b6a-4d19-9e47-6c5a91421648`, 100%; rollback target
+`1f706882-4c85-400a-b5f3-7263f7d4b3a5`) and on staging
+`7b19108e-3144-4a39-93f3-3696edf9e7bf` (D-042).
+
+Verified live on 2026-09-29:
+
+- HTTP requests to `hakan.run` and `staging.hakan.run` return 301 to the same
+  HTTPS URL with path and query; HTTP and HTTPS `www` return 301 to the HTTPS
+  apex in one hop. Redirect ruleset `b6ee288b50b04bb0a82b0e92834b3fb5` version 4
+  holds the pre-existing `www` rule and the new rules
+  `2b0cf5d785b64e9dbbbc7092a2218d0a` and `ed2746f2dfbd4ce8ab01b3b7d4fdc5f8`.
+- Every HTTPS response carries `Strict-Transport-Security: max-age=86400`
+  (no `includeSubDomains`, no preload), `nosniff`,
+  `Referrer-Policy: strict-origin-when-cross-origin` and a Permissions-Policy
+  denying geolocation, microphone, camera and payment.
+- Documents, the Notes 404 and asset-first responses carry
+  `X-Frame-Options: DENY` and the enforced CSP `default-src 'self'; script-src
+  'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com;
+  style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self';
+  connect-src 'self'; frame-src 'self' https://challenges.cloudflare.com;
+  object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`.
+  `/api/*` carries only the common headers. No public document has an inline
+  executable script.
+- Desktop and mobile acceptance recorded no CSP violation, application console
+  error or failed first-party request; Turnstile reached `ready`; Boss
+  redirected to Access; first paint, hydration, view transitions and the Notes
+  404 matched the previous release; the production log tail showed no
+  exception.
+
+Unchanged: zone Always Use HTTPS (off), zone HSTS (off), minimum TLS (1.0),
+DNS, Access, Turnstile, Email, bindings, APP_DB, ANALYTICS_DB and
+`CMS_PRODUCTION_WRITES_ENABLED=false`. Cloudflare Web Analytics automatic
+injection remains enabled and allowed by the CSP.
+
+The checkpoint below is historical.
+
 ## First-paint rendering architecture — 2026-09-29
 
 Product commit `11c1e3bb8c92947f758831838b647ead6b1b12dd` is deployed on production

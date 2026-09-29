@@ -1,5 +1,48 @@
 # Security
 
+## Transport and response security — live, 2026-09-29
+
+Implemented (D-042, Worker `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be`):
+
+- Transport: explicit Single Redirect rules redirect HTTP on `hakan.run`,
+  `staging.hakan.run` and `www.hakan.run` to HTTPS (`www` to the apex) at the
+  edge, with path and query preserved. The contract and rollback live in
+  `tools/https-redirects.contract.json`; `tools/verify-https-redirects.js` reads
+  the ruleset back and probes it.
+- One policy authority: `worker/lib/security-headers.js`. The build renders it
+  into `_headers` for asset-first responses, and the artifact check requires the
+  generated file to equal it. The Worker applies it to every response it
+  produces. A route with its own CSP or `X-Frame-Options` keeps it: the Boss
+  content preview stays `frame-ancestors 'self'` with `SAMEORIGIN`.
+- HSTS: `max-age=86400`, HTTPS only, without `includeSubDomains` or preload.
+- Common headers: `nosniff`, `strict-origin-when-cross-origin`, and a
+  Permissions-Policy denying geolocation, microphone, camera and payment.
+- Documents: `X-Frame-Options: DENY` and an enforced CSP. Scripts come from the
+  site, Turnstile and the edge-injected Cloudflare Web Analytics beacon. Frames
+  come from the site and Turnstile. Connections are same-origin only. Images
+  are the site, `data:` and `https:`. Framing, objects and foreign form targets
+  are blocked. No inline or eval script is allowed; inline styles are.
+- API responses: the common headers only, with no CSP or frame header.
+- Verification: `tools/verify-security-headers.js --origin <https origin>`
+  checks documents, the Notes 404, JS, CSS, images, robots, sitemap, the API
+  and the HTTP redirect against the same module.
+
+Known debt and open decisions:
+
+- Minimum TLS is 1.0 at the zone.
+- HSTS is one day. Before raising it, confirm a clean observation period, and
+  keep `includeSubDomains` off while `ftp`, `autoconfig` and `autodiscover` stay
+  unproxied on the legacy origin. Preload needs both.
+- `style-src 'unsafe-inline'` remains.
+- The Web Analytics beacon is a third-party script injected by the zone.
+  `script-src` allows it only because it was already active.
+- `img-src https:` follows the CMS schema's absolute image URLs.
+- There is no CSP reporting endpoint, so violations are observable only in
+  browsers.
+- Page Rules cannot be read with the account-owned API token.
+- `www` DNS still targets the legacy Hostinger CDN. Redirect rules answer every
+  `www` request before the origin.
+
 ## Engineering Notes production boundary — 2026-09-28
 
 Notes articles are source-controlled Markdown, rendered as escaped headings and

@@ -1,5 +1,54 @@
 # Operations
 
+## Security-hardening release operation — 2026-09-29
+
+Worker releases used Wrangler OAuth with `CLOUDFLARE_API_TOKEN` unset
+(`env -u CLOUDFLARE_API_TOKEN npm exec --offline --yes --package wrangler@4.130.0 -- wrangler deploy --env <env>`).
+The API token was used only for zone reads and the redirect ruleset.
+
+Staging sequence (all commits pushed before deploy):
+
+| Version | Commit | CSP mode |
+| --- | --- | --- |
+| `d3d6685c-5013-4bc0-ae26-5cc7f3672274` | `4ac214a` | Report-Only |
+| `b86c8db2-6b41-41a5-a973-399492ce207b` | `f426a72` | Report-Only |
+| `9390370f-18c3-43f5-8bd7-730373d28081` | `7e00932` | enforce, unpinned Wrangler |
+| `7b19108e-3144-4a39-93f3-3696edf9e7bf` | `7e00932` | enforce, pinned Wrangler 4.130.0 |
+
+Production: `npm run build --prefix apps/web`, then a dry run confirming
+`CMS_PRODUCTION_WRITES_ENABLED=false`. The deploy created deployment
+`18163308-2b6a-4d19-9e47-6c5a91421648` with version
+`6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be` at 100%.
+
+Redirect rules were managed through the Rulesets API, one rule at a time:
+
+1. On staging, added `2b0cf5d785b64e9dbbbc7092a2218d0a`
+   (`hakan-run-https-hosts`) for `staging.hakan.run` (version 2).
+2. For production, patched the same rule to include `hakan.run` (version 3).
+3. Added `ed2746f2dfbd4ce8ab01b3b7d4fdc5f8` (`hakan-run-https-www`) (version 4).
+
+Pre-change snapshot: version 1, with only `ebeebf21e91340aba655ad52ec734e13`.
+
+Verification commands:
+
+- `node tools/verify-security-headers.js --origin https://hakan.run`
+  (`--mode report-only|enforce`, default from the policy module)
+- `node tools/verify-https-redirects.js` (needs `CLOUDFLARE_API_TOKEN` with
+  Zone Rulesets read; `--probes-only` without it)
+- `SECURITY_ORIGIN=https://hakan.run npx playwright test tests/security-csp.spec.ts`
+
+Rollback:
+
+- Headers and CSP: `wrangler rollback 1f706882-4c85-400a-b5f3-7263f7d4b3a5
+  --env production`, or deploy the previous commit.
+- Redirects: delete only rules `2b0cf5d785b64e9dbbbc7092a2218d0a` and
+  `ed2746f2dfbd4ce8ab01b3b7d4fdc5f8`.
+- HSTS already cached by browsers expires within 86,400 seconds.
+
+To change the policy, edit only `worker/lib/security-headers.js`, rebuild, and
+run the artifact check. For a new third-party dependency, observe it on staging
+with `CSP_MODE = 'report-only'` before enforcing it.
+
 ## Portfolio media fit production operation — 2026-09-28
 
 Reviewed commit `7d85b243d86a2bb7d3c9a4b06fed32375c3e2015` was built in

@@ -1,5 +1,13 @@
 # Reusable Engineering Lessons
 
+## 28. Observe a content policy on the real edge before enforcing it
+
+- Problem: A Content Security Policy derived from the source code and proven in a local harness can still block the live site, because the delivery platform may change the document on the way out.
+- Evidence / context: Local and staging HTTP checks passed with the planned policy. A plain `curl` of production showed no third-party script. Report-Only in a real browser on staging then showed the Cloudflare Web Analytics beacon on every page, injected by the zone for browser requests only. Enforcing directly would have silently broken analytics already active in production. Enforcement also broke a test that used `eval` for measurement, not the application.
+- Reusable rule: Derive the policy from source, then observe it in Report-Only on the deployed edge with real browser requests on desktop and mobile. Record violations with `securitypolicyviolation`, and enforce only at zero. Decide each provider-injected dependency explicitly rather than by accident. Keep test instrumentation compliant with the policy it verifies.
+- Applies when: Adding or tightening CSP, Trusted Types or similar browser-enforced policies on a site behind a CDN or edge platform.
+- Exceptions / caveats: `frame-ancestors` is ignored in Report-Only, so anti-framing should be enforced from the first release.
+
 ## 27. Prefer a capability-scoped platform binding over a reusable provider secret
 
 - Problem: A REST mail adapter requires a bearer credential and relies on runtime code to preserve sender and recipient constraints.

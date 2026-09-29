@@ -1,5 +1,28 @@
 # hakan.run Modernization Handoff
 
+## First security-hardening production checkpoint — 2026-09-29
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `7e0093272e1aa571af747bfc178321b626a59b0d` |
+| Current phase | Edge HTTP-to-HTTPS redirects, one-day HSTS, baseline response headers and an enforced public CSP live in production (D-042) |
+| Completed | Single Redirect rules for apex, staging and HTTP `www`; one policy module rendered into generated `_headers` and applied by the Worker wrapper; inline boot scripts externalized; CSP observed in Report-Only on staging with zero violations, then enforced on staging and production |
+| Exact next action | None required for this phase. Review raising HSTS `max-age` after a clean observation period (see `docs/SECURITY.md`); minimum TLS 1.0 and the Cloudflare Web Analytics beacon are open owner decisions |
+| Prohibited actions | No HSTS `includeSubDomains`/preload, zone HSTS, Always Use HTTPS, TLS, DNS, Access, Turnstile, Email, APP_DB, ANALYTICS_DB, CMS flag, migration or rollback cleanup without separate authorization |
+| Push state | Product and documentation commits pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production deployment `18163308-2b6a-4d19-9e47-6c5a91421648`, Worker `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be` at 100% serves `7e00932`; rollback target `1f706882-4c85-400a-b5f3-7263f7d4b3a5`; staging `7b19108e-3144-4a39-93f3-3696edf9e7bf` serves the same commit |
+| Infrastructure state | Zone `hakan.run` redirect ruleset `b6ee288b50b04bb0a82b0e92834b3fb5` version 4: pre-existing `ebeebf21e91340aba655ad52ec734e13`, new `2b0cf5d785b64e9dbbbc7092a2218d0a` (`hakan-run-https-hosts`) and `ed2746f2dfbd4ce8ab01b3b7d4fdc5f8` (`hakan-run-https-www`); every other zone setting, DNS, Access, bindings and `CMS_PRODUCTION_WRITES_ENABLED=false` unchanged |
+
+Rollback: redeploy Worker `1f706882-4c85-400a-b5f3-7263f7d4b3a5` for the
+headers and CSP; delete only the two new redirect rules for the redirects
+(`tools/https-redirects.contract.json`). HSTS already cached by browsers expires
+within one day. Verification: `node tools/verify-security-headers.js --origin
+https://hakan.run` and `node tools/verify-https-redirects.js` (API readback needs
+`CLOUDFLARE_API_TOKEN`; `--probes-only` without it).
+
+The checkpoint below is historical.
+
 ## First-paint rendering architecture production checkpoint — 2026-09-29
 
 | Field | Current value |

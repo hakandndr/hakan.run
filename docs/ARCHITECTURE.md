@@ -1,5 +1,27 @@
 # Architecture
 
+## Transport and response security layer — 2026-09-29
+
+Plain-HTTP requests never reach the Worker. Zone Single Redirect rules
+(ruleset `b6ee288b50b04bb0a82b0e92834b3fb5`) answer them at the edge with a 301
+to HTTPS, and HTTP `www` goes straight to the apex. On HTTPS there are two
+response paths. Both take their security headers from
+`worker/lib/security-headers.js`:
+
+- Asset-first responses (bundles, images, robots, sitemap, static documents
+  outside `run_worker_first`) take the headers from `dist/apps/web/_headers`.
+  `apps/web/tools/build.js` generates that file from the module, and
+  `tools/document-artifact.js` verifies it.
+- Worker responses pass through `withSecurityHeaders` in `worker/index.js`.
+  These are server-rendered documents, the Notes 404, API and Boss responses.
+
+Document boot logic lives in the first-party scripts `document-start.js` (head,
+render-blocking: scroll restoration mode and the BootIntro decision) and
+`document-scroll.js` (after `#root`), so the CSP needs no inline-script
+allowance. The zone's Cloudflare Web Analytics automatic setup injects its
+beacon into HTML at the edge, and it reports to same-origin `/cdn-cgi/rum`. See
+D-042 and `docs/SECURITY.md`.
+
 ## Implemented production topology — 2026-09-28
 
 The Cloudflare Worker serves the `hakan.run` apex and delivers static public

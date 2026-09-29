@@ -44,6 +44,14 @@ two languages, not one translation. Their local source, editorial and visual
 reviews, staging acceptance and production release are complete. Other subject directions remain editorial options rather
 than promised articles.
 
+### Security hardening — first phase live; later phases gated
+
+- Objective: Close plain HTTP at the edge and give every response one reviewed security policy.
+- Dependencies: Server-rendered public documents (D-041), a Cloudflare API token with zone read and redirect-rule scope, staging isolation.
+- Acceptance gates: Provider contract and readback; generated `_headers` equal to the policy module; no inline executable script; Report-Only on staging with zero violations on desktop and mobile; staging enforcement; first-paint, Turnstile, BootIntro, transition and 404 regressions; production header, redirect and browser verification; clean logs.
+- Authorization boundaries: The owner authorized the redirect ruleset and Worker releases for this phase only. DNS, Access, Turnstile, Email, databases, zone HSTS, TLS settings and Web Analytics settings remain separate boundaries.
+- Status: Phase 1 complete and live on 2026-09-29 (D-042). Candidate later phases, each separately authorized: raise HSTS `max-age` after observation; decide `includeSubDomains`/preload once the legacy subdomains are proxied or retired; raise the minimum TLS version; decide on the Cloudflare Web Analytics beacon; consider a CSP reporting endpoint and removing `style-src 'unsafe-inline'`.
+
 ## Historical roadmap snapshots (2026-09-15 and earlier)
 
 Statuses below record their original phase checkpoints. They are retained for

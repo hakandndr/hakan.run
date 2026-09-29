@@ -99,6 +99,7 @@ Portfolio cards require published external destinations.
 - Production CMS writes remain disabled; first-party PAGE analytics and contact notifications are enabled in source-controlled production configuration.
 - APP_DB and ANALYTICS_DB resources are isolated between staging and production.
 - Contact persistence remains authoritative before any optional notification attempt.
+- Plain HTTP is redirected to HTTPS at the edge. One module, `worker/lib/security-headers.js`, defines HSTS, the baseline headers and the enforced Content Security Policy for both Worker responses and the generated Static Assets `_headers` (D-042).
 
 See [docs/SECURITY.md](./docs/SECURITY.md) for implemented and planned boundaries.
 
