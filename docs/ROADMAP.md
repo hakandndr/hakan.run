@@ -6,7 +6,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 1. Reconcile active documentation with the completed production cutover — committed and pushed as `a825df5`.
 2. Design and implement first-party Engineering Notes information architecture and runtime at `/notes` — committed as `4f74581` with metadata fix `c88ba31`, pushed and accepted on staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`.
-3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production.
+3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production; expanded to ten source-verified articles with deeper engineering detail and a soft in-app Notes transition, live on 2026-09-29.
 4. Add OC-CA to Portfolio's "What I've Built" as an engineering project — published in APP_DB revision 2 with the approved five-project order.
 5. Remove the AI-generated workstation image from rendered About and rebalance the lower layout — deployed; real portrait retained.
 6. Perform focused visual and content QA — local desktop/mobile and production smoke passed for the deployed changes.

@@ -1,5 +1,29 @@
 # Current State
 
+## Engineering Notes expansion — 2026-09-29
+
+Product commit `5282dc06130782be16e6c7a15dd04a6f09c49a8a` is deployed on
+production Worker version `58866745-74d1-4c9d-b29c-6eb6a4aa0716` (rollback
+target `5f89b48e-f049-4916-af0b-420d3797b2e1`) and on staging version
+`3bde6627-5a33-4945-b21b-ffb8a3ee90a8`. Notes authority is unchanged: ten
+source-controlled Markdown articles in `apps/web/notes/`, generated catalogue,
+slug manifest, static HTML and production sitemap entries. The five existing
+slugs are preserved; the new articles cover the cross-project engineering rules,
+the AmericaWhat/OC-CA publication gate, the DNDR uptime monitor, status-page
+probe classification and lifecycle-versus-availability modeling. Front matter
+`featured` selects the three homepage notes. Inline code and https links are the
+only added Markdown syntax.
+
+In-app navigation into `/notes` or an article fades the page body in over 180ms
+(`.route-enter`), with no animation on document loads, reloads or hash
+navigation and none under `prefers-reduced-motion`. Routing, direct-open HTML,
+scroll restoration and the BootIntro are unchanged. Production returned 200 for
+`/`, `/notes`, all ten articles, `/contact` and `/card`, and HTTP 404 for unknown
+slugs; each article carries its title, deck, one date, canonical and social
+metadata and appears in the sitemap. Portfolio (revision 2), About and the other
+APP_DB sections are unchanged, and `CMS_PRODUCTION_WRITES_ENABLED` remains
+`false`.
+
 ## Portfolio media fit — 2026-09-28
 
 Product commit `7d85b243d86a2bb7d3c9a4b06fed32375c3e2015` is deployed on

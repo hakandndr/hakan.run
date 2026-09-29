@@ -1,5 +1,21 @@
 # hakan.run Modernization Handoff
 
+## Engineering Notes expansion production checkpoint — 2026-09-29
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `5282dc06130782be16e6c7a15dd04a6f09c49a8a` |
+| Current phase | Ten Engineering Notes and the soft in-app Notes transition are live |
+| Completed | Five existing articles deepened and five source-verified articles added; front-matter homepage selection; inline code/link rendering; 180ms Notes entry fade; local, staging and production acceptance |
+| Exact next action | None required for Notes. The Beyond the IDE About body remains a separately authorized APP_DB task |
+| Prohibited actions | No APP_DB change, direct SQL, ANALYTICS_DB mutation, CMS flag change, DNS, Access, Turnstile, Email/provider change or rollback cleanup without separate authorization |
+| Push state | Product and documentation commits pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production Worker `58866745-74d1-4c9d-b29c-6eb6a4aa0716` serves `5282dc0`; rollback target `5f89b48e-f049-4916-af0b-420d3797b2e1`; staging `3bde6627-5a33-4945-b21b-ffb8a3ee90a8` |
+| Infrastructure state | `CMS_PRODUCTION_WRITES_ENABLED=false`; bindings, flags and rollback infrastructure unchanged |
+
+The checkpoint below is historical.
+
 ## Portfolio media fit production checkpoint — 2026-09-28
 
 | Field | Current value |

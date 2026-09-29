@@ -40,11 +40,13 @@ preview have separate entry trees. [CMS V2](./docs/CONTENT-CMS-V2.md) provides
 the private editor and preview; production CMS writes remain disabled. The React
 public shell serves `/`, `/contact`, `/notes`, known article routes, and the snapshot-derived `/card`; the home
 navigation links to sections, while Portfolio cards use published external URLs.
-Five Engineering Notes articles are repository Markdown in
+Ten Engineering Notes articles are repository Markdown in
 `apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
-routes, with static HTML and sitemap output. Direct Notes HTML remains readable
-when the separate CMS snapshot cannot load. The five notes are live on production
-after local, editorial, visual, staging and bounded production acceptance. Unknown
+routes, with static HTML and sitemap output. Front matter selects the three homepage
+notes. Direct Notes HTML remains readable when the separate CMS snapshot cannot load.
+In-app navigation into Notes uses a short opacity fade; document loads do not animate.
+The ten notes are live on production after local, visual, staging and bounded
+production acceptance. Unknown
 Notes slugs return first-party HTTP 404; production Notes pages are indexable.
 Snapshot failure shows an explicit error instead of bundled copy. Hash navigation,
 reload and Back/Forward use the shared scroll manager. Detailed behavior and phase

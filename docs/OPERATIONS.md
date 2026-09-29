@@ -64,7 +64,9 @@ and bounded Worker health. Do not treat a passing build as deployment authority.
 ## Engineering Notes staging acceptance — historical checkpoint, 2026-09-28
 
 Edit only `apps/web/notes/*.md` for article content. Each file has one `date`
-field; the build rejects invalid metadata or unsupported Markdown blocks and
+field and may set `featured: 1`, `2` or `3`; exactly three notes must be featured,
+in homepage order. Paragraphs, `##` headings, inline code and https links are the
+only supported Markdown. The build rejects invalid metadata or unsupported syntax and
 regenerates `apps/web/src/notes/catalog.js` and the small slug manifest beside it.
 `npm run build --prefix apps/web`
 creates `/notes` and article HTML assets and adds their canonical URLs to the
