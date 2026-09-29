@@ -74,7 +74,7 @@ const PublicHeader = ({ header }) => {
   return (
     <>
       <motion.header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b ${
+        className={`site-header fixed top-0 left-0 w-full z-50 transition-all duration-300 border-b ${
           isScrolled ? 'backdrop-blur-lg border-white/[0.08]' : 'border-transparent'
         }`}
         style={{ backgroundColor: isScrolled ? 'rgba(9,9,9,0.92)' : 'rgba(9,9,9,0.60)' }}

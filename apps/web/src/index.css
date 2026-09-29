@@ -179,10 +179,22 @@ body[data-spacing="spacious"] section { padding-top: 10rem !important; padding-b
 .notes-prose a { color: rgb(var(--color-accent-rgb)); text-decoration: underline; text-decoration-color: rgb(var(--color-accent-rgb) / 0.4); text-underline-offset: 3px; }
 .notes-prose a:hover { text-decoration-color: currentColor; }
 
-/* In-app navigation into Notes replaces the page body at once. A short fade
-   gives that swap the same soft entry as the rest of the site. Presentation
-   only: routing, scroll restoration and document loads are unchanged. */
-.route-enter { animation: route-enter 180ms ease-out both; }
-@keyframes route-enter { from { opacity: 0; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .route-enter { animation: none; } }
+/* Route view transitions (see src/router/TransitionRouter.jsx) blend the
+   previous page into the next with the site's standard 300ms chrome motion,
+   the same duration and curve as the header's own scrolled-state change. The
+   header is captured separately and shown live, so it never crossfades. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 300ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.site-header { view-transition-name: site-header; }
+::view-transition-group(site-header),
+::view-transition-new(site-header) { animation: none; }
+::view-transition-old(site-header) { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
 @media (min-width: 640px) { .notes-prose { font-size: 1.125rem; } }

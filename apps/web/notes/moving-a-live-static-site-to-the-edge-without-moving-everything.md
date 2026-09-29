@@ -4,7 +4,7 @@ deck: Moving oc-ca.com's public build to Cloudflare Static Assets exposed behavi
 date: 2026-09-28
 topic: Delivery
 project: OC-CA
-featured: 3
+featured: 1
 ---
 
 oc-ca.com is an Astro site. For most of its life, GitHub Actions built it and uploaded the output to Hostinger over FTP, with Cloudflare proxying in front of Hostinger's own CDN. It was easy to call that a static site. The pages were static, but the operating model was not: a daily events feed, visitor submissions, moderated Community records, a protected Boss panel, notification email and an inbound mailbox. Moving the HTML to the edge would not move any of those responsibilities, and several of them had nothing to do with where the HTML lived.
@@ -17,7 +17,7 @@ That list defined the scope. The migration changes one thing: which system answe
 
 ## A candidate, not a replacement
 
-A Static Assets build that compiles is a candidate, not a replacement. It ran first on an isolated preview Worker on workers.dev with global noindex and guarded forms, and later on an inactive production Worker with no hostnames attached. Parity was tested by behavior rather than byte identity, because byte identity was never available: Cloudflare's email obfuscation rewrites mailto markup differently on each response, and the build stamps a generation time into its JSON. The comparison normalizes exactly those two things and nothing else.
+The Static Assets build ran first on an isolated preview Worker on workers.dev with global noindex and guarded forms, and later on an inactive production Worker with no hostnames attached. Parity was tested by behavior rather than byte identity, because byte identity was never available: Cloudflare's email obfuscation rewrites mailto markup differently on each response, and the build stamps a generation time into its JSON. The comparison normalizes exactly those two things and nothing else.
 
 Every remaining difference was classified instead of smoothed over. The old CDN had been transforming two images; the new path serves the canonical originals, which are larger and not pixel-identical. JavaScript came back as `text/javascript` instead of `application/javascript` with identical bytes. Each was accepted explicitly as a delivery difference rather than normalized away, and cases the old origin rate-limited during scanning were recorded as unavailable, not as passes. The suite covered canonical URLs, slashless 301 aliases, the branded 404, headers, sitemaps, forms and the Community read path.
 
@@ -25,9 +25,9 @@ Every remaining difference was classified instead of smoothed over. The old CDN 
 
 The first production cutover attached the root and `www` hostnames to the Static Assets Worker, replacing the CNAMEs that pointed at Hostinger's CDN. HTTPS pages, assets and redirects looked right. The parity run then reached the plain-HTTP contract: `http://oc-ca.com/` returned 200. The existing behavior was a 301 to HTTPS.
 
-That redirect had never been in the repository. It came from a setting on the Hostinger side. Cloudflare's zone-wide Always Use HTTPS was off, there were no redirect rules, and no tracked `.htaccess` contained it. A correct static build could not reproduce a behavior that belonged to the origin it was replacing. Moving the origin removed it.
+That redirect had never been in the repository. It came from a setting on the Hostinger side. Cloudflare's zone-wide Always Use HTTPS was off, there were no redirect rules, and no tracked `.htaccess` contained it. Moving the origin removed it.
 
-I did not accept a changed redirect contract because the visible pages looked fine. The hostname associations were removed and the original CNAME records restored from a snapshot taken immediately before cutover, which had been rehearsed offline beforehand. After restoration, every non-web DNS record — mail and the Boss hostname included — was compared against that snapshot and was unchanged.
+The visible pages were correct, but a public contract had changed, so the cutover was rolled back. The hostname associations were removed and the original CNAME records restored from a snapshot taken immediately before cutover, which had been rehearsed offline beforehand. After restoration, every non-web DNS record — mail and the Boss hostname included — was compared against that snapshot and was unchanged.
 
 ## Make the implicit behavior explicit
 
@@ -39,6 +39,4 @@ The retry used the artifact CI had built, never a local rebuild, with a fresh pr
 
 The public build is now served by Cloudflare Static Assets. The API, Boss, D1 and the notification path kept their authorities and were never part of the change. Hostinger still hosts the inbound mailbox, so the web-origin move had no dependency on MX, SPF or DMARC. The Hostinger files, FTP path and CDN configuration stay in place as rollback assets rather than being cleaned up the moment the new path worked.
 
-That separation is what made the first failure cheap. Rolling back meant restoring two DNS records. It did not mean undoing a migration, replaying submissions or reconfiguring mail.
-
-"Static site migration" understates this kind of work. The files were portable. The behavior was distributed across the old origin, the CDN, the publisher and separate application services, and some of it had never been written down anywhere I controlled. The job was to find those contracts, test the candidate against them, and keep a usable route back for the one that turned out to be implicit.
+Because of that separation, the first failure was cheap to undo: rolling back meant restoring two DNS records. It did not mean undoing a migration, replaying submissions or reconfiguring mail.

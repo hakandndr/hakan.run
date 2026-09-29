@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import usePublicNavigation from '@/hooks/usePublicNavigation';
+import { isRouteTransitionCommit } from '@/router/transition-scope';
 
 const PublicHero = ({ hero, socialLinks }) => {
   const navigateTo = usePublicNavigation();
+  // The entrance is first-load presentation. A route view transition already
+  // blends the hero in, so it starts visible when mounted by one.
+  const [entrance] = useState(() => !isRouteTransitionCommit());
 
   const navigate = (href) => {
     if (/^https?:/.test(href)) {
@@ -25,7 +29,7 @@ const PublicHero = ({ hero, socialLinks }) => {
         <div className="max-w-[1120px] mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] xl:grid-cols-[1fr_360px] gap-6 lg:gap-8 items-center">
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
+              initial={entrance ? { opacity: 0, y: 24 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.75 }}
             >
@@ -83,7 +87,7 @@ const PublicHero = ({ hero, socialLinks }) => {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, x: 24 }}
+              initial={entrance ? { opacity: 0, x: 24 } : false}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.85, delay: 0.18 }}
               className="hidden lg:flex justify-center lg:justify-end"

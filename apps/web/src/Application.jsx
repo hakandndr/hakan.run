@@ -1,13 +1,13 @@
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
 import App from '@/App';
 import PageTracker from '@/components/PageTracker';
+import TransitionRouter from '@/router/TransitionRouter';
 
 const Application = ({ snapshot }) => (
-  <BrowserRouter>
+  <TransitionRouter>
     <PageTracker />
     <App snapshot={snapshot} />
-  </BrowserRouter>
+  </TransitionRouter>
 );
 
 

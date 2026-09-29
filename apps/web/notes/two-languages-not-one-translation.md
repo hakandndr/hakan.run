@@ -12,7 +12,7 @@ Three groups use the site: people living in Türkiye looking for somewhere new, 
 
 ## Presentation is not the same problem as content
 
-Internationalized presentation is a routing and metadata problem, and it is solved mechanically. Route segments are localized — `/yerler/` for Turkish place pages, `/en/places/` for English — and every page declares its alternate with `hreflang`, plus an `x-default` pointing at the Turkish root. A request for the bare root is resolved by the Worker from a language cookie or `Accept-Language`, with a single 302 to `/en/` that is `private, no-store` and varies on both inputs; deep links never redirect. Interface strings come from a dictionary.
+Internationalized presentation is a routing and metadata problem, and it is solved mechanically. Route segments are localized — `/yerler/` for Turkish place pages, `/en/places/` for English — and every page declares its alternate with `hreflang`, plus an `x-default` pointing at the Turkish root. Interface strings come from a dictionary.
 
 Content is a modeling problem, and it does not have a mechanical answer. The question is which parts of a place are facts and which parts are writing.
 
@@ -26,12 +26,10 @@ The prose is deliberately not constrained that way. Each language has its own bo
 
 ## Completeness across the pair
 
-The cost is honest and visible. A place is not publishable because its facts exist; it is publishable when both editorial entries exist and pass. Content batches are released as complete pairs, and the content tests refuse a place written in only one language. A translation pipeline would have doubled the page count immediately and produced an English site that reads like a description of somewhere its author had never been.
+This costs editorial time. A place becomes publishable when both editorial entries exist and pass, not when its facts are known. Content batches are released as complete pairs, and the content tests refuse a place written in only one language.
 
 ## Visitor text follows different rules
 
 Community content came later and needed a different language model, because it is not editorial copy at all. A visitor's note or question belongs to the place, not to a language edition, so it appears on both the Turkish and English page. It is never translated, and its language is never guessed from the text.
 
 What the system records instead is provenance. A thread stores the page it started on; each visitor entry stores the page its author used to submit it; and the rendered text carries a `lang` attribute taken from that stored submission page rather than from the page currently displaying it. An official answer is written in Boss, where the author must choose Turkish or English explicitly; that choice is stored in an immutable column and published as the answer's language. The one official answer written before that rule existed has no recorded language, and it stays unknown rather than inferred.
-
-That is the boundary I care about: editorial text is authored per audience and governed by build-time invariants; visitor text is evidence of what someone wrote, where, and it is displayed with its provenance intact rather than normalized into a translation.

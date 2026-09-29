@@ -5,7 +5,6 @@ import PublicHome from '@/public/PublicHome';
 import PublicCard from '@/public/components/PublicCard';
 import PublicContact from '@/public/components/PublicContact';
 import NotFound from '@/pages/NotFound';
-import { AnimatePresence } from 'framer-motion';
 import KonamiEasterEgg from '@/components/KonamiEasterEgg';
 import { NotesArticle, NotesIndex } from '@/notes/NotesPages';
 
@@ -16,22 +15,22 @@ function App({ snapshot }) {
   return (
     <>
       <KonamiEasterEgg />
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route
-            path="/"
-            element={<Layout navigationType={navigationType} routeLocation={location} snapshot={snapshot} />}
-          >
-            <Route index element={<PublicHome snapshot={snapshot} />} />
-            <Route path="card" element={<PublicCard snapshot={snapshot} />} />
-            <Route path="contact" element={<PublicContact contact={snapshot.content.contact} />} />
-            <Route path="notes" element={<NotesIndex />} />
-            <Route path="notes/:slug" element={<NotesArticle />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-          <Route path="/admin" element={<Navigate to="/" replace />} />
-        </Routes>
-      </AnimatePresence>
+      {/* The layout and its header persist across pathnames; route motion is
+          handled by TransitionRouter rather than by remounting the tree. */}
+      <Routes location={location}>
+        <Route
+          path="/"
+          element={<Layout navigationType={navigationType} routeLocation={location} snapshot={snapshot} />}
+        >
+          <Route index element={<PublicHome snapshot={snapshot} />} />
+          <Route path="card" element={<PublicCard snapshot={snapshot} />} />
+          <Route path="contact" element={<PublicContact contact={snapshot.content.contact} />} />
+          <Route path="notes" element={<NotesIndex />} />
+          <Route path="notes/:slug" element={<NotesArticle />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+        <Route path="/admin" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
   );
 }

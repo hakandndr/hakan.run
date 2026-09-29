@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fulfillPublishedContent, isolatePublicWrites } from './helpers/published-content';
@@ -93,60 +93,113 @@ test('Cloudflare-style static Notes HTML hydrates without duplicate metadata', a
 test('homepage shows exactly the three selected Notes and /notes lists all of them', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#notes li h3')).toHaveText([
-    'The engineering rules I stopped relearning',
-    'A write path for a mostly static site',
     'Moving a live static site to the edge without moving everything',
+    'A write path for a mostly static site',
+    'Why the status page ignores single failed probes',
   ]);
   await page.goto('/notes');
   await expect(page.locator('[data-public-section="notes-index"] li h2')).toHaveCount(NOTES.length);
   await expect(page.locator('[data-public-section="notes-index"] li h2')).toHaveText(NOTES.map((note) => note.title));
 });
 
-test('in-app navigation into Notes uses the short fade without replaying the boot intro', async ({ page }) => {
-  const enter = page.locator('[data-route-enter="notes"]');
-  const animation = () => enter.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return `${style.animationName} ${style.animationDuration}`;
+
+// Records every same-document view transition and what is actually visible at
+// the moment the new route state is committed: the element at the centre of
+// the viewport, the lowest opacity on its ancestor chain and the amount of page
+// text. Zero opacity or no text would mean the new snapshot is an empty frame.
+const recordRouteTransitions = async (page: Page) => {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __routeTransitions: Array<Record<string, unknown>> };
+    w.__routeTransitions = [];
+    const original = document.startViewTransition?.bind(document);
+    if (!original) return;
+    document.startViewTransition = ((update: () => void) => original(() => {
+      update();
+      const probe = document.elementFromPoint(window.innerWidth / 2, window.innerHeight * 0.45);
+      let minOpacity = 1;
+      for (let node = probe; node; node = node.parentElement) minOpacity = Math.min(minOpacity, Number(getComputedStyle(node).opacity));
+      w.__routeTransitions.push({
+        path: location.pathname,
+        scrollY: Math.round(window.scrollY),
+        minOpacity,
+        text: (document.querySelector('main')?.textContent ?? '').trim().length,
+      });
+    })) as typeof document.startViewTransition;
   });
+};
+const transitions = (page: Page) => page.evaluate(() => (window as unknown as { __routeTransitions: Array<Record<string, number | string>> }).__routeTransitions);
 
-  await page.goto('/notes/reachable-is-not-current');
-  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
-  await expect(enter).toHaveCount(0);
-
+test('Notes navigation blends through a view transition with persistent chrome and no empty frame', async ({ page }) => {
+  await recordRouteTransitions(page);
   await page.goto('/');
   await expect(page.locator('#notes')).toBeVisible();
+  const header = page.locator('header').first();
+  await header.evaluate((element) => { element.dataset.probe = 'persistent'; });
   const boot = page.locator('[data-boot-intro]');
   const bootCount = await boot.count();
-  if (bootCount) await boot.evaluate((element) => { element.dataset.firstEntry = 'kept'; });
-  await page.locator('#notes').scrollIntoViewIfNeeded();
+  if (bootCount) await boot.evaluate((element) => { element.dataset.probe = 'first-entry'; });
 
+  await page.locator('#notes').scrollIntoViewIfNeeded();
   await page.locator('#notes a[href="/notes"]').click();
   await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
-  await expect(enter).toHaveCount(1);
-  expect(await animation()).toBe('route-enter 0.18s');
-  expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  await expect(boot).toHaveCount(bootCount);
-  if (bootCount) await expect(boot).toHaveAttribute('data-first-entry', 'kept');
+  await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
+  await page.waitForTimeout(300);
+  const indexScroll = await page.evaluate(() => Math.round(window.scrollY));
+  expect(indexScroll).toBeGreaterThan(300);
 
-  await page.getByRole('link', { name: /A write path for a mostly static site/ }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'A write path for a mostly static site' })).toBeVisible();
-  await expect(enter).toHaveCount(1);
-  await page.getByRole('link', { name: '← Back to Notes' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
-  await expect(enter).toHaveCount(1);
-
-  await page.goBack();
-  await expect(page.getByRole('heading', { level: 1, name: 'A write path for a mostly static site' })).toBeVisible();
-  await page.goBack();
-  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
-  await page.goBack();
-  await expect(page.locator('#notes')).toBeVisible();
-  await expect(enter).toHaveCount(0);
-  await page.goForward();
-  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
-
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.getByRole('link', { name: /Reachable is not current/ }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
-  expect((await animation()).split(' ')[0]).toBe('none');
+  await page.getByRole('link', { name: '← Back to Notes' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY))).toBe(indexScroll);
+  await page.goForward();
+  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
+  await page.locator('header a[aria-label="Home"]').first().click();
+  await expect(page.locator('#notes')).toBeAttached();
+
+  const recorded = await transitions(page);
+  expect(recorded.map((entry) => entry.path)).toEqual([
+    '/notes', '/notes/reachable-is-not-current', '/notes', '/notes/reachable-is-not-current', '/notes', '/notes/reachable-is-not-current', '/',
+  ]);
+  for (const entry of recorded) {
+    expect(entry.minOpacity, `visible content committed for ${entry.path}`).toBeGreaterThan(0.9);
+    expect(entry.text, `page content committed for ${entry.path}`).toBeGreaterThan(200);
+  }
+  // Scroll is settled inside the committed state, so the jump is never painted.
+  expect(recorded[0].scrollY).toBe(0);
+  expect(recorded[4].scrollY).toBe(indexScroll);
+
+  await expect(header).toHaveAttribute('data-probe', 'persistent');
+  await expect(boot).toHaveCount(bootCount);
+  if (bootCount) await expect(boot).toHaveAttribute('data-probe', 'first-entry');
+});
+
+test('hash navigation, direct-open, reload and reduced motion do not start a route transition', async ({ page, isMobile }) => {
+  await recordRouteTransitions(page);
+  await page.goto('/notes/reachable-is-not-current');
+  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
+  expect(await transitions(page)).toEqual([]);
+
+  await page.goto('/');
+  await expect(page.locator('#portfolio')).toBeAttached();
+  if (!isMobile) {
+    await page.locator('header nav a[href="/#portfolio"]').click();
+    await expect(page).toHaveURL(/\/#portfolio$/);
+    await page.locator('header nav a[href="/#about"]').click();
+    await expect(page).toHaveURL(/\/#about$/);
+  }
+  expect(await transitions(page)).toEqual([]);
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.locator('#notes a[href="/notes"]').click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
+  await page.getByRole('link', { name: /Two languages/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Two languages, not one translation' })).toBeVisible();
+  expect(await transitions(page)).toEqual([]);
 });

@@ -41,9 +41,9 @@ test('notes are ordered by their single date, newest first', () => {
 
 test('the homepage selection is three source-controlled notes in a fixed order', () => {
   assert.deepEqual(FEATURED_NOTES.map((note) => note.slug), [
-    'the-engineering-rules-i-stopped-relearning',
-    'a-write-path-for-a-mostly-static-site',
     'moving-a-live-static-site-to-the-edge-without-moving-everything',
+    'a-write-path-for-a-mostly-static-site',
+    'why-the-status-page-ignores-single-failed-probes',
   ]);
 });
 
