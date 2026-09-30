@@ -1,0 +1,45 @@
+{
+  "purpose": "Cloudflare provider contract for hakan.run edge security settings outside the redirect ruleset. Operational evidence only; the Worker does not read this file.",
+  "zone": "hakan.run",
+  "zoneId": "530a14656780a0a9a60dfc12f16b5ad2",
+  "settings": {
+    "min_tls_version": "1.2",
+    "ssl": "strict",
+    "always_use_https": "off",
+    "zoneHstsEnabled": false
+  },
+  "configRuleset": {
+    "phase": "http_config_settings",
+    "rulesetId": "058602892e21467291e025535c256bab",
+    "rules": [
+      {
+        "ref": "hakan-run-disable-web-analytics",
+        "origin": "security phase 2, 2026-09-30",
+        "purpose": "Disable edge-injected Cloudflare Web Analytics; first-party PAGE analytics in ANALYTICS_DB is the analytics authority",
+        "expression": "(http.host in {\"hakan.run\" \"staging.hakan.run\"})",
+        "action": "set_config",
+        "actionParameters": { "disable_rum": true }
+      }
+    ]
+  },
+  "dns": [
+    {
+      "id": "21a6f9a4f870d5c3b659a067e77a3c7e",
+      "name": "www.hakan.run",
+      "type": "AAAA",
+      "content": "100::",
+      "proxied": true,
+      "purpose": "Redirect-only placeholder; the redirect ruleset answers every www request"
+    }
+  ],
+  "tls": {
+    "hosts": ["hakan.run", "staging.hakan.run", "www.hakan.run"],
+    "accepted": ["TLSv1.2", "TLSv1.3"],
+    "rejected": ["TLSv1", "TLSv1.1"]
+  },
+  "rollback": {
+    "min_tls_version": "PATCH /zones/{zoneId}/settings/min_tls_version with value \"1.0\" (the value before 2026-09-30)",
+    "webAnalytics": "DELETE /zones/{zoneId}/rulesets/{rulesetId}/rules/{ruleId} for hakan-run-disable-web-analytics; the zone had no http_config_settings ruleset before, and script-src must allow https://static.cloudflareinsights.com again first",
+    "www": "PUT /zones/{zoneId}/dns_records/21a6f9a4f870d5c3b659a067e77a3c7e with type CNAME, content www.hakan.run.cdn.hstgr.net, proxied true, ttl 1 (the record before 2026-09-30)"
+  }
+}
