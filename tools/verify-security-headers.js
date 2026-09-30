@@ -7,7 +7,7 @@
 // the Worker applies and the build renders into _headers, so this check cannot
 // drift from the policy it verifies.
 
-import { COMMON_HEADERS, CSP_MODE, documentHeaders } from '../worker/lib/security-headers.js';
+import { COMMON_HEADERS, CONTENT_SECURITY_POLICY, CSP_MODE, documentHeaders } from '../worker/lib/security-headers.js';
 
 const argument = (name, fallback) => {
   const index = process.argv.indexOf(`--${name}`);
@@ -55,6 +55,17 @@ for (const [path, status, expected, kind] of checks) {
   if (csp && csp.includes(',')) problems.push(`${label}: more than one enforced Content-Security-Policy`);
   console.log(`${label.padEnd(48)} ${response.status} ${kind === 'api' ? 'common' : `csp=${csp ? csp.slice(0, 32) : 'none'}`}`);
 }
+
+// The edge may inject scripts into HTML for browser requests only (Cloudflare
+// Web Analytics did), so fetch a document as a browser and require every
+// external script origin to be one the policy allows.
+const allowedScripts = CONTENT_SECURITY_POLICY.split('; ').find((directive) => directive.startsWith('script-src ')).split(' ').slice(1);
+const browserHtml = await (await get('/notes', { headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36', accept: 'text/html' } })).text();
+const scriptOrigins = [...new Set([...browserHtml.matchAll(/<script\b[^>]*\bsrc="(https?:\/\/[^/"]+)/gi)].map((match) => match[1]))];
+for (const scriptOrigin of scriptOrigins) {
+  if (!allowedScripts.includes(scriptOrigin)) problems.push(`browser document loads a script from ${scriptOrigin}, which script-src does not allow`);
+}
+console.log(`${'browser document /notes'.padEnd(48)} external script origins: ${scriptOrigins.join(', ') || 'none'}`);
 
 const plain = await fetch(`${origin.replace(/^https:/, 'http:')}/notes?probe=1`, { redirect: 'manual' });
 const expectedLocation = `${origin}/notes?probe=1`;

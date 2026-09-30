@@ -19,14 +19,13 @@ export const COMMON_HEADERS = Object.freeze({
 // dependencies: first-party modules and styles, Turnstile's script and frame,
 // the same-origin Boss preview frame, first-party APIs, the data: favicon and
 // absolute https images the CMS schema permits. Cloudflare Web Analytics is
-// enabled for the zone with automatic setup: the edge injects its beacon from
-// static.cloudflareinsights.com, which reports to the same-origin /cdn-cgi/rum.
-// Inline styles are required by server-rendered style attributes, the
-// documents' <style> blocks and runtime-injected toast styles. No inline or
-// eval script is allowed.
+// disabled for the public hosts by a zone configuration rule
+// (tools/edge-security.contract.json), so no edge-injected script is allowed.
+// Inline styles are required by server-rendered style attributes and the
+// documents' static <style> blocks. No inline or eval script is allowed.
 export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
-  "script-src 'self' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+  "script-src 'self' https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https:",
   "font-src 'self'",
