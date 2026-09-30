@@ -1,5 +1,34 @@
 # Current State
 
+## Security hardening phase 2 — 2026-09-30
+
+Product commit `f8b5b0b` is deployed on production Worker version
+`91051249-02b3-47d5-ade4-d8db380c20ed` (100%; rollback target
+`6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be`) and on staging
+`7d483e05-fd52-4aa3-ad8f-42a71647aec6` (D-043). Verified live on 2026-09-30:
+
+- The zone minimum TLS version is 1.2. TLS 1.0 and 1.1 are rejected on the
+  apex, staging and `www`; TLS 1.2 and 1.3 are accepted.
+- Cloudflare Web Analytics is disabled on `hakan.run` and `staging.hakan.run`
+  by configuration rule `ff7dc6d833104263b83214597f491e20` (ruleset
+  `058602892e21467291e025535c256bab`, version 2). Documents fetched by
+  browsers carry no beacon and pages send no `/cdn-cgi/rum` request.
+- The enforced CSP `script-src` is `'self' https://challenges.cloudflare.com`.
+  The rest of the policy, HSTS `max-age=86400` and the other headers are as in
+  phase 1.
+- `www.hakan.run` is `AAAA 100::`, proxied. Every `www` request is answered by
+  the redirect ruleset with one 301 to the apex, with path and query preserved.
+- First-party PAGE analytics, Boss, Turnstile, first paint, hydration, view
+  transitions, the Notes 404 and the Access redirect behave as before.
+  `tools/verify-edge-security.js`, `tools/verify-https-redirects.js` and
+  `tools/verify-security-headers.js` pass.
+
+Unchanged: zone HSTS (off), Always Use HTTPS (off), SSL strict, the other
+fifteen DNS records, Access, Turnstile, Email, bindings, APP_DB, ANALYTICS_DB and
+`CMS_PRODUCTION_WRITES_ENABLED=false`.
+
+The checkpoint below is historical.
+
 ## First security-hardening phase — 2026-09-29
 
 Product commit `7e0093272e1aa571af747bfc178321b626a59b0d` is deployed on

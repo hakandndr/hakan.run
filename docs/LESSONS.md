@@ -1,5 +1,16 @@
 # Reusable Engineering Lessons
 
+## 29. A probe is evidence only after it has failed once on purpose
+
+- Problem: Verification scripts can report success, or failure, for reasons unrelated to the property they claim to measure.
+- Evidence / context:
+  - An `openssl s_client` loop reported every TLS version as accepted before and after the minimum-TLS change, because OpenSSL prints the attempted protocol even when the handshake fails. A Node probe checked against `example.com`, which still accepts TLS 1.0, showed the real result.
+  - A CSP `report-uri` collector reported zero violations; that meant something only after a deliberately strict policy produced 88 reports.
+  - A Worker tail that connected after the test visit recorded nothing, which looked like proof that a path never reaches the Worker.
+- Reusable rule: Before trusting a probe, run it against a case where the answer must differ (a positive control), and confirm the instrument observed the event at all before interpreting its absence.
+- Applies when: Verifying provider settings, security policies, logs or any "nothing happened" result.
+- Exceptions / caveats: A positive control proves the instrument works, not that coverage is complete; untested surfaces, such as Boss behind Access, stay explicitly unverified.
+
 ## 28. Observe a content policy on the real edge before enforcing it
 
 - Problem: A Content Security Policy derived from the source code and proven in a local harness can still block the live site, because the delivery platform may change the document on the way out.

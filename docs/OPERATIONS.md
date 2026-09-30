@@ -1,5 +1,61 @@
 # Operations
 
+## Security hardening phase 2 operation — 2026-09-30
+
+### Provider mutations
+
+The Cloudflare API token was used for these changes, in this order. Each was
+read back.
+
+1. Zone setting `min_tls_version`: `1.0` → `1.2`.
+   - Zone-wide, so staging and production changed together.
+   - Both environments were tested immediately after.
+   - Edge propagation took several minutes.
+2. Configuration rule `ff7dc6d833104263b83214597f491e20`
+   (`hakan-run-disable-web-analytics`, `disable_rum: true`).
+   - Created in the new `http_config_settings` entrypoint
+     `058602892e21467291e025535c256bab` for `staging.hakan.run` (version 1).
+   - After the staging CSP release, widened to `hakan.run` (version 2).
+   - Production documents were beacon-free after about 60 seconds.
+3. DNS record `21a6f9a4f870d5c3b659a067e77a3c7e`.
+   - Replaced in place by `PUT`: `CNAME www.hakan.run.cdn.hstgr.net`
+     (proxied, TTL auto) → `AAAA 100::` (proxied, TTL auto, with a comment).
+   - The other fifteen records were compared before and after, unchanged.
+
+### Worker releases
+
+Both used Wrangler 4.130.0 over OAuth, with `CLOUDFLARE_API_TOKEN` unset.
+
+- Staging `7d483e05-fd52-4aa3-ad8f-42a71647aec6`.
+- Production `91051249-02b3-47d5-ade4-d8db380c20ed`, commit `f8b5b0b`, after a
+  dry run.
+
+The production Worker was deployed after the configuration rule covered the
+apex, so the tighter `script-src` never blocked a still-injected beacon.
+
+### Verification
+
+- `node tools/verify-edge-security.js` (zone settings, configuration rule,
+  `www` record, TLS 1.0 through 1.3 per host; `--probes-only` without a
+  token).
+- `node tools/verify-https-redirects.js`.
+- `node tools/verify-security-headers.js --origin <origin>`, which now also
+  checks script origins in a browser-fetched document.
+- To inspect a single host by hand, use
+  `openssl s_client -connect <host>:443 -servername <host> -tls1 -cipher DEFAULT@SECLEVEL=0`.
+  Treat `Cipher is (NONE)` or a protocol alert as a rejection: the `Protocol`
+  line is printed even for failed handshakes.
+
+### Rollback
+
+Restore only the changed setting:
+
+- `min_tls_version` back to `1.0`.
+- Web Analytics: first add `https://static.cloudflareinsights.com` back to
+  `script-src` and deploy, then delete the configuration rule.
+- `www`: restore the CNAME above.
+- Worker: roll back to `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be`.
+
 ## Security-hardening release operation — 2026-09-29
 
 Worker releases used Wrangler OAuth with `CLOUDFLARE_API_TOKEN` unset

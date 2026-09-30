@@ -50,7 +50,14 @@ than promised articles.
 - Dependencies: Server-rendered public documents (D-041), a Cloudflare API token with zone read and redirect-rule scope, staging isolation.
 - Acceptance gates: Provider contract and readback; generated `_headers` equal to the policy module; no inline executable script; Report-Only on staging with zero violations on desktop and mobile; staging enforcement; first-paint, Turnstile, BootIntro, transition and 404 regressions; production header, redirect and browser verification; clean logs.
 - Authorization boundaries: The owner authorized the redirect ruleset and Worker releases for this phase only. DNS, Access, Turnstile, Email, databases, zone HSTS, TLS settings and Web Analytics settings remain separate boundaries.
-- Status: Phase 1 complete and live on 2026-09-29 (D-042). Candidate later phases, each separately authorized: raise HSTS `max-age` after observation; decide `includeSubDomains`/preload once the legacy subdomains are proxied or retired; raise the minimum TLS version; decide on the Cloudflare Web Analytics beacon; consider a CSP reporting endpoint and removing `style-src 'unsafe-inline'`.
+- Status: Phase 1 complete and live on 2026-09-29 (D-042).
+- Phase 2 complete and live on 2026-09-30 (D-043): TLS 1.2 minimum, Cloudflare Web Analytics disabled and removed from `script-src`, `www` as a redirect-only placeholder, and an edge security contract. HSTS and `style-src` were reviewed and intentionally unchanged.
+- Remaining, each separately authorized:
+  - HSTS promotion review on or after 2026-10-14 (30 days, then one year).
+  - `includeSubDomains` only after the Hostinger `autoconfig`, `autodiscover` and `ftp` hosts are served over valid HTTPS or retired, which is a mail decision; no preload.
+  - `style-src` split with hashed `style-src-elem`, after authenticated Boss verification.
+  - Removal of the unused `sonner` dependency.
+  - An optional CSP reporting endpoint.
 
 ## Historical roadmap snapshots (2026-09-15 and earlier)
 

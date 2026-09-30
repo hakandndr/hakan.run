@@ -1,5 +1,74 @@
 # Security
 
+## Edge hardening phase 2 — live, 2026-09-30
+
+Implemented (D-043):
+
+- TLS: the zone minimum is TLS 1.2, and TLS 1.3 is enabled. In 30 days before
+  the change, the only TLS 1.0 client was one non-browser client and there was
+  no TLS 1.1 traffic. About 2.4% of TLS traffic uses 1.2, including real
+  browsers behind antivirus TLS interception, so TLS 1.3-only is not justified.
+- Web Analytics: disabled on the public hosts by a configuration rule. The
+  beacon was an edge-injected third-party script. It never reached the Worker,
+  ANALYTICS_DB or Boss, and it duplicated first-party analytics. `script-src`
+  allows only the site and Turnstile.
+- Script drift: the header verifier fetches a document as a browser and fails
+  on any script origin outside `script-src`.
+- `www`: a proxied `AAAA 100::` placeholder. If a redirect rule is ever
+  removed, `www` fails closed instead of serving the legacy Hostinger site that
+  still exists behind the old CNAME target.
+- Provider contract: `tools/edge-security.contract.json` records the TLS
+  minimum, zone HSTS and Always Use HTTPS ownership, the configuration rule and
+  the `www` record. `tools/verify-edge-security.js` checks them.
+
+HSTS readiness:
+
+- `max-age=86400` stays until at least 2026-10-14. Before promoting, require:
+  - two clean weeks of the edge, redirect and header verifiers;
+  - no HTTP-only dependency found;
+  - no TLS-related error reports.
+- Then raise to 30 days, and to one year after another clean month.
+- `includeSubDomains` needs every HTTP-capable subdomain to work over HTTPS.
+  Today `autoconfig` and `autodiscover` present a `*.mail.hostinger.com`
+  certificate, and `ftp` fails the TLS handshake. They belong to the Hostinger
+  mail and hosting service, so moving or retiring them is a separate mail
+  decision. Preload requires `includeSubDomains` and is not planned.
+
+`style-src 'unsafe-inline'` roadmap, measured on 2026-09-30:
+
+- Inline `<style>` elements: exactly two, both static (the shared document head
+  and the Notes 404). Easy to hash.
+- Runtime `<style>` injection on public pages: none. The toast is Radix
+  (classes and CSSOM). `sonner` is installed but unused and can be removed.
+  Turnstile, framer-motion (CSSOM, not governed by CSP) and view transitions
+  inject none.
+- Style attributes: the theme tokens on `<html>`/`<body>` and component
+  `style` props rendered by the server. Removing them would mean refactoring
+  the theme and motion architecture: expensive, with high regression risk.
+- Step 1 (reasonable future work):
+  - Add `style-src-elem 'self'` with the two hashes, computed and checked by
+    the build.
+  - Add `style-src-attr 'unsafe-inline'`.
+  - Keep `style-src 'self' 'unsafe-inline'` as the fallback for older browsers.
+  - First verify Boss under the candidate in an authenticated session, and
+    replace Playwright `addStyleTag` instrumentation.
+- Value: this blocks stylesheet injection, including selector-based data
+  exfiltration. It is modest while React escaping, escaped Notes and the
+  owner-only CMS leave no known HTML injection sink.
+
+Known debt and open decisions:
+
+- `img-src https:` follows the CMS schema's absolute image URLs, although none
+  are published today.
+- No CSP reporting endpoint.
+- Page Rules cannot be read with an account-owned token (error 1011).
+- The Web Analytics account API and RUM datasets are not readable with the
+  available credentials.
+- The Web Analytics site registration and historical data remain in the
+  Cloudflare account, to be removed there by the owner if wanted.
+- Boss pages are verified under the CSP only through the mocked local suite,
+  not in an authenticated live session.
+
 ## Transport and response security — live, 2026-09-29
 
 Implemented (D-042, Worker `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be`):

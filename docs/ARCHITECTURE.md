@@ -18,9 +18,19 @@ response paths. Both take their security headers from
 Document boot logic lives in the first-party scripts `document-start.js` (head,
 render-blocking: scroll restoration mode and the BootIntro decision) and
 `document-scroll.js` (after `#root`), so the CSP needs no inline-script
-allowance. The zone's Cloudflare Web Analytics automatic setup injects its
-beacon into HTML at the edge, and it reports to same-origin `/cdn-cgi/rum`. See
-D-042 and `docs/SECURITY.md`.
+allowance. See D-042 and `docs/SECURITY.md`.
+
+Since 2026-09-30 (D-043):
+
+- The edge accepts TLS 1.2 and 1.3 only.
+- A zone configuration rule disables Cloudflare Web Analytics on the public
+  hosts, so the edge no longer rewrites Worker HTML. The only analytics path is
+  first-party `/api/analytics/page` into ANALYTICS_DB.
+- `www.hakan.run` has no origin: a proxied `AAAA 100::` placeholder whose
+  requests the redirect ruleset answers.
+
+`tools/edge-security.contract.json` holds the provider state outside the
+redirect ruleset.
 
 ## Implemented production topology — 2026-09-28
 

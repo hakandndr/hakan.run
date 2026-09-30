@@ -1,5 +1,36 @@
 # hakan.run Modernization Handoff
 
+## Security hardening phase 2 production checkpoint — 2026-09-30
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve the documentation checkpoint with `git rev-parse HEAD`; deployed product commit `f8b5b0b` (contract commit `9299357`) |
+| Current phase | Edge hardening live (D-043): TLS 1.2 minimum, Cloudflare Web Analytics disabled and removed from the CSP, `www` is a redirect-only placeholder record |
+| Completed | Zone minimum TLS 1.0 → 1.2; configuration rule `disable_rum` on the public hosts; `script-src` without `static.cloudflareinsights.com`; `www` CNAME to Hostinger → `AAAA 100::` proxied; edge security contract and verifier; browser-document script-origin drift check |
+| Exact next action | None required. HSTS promotion review on or after 2026-10-14 (see `docs/SECURITY.md`); `style-src 'unsafe-inline'` split remains a roadmap item |
+| Prohibited actions | No HSTS change, `includeSubDomains`, preload, DNS beyond `www`, MX/SPF/DKIM/DMARC, Access, Turnstile, Email, APP_DB, ANALYTICS_DB, CMS flag or migration without separate authorization |
+| Push state | Product and documentation commits pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Production Worker `91051249-02b3-47d5-ade4-d8db380c20ed` at 100% serves `f8b5b0b`; rollback target `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be`; staging `7d483e05-fd52-4aa3-ad8f-42a71647aec6` serves the same commit |
+| Infrastructure state | `min_tls_version=1.2`; configuration ruleset `058602892e21467291e025535c256bab` v2 with rule `ff7dc6d833104263b83214597f491e20`; `www` record `21a6f9a4f870d5c3b659a067e77a3c7e` is `AAAA 100::` proxied; redirect ruleset v4 unchanged; HSTS still `max-age=86400` from code |
+
+Rollback values (restore only the setting that regressed):
+
+- TLS: `min_tls_version` back to `1.0`.
+- Web Analytics: first re-add `https://static.cloudflareinsights.com` to
+  `script-src` and deploy, then delete configuration rule
+  `ff7dc6d833104263b83214597f491e20`.
+- `www`: restore record `21a6f9a4…` to `CNAME www.hakan.run.cdn.hstgr.net`,
+  proxied, TTL auto.
+- Worker: roll back to `6dfbb7e9-8e3f-4f9f-bc31-191e7161d7be`.
+
+Verification: `node tools/verify-edge-security.js`,
+`node tools/verify-https-redirects.js`, and
+`node tools/verify-security-headers.js --origin https://hakan.run`. The provider
+readbacks need `CLOUDFLARE_API_TOKEN`.
+
+The checkpoint below is historical.
+
 ## First security-hardening production checkpoint — 2026-09-29
 
 | Field | Current value |
