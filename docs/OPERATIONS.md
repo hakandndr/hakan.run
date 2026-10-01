@@ -1,5 +1,35 @@
 # Operations
 
+## DNDR Analytics staging dual-write — 2026-10-01
+
+1. Checks: `npm run check` (Worker 166, web 138, tools 150, no failure).
+   Full Playwright: 174 passed, 29 failed, 5 skipped — the documented baseline
+   set (Boss content editor, contact form, 404, SEO, visual, mobile hash
+   navigation) plus the intermittent mobile scroll-restoration POP test; the
+   navigation, 404 and SEO specs fail identically on `c9ff408` without this
+   change, and Playwright serves the web build without the Worker. Playwright
+   rebuilds the production bundle, so build staging again afterwards; and the
+   web tool tests read the built `dist`, so `npm run check` after
+   `build:staging` fails the production sitemap test until a production build
+   is made again.
+2. `npm run build:staging --prefix apps/web`, then
+   `npm run verify:artifact:staging --prefix apps/web`.
+3. Bookmarks first (analytics `00000081-00000000-000050f7-52ec91ebecaefa1efd04ef699bddd57a`,
+   app `000000a9-00000000-000050f7-9f5427bb58253a2718989523b0f74432`).
+4. `npx wrangler deploy --env staging --dry-run` shows
+   `env.DNDR_COLLECTOR (dndr-collector-staging#ProducerApi)`; then deploy
+   (Wrangler 4 with OAuth; `CLOUDFLARE_API_TOKEN` unset). Result:
+   `ae68dc2d-7380-4f5b-a037-e0ad9be53b42`.
+5. Verify: real staging page views return 202; `npx wrangler tail --env staging`
+   prints `dndr-forward: accepted visitor_events:<id>`; DNDR's parity tool
+   (`scripts/analytics/producer-parity.mjs`, kind `hakanrun-visitor-events`)
+   over both staging exports is exact from the first forwarded row.
+
+Rollback: DNDR disables `prd_hakan_run_staging_binding`, or
+`npx wrangler rollback 7d483e05-fd52-4aa3-ad8f-42a71647aec6 --env staging`.
+Right after a deploy the previous version may answer for a few seconds; start
+a parity window at the first forwarded row.
+
 ## Security hardening phase 2 operation — 2026-09-30
 
 ### Provider mutations

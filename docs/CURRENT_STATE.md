@@ -1,5 +1,31 @@
 # Current State
 
+## DNDR Analytics staging dual-write — 2026-10-01
+
+Staging `ae68dc2d-7380-4f5b-a037-e0ad9be53b42` (previous
+`7d483e05-fd52-4aa3-ad8f-42a71647aec6`) forwards each stored native PAGE event
+to DNDR Analytics staging (D-044). Verified live on 2026-10-01:
+
+- The source write is first and unchanged: `visitor_events` holds the row,
+  then the Worker log reads `dndr-forward: accepted visitor_events:<id>`.
+- DNDR holds the same rows with `producer_id = prd_hakan_run_staging_binding`
+  and `producer_event_id = visitor_events:<id>`, taken from the binding, not
+  from this code. Exact parity from 2026-10-01T19:07:54.158Z: 4 of 4, nothing
+  missing, unexpected, duplicated or different; largest time skew 147 ms.
+- The first three views after the deploy (19:07:02Z–19:07:10Z) were stored
+  here and never reached DNDR, most likely answered by the previous version
+  during the rollout (not provable with the available credentials). DNDR has
+  since imported them from this site's history under the same ids.
+- DNDR staging imported this property's history from a read-only export of
+  `hakan-run-analytics-staging`: all 5,154 panel-log records (3,191 typed,
+  1,963 preserved with reasons) and 831 native events; DNDR's count for the
+  staging site equals this database's 4,022 PAGE rows. Nothing was written to
+  this site's databases.
+- Production `91051249-02b3-47d5-ade4-d8db380c20ed` has no binding and does not
+  forward.
+
+The checkpoint below is historical.
+
 ## Security hardening phase 2 — 2026-09-30
 
 Product commit `f8b5b0b` is deployed on production Worker version

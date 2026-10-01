@@ -6,6 +6,7 @@
 import { json, problem } from '../lib/response.js';
 import { isPublicPage, normalizePath } from '../lib/routes.js';
 import { localDay } from '../lib/time.js';
+import { dndrForwardingEnabled, forwardToDndr, forwardedReferrer, producerEventId } from './dndr-forward.js';
 
 const AUTOMATED_AGENT = /bot|crawler|spider|headless|curl|wget|facebookexternalhit|meta-external/i;
 
@@ -46,7 +47,7 @@ const classify = (userAgent, cf) => {
   };
 };
 
-export const handlePageEvent = async (request, env) => {
+export const handlePageEvent = async (request, env, context = null) => {
   if (env.ANALYTICS_ENABLED !== 'true') return json({ status: 'disabled' }, 202);
 
   let payload;
@@ -72,6 +73,9 @@ export const handlePageEvent = async (request, env) => {
     referrer = 'invalid';
   }
 
+  // The row id is chosen before the insert so the same id can identify the
+  // event to DNDR (dndr-forward.js).
+  const id = crypto.randomUUID();
   await env.ANALYTICS_DB.prepare(
     `INSERT INTO visitor_events
       (id, occurred_at, date_local, ip_address, country, region, city, colo, path,
@@ -80,7 +84,7 @@ export const handlePageEvent = async (request, env) => {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
-      crypto.randomUUID(),
+      id,
       now,
       localDay(now),
       ip,
@@ -99,6 +103,25 @@ export const handlePageEvent = async (request, env) => {
       bounded(request.headers.get('CF-Ray'), 64),
     )
     .run();
+
+  // Additive DNDR dual-write (staging only): after the source row exists.
+  if (dndrForwardingEnabled(env) && context && typeof context.waitUntil === 'function') {
+    context.waitUntil(
+      forwardToDndr(env, {
+        producerEventId: producerEventId(id),
+        hostname: new URL(request.url).hostname,
+        path,
+        referrer: forwardedReferrer(referrer),
+        ip,
+        userAgent,
+        country: request.cf?.country ?? '',
+        region: request.cf?.region ?? '',
+        regionCode: request.cf?.regionCode ?? '',
+        city: request.cf?.city ?? '',
+        asn: typeof request.cf?.asn === 'number' ? request.cf.asn : null,
+      }).catch(() => 'error'),
+    );
+  }
 
   return json({ status: 'recorded' }, 202);
 };

@@ -1,5 +1,29 @@
 # hakan.run Modernization Handoff
 
+## DNDR Analytics staging dual-write checkpoint — 2026-10-01
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve with `git rev-parse HEAD`; the dual-write is one commit on top of `c9ff408` |
+| Current phase | Staging sends each stored native PAGE event to DNDR Analytics as an additive secondary write (D-044); `ANALYTICS_DB` stays the analytics authority and Boss reads only it |
+| Completed | `worker/analytics/dndr-forward.js`; `handlePageEvent` keeps the row id and forwards after a successful insert inside `waitUntil`; staging `DNDR_COLLECTOR` service binding with `props.producerId = prd_hakan_run_staging_binding`; `worker/tests/dndr-forward.test.js`; staging deploy; exact parity; DNDR staging imported this property's history from a read-only staging export |
+| Exact next action | None required here. Production forwarding is a separate owner decision and needs a production binding, a production producer in DNDR, and DNDR's own production release, which is gated |
+| Prohibited actions | No production deploy, production binding, APP_DB or ANALYTICS_DB write, migration, Access, Turnstile, Email or DNS change as part of this integration |
+| Push state | Pushed to `origin/develop/hakan-run-v2`; verify local/remote 0/0 |
+| Deploy state | Staging `ae68dc2d-7380-4f5b-a037-e0ad9be53b42` (rollback `7d483e05-fd52-4aa3-ad8f-42a71647aec6`); production unchanged at `91051249-02b3-47d5-ade4-d8db380c20ed` |
+| Infrastructure state | Staging binding to `dndr-collector-staging#ProducerApi`; no production binding; backup `D:\IT\_backups\dndr-control-plane\hakan.run\20261001T1833Z_phase2a-baseline\` (Git bundle, Worker versions, four D1 bookmarks and exports) |
+
+Rollback, either is enough: ask DNDR to disable `prd_hakan_run_staging_binding`
+(DNDR refuses within a minute; this site is unaffected), or
+`npx wrangler rollback 7d483e05-fd52-4aa3-ad8f-42a71647aec6 --env staging`.
+Neither touches `ANALYTICS_DB`.
+
+`hakandundar.me` is an independent DNDR property by owner decision; it is not
+redirected here and nothing it records is attributed to `hakan.run`.
+
+The checkpoint below is historical.
+
 ## Security hardening phase 2 production checkpoint — 2026-09-30
 
 | Field | Current value |

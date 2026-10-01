@@ -59,6 +59,12 @@ than promised articles.
   - Removal of the unused `sonner` dependency.
   - An optional CSP reporting endpoint.
 
+### DNDR Analytics integration — staging live; production gated
+
+- Objective: DNDR Analytics holds an exact secondary copy of this site's PAGE events and its history, without changing this site's authority.
+- Status: Staging dual-write live since 2026-10-01 with exact parity (D-044); DNDR staging imported this property's history from a read-only export, every record accounted for.
+- Remaining, each separately authorized: production forwarding (a production binding and DNDR producer, after DNDR's own production release); a production history import into DNDR (not planned).
+
 ## Historical roadmap snapshots (2026-09-15 and earlier)
 
 Statuses below record their original phase checkpoints. They are retained for

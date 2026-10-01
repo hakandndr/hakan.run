@@ -65,7 +65,7 @@ const route = async (request, env, context) => {
 
   if (path === '/api/analytics/page') {
     if (request.method !== 'POST') return methodNotAllowed('POST');
-    return handlePageEvent(request, env);
+    return handlePageEvent(request, env, context);
   }
 
   // Public content authority. Reads published rows from APP_DB and nothing

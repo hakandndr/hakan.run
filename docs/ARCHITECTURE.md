@@ -32,6 +32,12 @@ Since 2026-09-30 (D-043):
 `tools/edge-security.contract.json` holds the provider state outside the
 redirect ruleset.
 
+Since 2026-10-01 (D-044), on staging only: after `/api/analytics/page` stores a
+native event, `worker/analytics/dndr-forward.js` sends the same observation to
+DNDR Analytics through the `DNDR_COLLECTOR` Service Binding, in `waitUntil`,
+keyed by the row id. `ANALYTICS_DB` remains the authority; production has no
+binding.
+
 ## Implemented production topology — 2026-09-28
 
 The Cloudflare Worker serves the `hakan.run` apex and delivers static public

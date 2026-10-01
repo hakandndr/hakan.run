@@ -70,6 +70,17 @@
       "workers_dev": false,
       "routes": [
         { "pattern": "staging.hakan.run", "custom_domain": true }
+      ],
+      // DNDR Analytics V2 dual-write (worker/analytics/dndr-forward.js), staging
+      // only. DNDR reads props.producerId from this binding, so this Worker's
+      // code cannot choose another identity. Production declares no binding.
+      "services": [
+        {
+          "binding": "DNDR_COLLECTOR",
+          "service": "dndr-collector-staging",
+          "entrypoint": "ProducerApi",
+          "props": { "producerId": "prd_hakan_run_staging_binding" }
+        }
       ]
     },
     "production": {

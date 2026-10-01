@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-044 — DNDR Analytics receives a secondary copy; ANALYTICS_DB stays the authority
+
+- Decision: After `ANALYTICS_DB` stores a native PAGE event, the Worker sends the same observation to DNDR Analytics through a Cloudflare Service Binding (`DNDR_COLLECTOR` → `dndr-collector-staging#ProducerApi`) inside `waitUntil`, keyed by the stored row's id (`visitor_events:<id>`), with one retry on error. It runs only where the binding exists and `ENVIRONMENT` is listed in `DNDR_FORWARD_ENVIRONMENTS` (today `staging`). The producer identity is the binding's `props.producerId`; the payload names none.
+- Context: DNDR is building a cross-property analytics view and must prove it records exactly what each property records before anything relies on it. TurkCyber established the pattern and the binding identity was proven at runtime there.
+- Alternatives considered: A browser beacon to DNDR (a second client request, no shared id, window-based parity only); forwarding before the source insert (DNDR could hold visits this site does not); a signed HTTP relay (a secret to manage where an account-level binding suffices).
+- Rationale: Forwarding after the insert, keyed by the row id, makes DNDR a strict subset that can be compared exactly and retried idempotently, and a DNDR failure can never change this site's response or its data.
+- Consequences: Boss Analytics is unchanged and reads only `ANALYTICS_DB`. A forwarding failure is a log line with the event id and never an address or agent. Production forwarding needs its own decision, binding and DNDR producer.
+- Status: Live on staging since 2026-10-01 (`ae68dc2d-7380-4f5b-a037-e0ad9be53b42`), exact parity; production not enabled.
+
 ## D-043 — Edge hardening: TLS 1.2, no Web Analytics, a redirect-only www
 
 - Decision: The zone accepts TLS 1.2 and 1.3 only. Cloudflare Web Analytics is disabled on `hakan.run` and `staging.hakan.run` by configuration rule `hakan-run-disable-web-analytics` (`disable_rum`), and `script-src` no longer allows its beacon. `www.hakan.run` is a proxied `AAAA 100::` placeholder answered entirely by the redirect ruleset. HSTS stays `max-age=86400` without `includeSubDomains` or preload. `style-src 'unsafe-inline'` stays for now. `tools/edge-security.contract.json` records the intended provider state.
