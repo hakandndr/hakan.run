@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-045 — This project's own analytics stay; analytics work does not change the public site
+
+- Decision: Owner rule of 2026-10-02 (DNDR Labs control plane, `DECISIONS.md` A54 and A55 there), permanent unless the owner reverses it for this property. Hakan.run's own `ANALYTICS_DB` and its own analytics panel stay operational indefinitely; DNDR Analytics holds an additional copy and is never the only way to see these numbers. The panel is not removed, redirected to DNDR or replaced by an embedded view, and source analytics are not deleted because DNDR has a copy. Analytics and control-plane work does not change public page content, design, navigation, copy, SEO content, routes or interactions; the DNDR transport stays at the Worker write boundary (`worker/analytics/dndr-forward.js`).
+- Context: DNDR centralizes several properties' analytics as a private, additive view.
+- Alternatives considered: Making DNDR the single analytics view; rejected by the owner.
+- Rationale: The source application is authoritative for its own operational data, and a public product is not the place to implement analytics transport.
+- Consequences: Any retirement of this panel is a separate, explicit owner decision. Opening staging pages to generate controlled analytics traffic is allowed; it is not authorization to edit them.
+- Status: Adopted (owner rule).
+
 ## D-044 — DNDR Analytics receives a secondary copy; ANALYTICS_DB stays the authority
 
 - Decision: After `ANALYTICS_DB` stores a native PAGE event, the Worker sends the same observation to DNDR Analytics through a Cloudflare Service Binding (`DNDR_COLLECTOR` → `dndr-collector-staging#ProducerApi`) inside `waitUntil`, keyed by the stored row's id (`visitor_events:<id>`), with one retry on error. It runs only where the binding exists and `ENVIRONMENT` is listed in `DNDR_FORWARD_ENVIRONMENTS` (today `staging`). The producer identity is the binding's `props.producerId`; the payload names none.
@@ -416,12 +425,3 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Status: Superseded by D-027 and D-028 for the strict asynchronous public bootstrap.
   Its single SPA authority principle remains; its synchronous built-in layout and
   browser-native reload/POP premises no longer describe current staging.
-
-## D-029 — This project's own analytics stay; analytics work does not change the public site
-
-- Decision: Owner rule of 2026-10-02 (DNDR Labs control plane, `DECISIONS.md` A54 and A55 there), permanent unless the owner reverses it for this property. Hakan.run's own `ANALYTICS_DB` and its own analytics panel stay operational indefinitely; DNDR Analytics holds an additional copy and is never the only way to see these numbers. The panel is not removed, redirected to DNDR or replaced by an embedded view, and source analytics are not deleted because DNDR has a copy. Analytics and control-plane work does not change public page content, design, navigation, copy, SEO content, routes or interactions; the DNDR transport stays at the Worker write boundary (`worker/analytics/dndr-forward.js`).
-- Context: DNDR centralizes several properties' analytics as a private, additive view.
-- Alternatives considered: Making DNDR the single analytics view; rejected by the owner.
-- Rationale: The source application is authoritative for its own operational data, and a public product is not the place to implement analytics transport.
-- Consequences: Any retirement of this panel is a separate, explicit owner decision. Opening staging pages to generate controlled analytics traffic is allowed; it is not authorization to edit them.
-- Status: Adopted (owner rule).

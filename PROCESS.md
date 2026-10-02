@@ -3804,6 +3804,6 @@ later explicit DATABASE authorization and fresh target verification.
 ## 2026-10-02 — Owner rules recorded (documentation only)
 
 - Objective and starting Git state: Record the owner's permanent rules on source analytics panels and public product surfaces. Started at `711191b`, clean.
-- Changed files: `docs/DECISIONS.md` (D-029), this entry. No code, configuration, provider or data change.
+- Changed files: `docs/DECISIONS.md` (D-045), this entry. A first commit numbered it D-029, which an earlier decision already uses; corrected in the next commit. No code, configuration, provider or data change.
 - Deliberate non-actions: No deploy, binding, migration or database write.
 - Exact next action: None here.
