@@ -31,9 +31,9 @@ test('the converted specifier is always a file URL, never a drive-letter scheme'
 test('an absolute path round-trips back to itself, on whatever platform this is', () => {
   // The portable property, and the one that actually matters: converting a path
   // and converting it back returns the same path. Asserting a literal
-  // 'file:///home/claude/content.js' was a POSIX assumption — on Windows a
+  // 'file:///home/user/content.js' was a POSIX assumption — on Windows a
   // rooted path with no drive resolves against the current drive, so
-  // '/home/claude/content.js' correctly becomes 'file:///D:/home/claude/...'.
+  // '/home/user/content.js' correctly becomes 'file:///D:/home/user/...'.
   // That is Node behaving properly, not the conversion misbehaving.
   const absolute = path.resolve(root, 'apps/web/src/content.js');
   const specifier = toModuleUrl(absolute);
@@ -45,11 +45,11 @@ test('an absolute path round-trips back to itself, on whatever platform this is'
 test('a POSIX-rooted path becomes a file URL with a rooted path, drive or not', () => {
   // Checked structurally rather than by literal, because the drive prefix is
   // correct on Windows and absent on POSIX and both are right.
-  const specifier = toModuleUrl(path.resolve('/home/claude/content.js'));
+  const specifier = toModuleUrl(path.resolve('/home/user/content.js'));
   const url = new URL(specifier);
 
   assert.equal(url.protocol, 'file:');
-  assert.match(url.pathname, /\/home\/claude\/content\.js$/);
+  assert.match(url.pathname, /\/home\/user\/content\.js$/);
   assert.ok(url.pathname.startsWith('/'));
 });
 

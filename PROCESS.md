@@ -3807,3 +3807,11 @@ later explicit DATABASE authorization and fresh target verification.
 - Changed files: `docs/DECISIONS.md` (D-045), this entry. A first commit numbered it D-029, which an earlier decision already uses; corrected in the next commit. No code, configuration, provider or data change.
 - Deliberate non-actions: No deploy, binding, migration or database write.
 - Exact next action: None here.
+
+## 2026-10-02 — Neutral example path in a tools test
+
+- Objective and starting Git state: Remove a tool-named example directory from a current test fixture (no history rewrite). Started at `3af5011`, clean.
+- Changed files: `tools/module-url.test.js` (the example POSIX path `/home/<tool>/content.js` becomes `/home/user/content.js`; the assertion is unchanged in meaning), this entry.
+- Results: `npm run check` passed (lint, worker 138, web and tools 150 tests).
+- Deliberate non-actions: Earlier PROCESS entries that quote the old path are history and stay as written. No deploy, binding, migration or database write.
+- Exact next action: None here.
