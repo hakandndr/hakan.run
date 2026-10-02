@@ -3800,3 +3800,10 @@ later explicit DATABASE authorization and fresh target verification.
 - History: DNDR staging imported this property's panel-log ledger and native events from a read-only staging export; every record is accounted for and the three unforwarded views now exist in DNDR under their own ids. Nothing was written here.
 - Deliberate non-actions: No production deploy, binding, migration, APP_DB or ANALYTICS_DB write, Access, Turnstile, Email or DNS change.
 - Exact next action: None required here; production forwarding is a separate decision.
+
+## 2026-10-02 — Owner rules recorded (documentation only)
+
+- Objective and starting Git state: Record the owner's permanent rules on source analytics panels and public product surfaces. Started at `711191b`, clean.
+- Changed files: `docs/DECISIONS.md` (D-029), this entry. No code, configuration, provider or data change.
+- Deliberate non-actions: No deploy, binding, migration or database write.
+- Exact next action: None here.
