@@ -14,12 +14,15 @@
 // - Never throws; a failure is logged as an outcome with the event id only
 //   (no address, no user agent).
 // - Enabled only where the binding exists AND ENVIRONMENT is listed in
-//   DNDR_FORWARD_ENVIRONMENTS. Production has neither.
+//   DNDR_FORWARD_ENVIRONMENTS: staging (to dndr-collector-staging) and,
+//   since D-046, production (to dndr-collector). Development never forwards.
+//   Each environment's binding names its own collector and producer, so
+//   staging can never write a production identity or the reverse.
 // - Sends no identity of its own choosing: the producer id is the binding's
 //   props.producerId (wrangler.jsonc), read by DNDR; the hostname is the one
 //   this Worker was invoked on.
 
-export const DNDR_FORWARD_ENVIRONMENTS = Object.freeze(['staging']);
+export const DNDR_FORWARD_ENVIRONMENTS = Object.freeze(['staging', 'production']);
 export const DNDR_FORWARD_ATTEMPTS = 2;
 const STATUSES = new Set(['accepted', 'duplicate', 'rejected', 'error']);
 

@@ -104,7 +104,8 @@ export const handlePageEvent = async (request, env, context = null) => {
     )
     .run();
 
-  // Additive DNDR dual-write (staging only): after the source row exists.
+  // Additive DNDR dual-write (staging and production, D-046): after the source
+  // row exists, best effort, never awaited by the response.
   if (dndrForwardingEnabled(env) && context && typeof context.waitUntil === 'function') {
     context.waitUntil(
       forwardToDndr(env, {

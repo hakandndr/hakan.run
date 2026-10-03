@@ -71,9 +71,9 @@
       "routes": [
         { "pattern": "staging.hakan.run", "custom_domain": true }
       ],
-      // DNDR Analytics V2 dual-write (worker/analytics/dndr-forward.js), staging
-      // only. DNDR reads props.producerId from this binding, so this Worker's
-      // code cannot choose another identity. Production declares no binding.
+      // DNDR Analytics V2 dual-write (worker/analytics/dndr-forward.js). DNDR
+      // reads props.producerId from this binding, so this Worker's code cannot
+      // choose another identity. Staging binds the staging collector only.
       "services": [
         {
           "binding": "DNDR_COLLECTOR",
@@ -126,6 +126,18 @@
       "preview_urls": false,
       "routes": [
         { "pattern": "hakan.run", "custom_domain": true }
+      ],
+      // DNDR Analytics V2 dual-write (D-046): a best-effort copy of each stored
+      // PAGE event to the production DNDR collector. ANALYTICS_DB stays the
+      // authority; a DNDR failure changes nothing here. Production binds the
+      // production collector with the production producer only.
+      "services": [
+        {
+          "binding": "DNDR_COLLECTOR",
+          "service": "dndr-collector",
+          "entrypoint": "ProducerApi",
+          "props": { "producerId": "prd_hakan_run_binding" }
+        }
       ]
     }
   }
