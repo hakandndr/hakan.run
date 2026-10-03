@@ -1,5 +1,26 @@
 # hakan.run Modernization Handoff
 
+## DNDR Analytics production dual-write checkpoint — 2026-10-03
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; resolve with `git rev-parse HEAD`; deployed product commit `b001c18` (one commit on top of `d0e5898`); not pushed |
+| Current phase | Production sends each stored native PAGE event to DNDR Analytics as an additive, best-effort copy (D-046); `ANALYTICS_DB` stays the authority and Boss reads only it (D-044, D-045) |
+| Completed | `"production"` added to `DNDR_FORWARD_ENVIRONMENTS`; production `DNDR_COLLECTOR` service binding to `dndr-collector#ProducerApi` with `props.producerId = prd_hakan_run_binding`; eight more forwarder tests (13 in all); production deploy; every public route byte-identical before and after; one controlled visit stored here and refused by DNDR as `producer_unknown` |
+| Exact next action | DNDR side (in the DNDR repository, separately approved): apply `seeds/analytics-v2/planned/production-hakan-run.sql` to DNDR production and read it back; the next real page view here is then accepted centrally and starts DNDR's native coverage for this site. Nothing to do in this repository |
+| Prohibited actions | No APP_DB or ANALYTICS_DB write, migration, Access, Turnstile, Email, DNS or CMS flag change; no history import into DNDR from here; do not push without the owner's approval |
+| Push state | `b001c18` and its documentation commit are local only; `origin/develop/hakan-run-v2` is `d0e5898` |
+| Deploy state | Production `6bed54ba-7a65-4702-a91f-3b8315e9a08b` at 100% (2026-10-03T04:31Z), rollback `91051249-02b3-47d5-ade4-d8db380c20ed`; staging unchanged at `ae68dc2d-7380-4f5b-a037-e0ad9be53b42` |
+| Infrastructure state | Production binding to `dndr-collector#ProducerApi`; staging binding to `dndr-collector-staging#ProducerApi`; no D1, DNS, Access or secret change. Baseline `D:\IT\_backups\dndr-control-plane\hakan.run\20261003T0428Z_c1-production-baseline\` |
+
+Rollback, either is enough and neither touches `ANALYTICS_DB`: ask DNDR to
+disable `prd_hakan_run_binding` (DNDR refuses within a minute; this site is
+unaffected), or
+`npm exec --offline --yes --package wrangler@4.130.0 -- wrangler rollback 91051249-02b3-47d5-ade4-d8db380c20ed --env production`.
+
+The checkpoint below is historical.
+
 ## DNDR Analytics staging dual-write checkpoint — 2026-10-01
 
 | Field | Current value |

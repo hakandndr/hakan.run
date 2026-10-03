@@ -3815,3 +3815,17 @@ later explicit DATABASE authorization and fresh target verification.
 - Results: `npm run check` passed (lint, worker 138, web and tools 150 tests).
 - Deliberate non-actions: Earlier PROCESS entries that quote the old path are history and stay as written. No deploy, binding, migration or database write.
 - Exact next action: None here.
+
+## 2026-10-03 — DNDR Analytics production dual-write (DNDR Batch C1)
+
+- Objective and starting Git state: Send each stored native PAGE event to DNDR Analytics in production as the same additive, best-effort copy staging sends; keep `ANALYTICS_DB` and Boss authoritative. Started at `d0e5898` (= `origin/develop/hakan-run-v2`), clean.
+- Approved scope: Source change, tests, a rollback baseline and a minimal production deploy. Not approved: push, staging deploy, any database write, migration, Access, Turnstile, Email, DNS, CMS flag.
+- Drift review: production `91051249…` served `f8b5b0b`; since then only documentation (`c9ff408`, `b683a89`, `3af5011`), one test (`d0e5898`) and the staging dual-write (`711191b`, inert in production). Nothing unrelated was released.
+- Changed files: `worker/analytics/dndr-forward.js` (`'production'` in `DNDR_FORWARD_ENVIRONMENTS`, comment), `worker/analytics/ingest.js` (comment), `wrangler.jsonc` (production `DNDR_COLLECTOR` binding with `prd_hakan_run_binding`; staging comment), `worker/tests/dndr-forward.test.js` (two tests adapted, eight added: production forwarding, every collector failure including a missing binding, a response that does not wait, repeated ids, browser identity claims, no address or agent in logs, the source classification, configuration separation). Commit `b001c18`; a trailing blank line flagged by `git diff --check` was removed by amending that unpushed commit before the deploy.
+- Validation: `npm run check` passed (lint; worker 174, web 138, tools 150). Full Playwright not rerun (no web or UI change). Production build: 35 of 35 static files equal the live ones.
+- Baseline: `D:\IT\_backups\dndr-control-plane\hakan.run\20261003T0428Z_c1-production-baseline\` — versions, two Time Travel bookmarks, secret names only, configuration hashes, aggregate counts, route and header snapshot, rollback instructions.
+- Production: dry run showed only the new binding beside unchanged bindings and `CMS_PRODUCTION_WRITES_ENABLED=false`; deployed `6bed54ba-7a65-4702-a91f-3b8315e9a08b` at 2026-10-03T04:31:03Z. 21 routes and the root headers byte-identical before and after.
+- Controlled visit: one beacon for `/` at 04:32:06Z (request `a4493899b9b91ad1`), stored once (row `73299805-8672-4d65-a7c2-aef437070ad4`; 3,919 → 3,920 rows); forwarded and refused by DNDR as `producer_unknown` (its production registry does not enrol this producer yet); one refusal counted there, nothing stored; `202 recorded` here.
+- Deliberate non-actions: No push, staging deploy, D1 write, migration, Access, Turnstile, Email, DNS or CMS change; no history import.
+- Push/deploy state: local `b001c18` plus this documentation commit; production `6bed54ba…`; staging `ae68dc2d…`.
+- Exact next action: DNDR side — enrol `prd_hakan_run_binding` in DNDR production (its planned seed), then verify the next real page view centrally.

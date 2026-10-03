@@ -1,5 +1,22 @@
 # Security
 
+## DNDR Analytics production dual-write — live, 2026-10-03
+
+- Trust boundary: the copy leaves this Worker only over an account-internal
+  Service Binding; there is no public collector URL and no secret. The
+  producer identity is the binding's `props.producerId` set in
+  `wrangler.jsonc`; the payload names no site, producer or property, and the
+  hostname is the one this Worker was invoked on, so a browser cannot choose
+  any of them (tested).
+- Data: the copy carries what `visitor_events` already holds for the event —
+  path, referrer origin, address, user agent and coarse Cloudflare location —
+  and goes only to DNDR's private, Access-protected analytics.
+- Logs: a forwarding outcome logs the status, the reason and the event id
+  only; no address or user agent (tested for every outcome).
+- Failure isolation: the source insert happens first; the copy runs in
+  `waitUntil`; a missing binding, a refusal, an error, a throw or a slow
+  collector changes neither the response nor the row (tested).
+
 ## Edge hardening phase 2 — live, 2026-09-30
 
 Implemented (D-043):

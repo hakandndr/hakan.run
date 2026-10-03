@@ -1,5 +1,36 @@
 # Current State
 
+## DNDR Analytics production dual-write — 2026-10-03
+
+Production `6bed54ba-7a65-4702-a91f-3b8315e9a08b` (commit `b001c18`, previous
+`91051249-02b3-47d5-ade4-d8db380c20ed` serving `f8b5b0b`) forwards each stored
+native PAGE event to the production DNDR collector (D-046). Verified on
+2026-10-03:
+
+- Drift between the previous production commit `f8b5b0b` and the deployed one:
+  documentation (`c9ff408`, `b683a89`, `3af5011`), one test (`d0e5898`), the
+  staging dual-write (`711191b`, inert in production until this change) and
+  this change. No public application file changed.
+- Public product unchanged: all 35 built static files byte-identical to the
+  live ones before and after; 21 routes (`/`, `/notes`, every note,
+  `/contact`, `/card`, `/api/config`, `/api/content`, `robots.txt`,
+  `sitemap.xml`, `humans.txt`, `llms.txt`, `/boss`) returned the same status
+  and the same body bytes before and after the deploy; the root response
+  headers are identical.
+- One controlled visit (a beacon for `/` with an ordinary browser user agent,
+  2026-10-03T04:32:06Z, request `a4493899b9b91ad1`): stored here once as row
+  `73299805-8672-4d65-a7c2-aef437070ad4` (native, `unknown`, desktop, Chrome),
+  `visitor_events` 3,919 → 3,920. Forwarded as
+  `visitor_events:73299805-8672-4d65-a7c2-aef437070ad4`; DNDR refused it as
+  `producer_unknown` because DNDR's production registry does not enrol this
+  producer yet, counted one refusal and stored nothing. The response was
+  `202 recorded` throughout.
+- The integrity requests (GETs) wrote nothing here; only the beacon did.
+- Staging unchanged (`ae68dc2d-…`); DNDR staging holds 838 rows from
+  `prd_hakan_run_staging_binding`, the last 2026-10-02T00:40Z, no refusal.
+
+The checkpoint below is historical.
+
 ## DNDR Analytics staging dual-write — 2026-10-01
 
 Staging `ae68dc2d-7380-4f5b-a037-e0ad9be53b42` (previous

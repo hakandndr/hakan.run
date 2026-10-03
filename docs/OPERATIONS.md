@@ -1,5 +1,33 @@
 # Operations
 
+## DNDR Analytics production dual-write — 2026-10-03
+
+1. Drift review: `git log f8b5b0b..HEAD` (the commit production served) held
+   documentation, one test and the staging dual-write only; no public
+   application file changed.
+2. Checks: `npm run check` (lint; worker 174, web 138, tools 150; no failure).
+   Full Playwright was not rerun: no web or UI file changed, and its known
+   baseline failures are recorded in the staging entry below.
+3. Production build: `npm run build --prefix apps/web`; all 35 built static
+   files equal the live ones byte for byte.
+4. Baseline (`D:\IT\_backups\dndr-control-plane\hakan.run\20261003T0428Z_c1-production-baseline\`): versions, Time Travel bookmarks
+   (analytics `000001bb-00000000-000050f9-8fe2a7c3edd1871c8e3ced929144306d`,
+   app `000003fc-00000000-000050f9-2809f1fb34aded8b12c8f07917dbd3ea`), secret
+   names only, configuration hashes, aggregate `visitor_events` counts, a
+   snapshot of 21 public routes and the root headers.
+5. `npm exec --offline --yes --package wrangler@4.130.0 -- wrangler deploy --env production --dry-run`
+   shows `env.DNDR_COLLECTOR (dndr-collector#ProducerApi)` and
+   `CMS_PRODUCTION_WRITES_ENABLED ("false")`, every other binding unchanged;
+   the same command without `--dry-run` (OAuth, `CLOUDFLARE_API_TOKEN` unset)
+   deployed `6bed54ba-7a65-4702-a91f-3b8315e9a08b`.
+6. Verify: the 21 routes and headers equal the snapshot; one controlled beacon
+   is stored once in `visitor_events`; DNDR answers per its registry (refused
+   as `producer_unknown` until DNDR enrols `prd_hakan_run_binding`, accepted
+   afterwards).
+
+Rollback: DNDR disables `prd_hakan_run_binding`, or
+`npm exec --offline --yes --package wrangler@4.130.0 -- wrangler rollback 91051249-02b3-47d5-ade4-d8db380c20ed --env production`.
+
 ## DNDR Analytics staging dual-write — 2026-10-01
 
 1. Checks: `npm run check` (Worker 166, web 138, tools 150, no failure).

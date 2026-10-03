@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## D-046 — Production sends the same best-effort copy to DNDR Analytics
+
+- Decision: Owner approval of 2026-10-03 (DNDR Batch C1). Production forwards exactly as staging does under D-044: after `ANALYTICS_DB` stores a native PAGE event, in `waitUntil`, keyed by `visitor_events:<id>`, over a production Service Binding `DNDR_COLLECTOR` → `dndr-collector#ProducerApi` with `props.producerId = prd_hakan_run_binding`. `DNDR_FORWARD_ENVIRONMENTS` is `['staging', 'production']`; development never forwards. Each environment's binding names only its own collector and producer.
+- Context: DNDR Analytics runs in production; the source-side half of this property's onboarding is this repository's binding and forwarding list. The DNDR-side enrolment is a separate DNDR change.
+- Alternatives considered: A new production-specific forwarder (a second protocol); a browser beacon to DNDR; enabling forwarding only after DNDR enrols the producer (it would need a second deploy here, while a refusal costs this site nothing).
+- Rationale: The staging implementation is proven (exact parity) and already isolated; promoting it changes one list and one binding. Until DNDR enrols the producer, DNDR refuses and counts each copy, and this site is unaffected.
+- Consequences: Boss Analytics still reads only `ANALYTICS_DB` (D-045). A DNDR outage, refusal, slowness or error never changes a response or a row (tested). Disabling the producer in DNDR, or a Worker rollback, stops the copy.
+- Status: Live in production since 2026-10-03T04:31Z (`6bed54ba-7a65-4702-a91f-3b8315e9a08b`); DNDR enrolment pending on the DNDR side.
+
 ## D-045 — This project's own analytics stay; analytics work does not change the public site
 
 - Decision: Owner rule of 2026-10-02 (DNDR Labs control plane, `DECISIONS.md` A54 and A55 there), permanent unless the owner reverses it for this property. Hakan.run's own `ANALYTICS_DB` and its own analytics panel stay operational indefinitely; DNDR Analytics holds an additional copy and is never the only way to see these numbers. The panel is not removed, redirected to DNDR or replaced by an embedded view, and source analytics are not deleted because DNDR has a copy. Analytics and control-plane work does not change public page content, design, navigation, copy, SEO content, routes or interactions; the DNDR transport stays at the Worker write boundary (`worker/analytics/dndr-forward.js`).
@@ -18,7 +27,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: A browser beacon to DNDR (a second client request, no shared id, window-based parity only); forwarding before the source insert (DNDR could hold visits this site does not); a signed HTTP relay (a secret to manage where an account-level binding suffices).
 - Rationale: Forwarding after the insert, keyed by the row id, makes DNDR a strict subset that can be compared exactly and retried idempotently, and a DNDR failure can never change this site's response or its data.
 - Consequences: Boss Analytics is unchanged and reads only `ANALYTICS_DB`. A forwarding failure is a log line with the event id and never an address or agent. Production forwarding needs its own decision, binding and DNDR producer.
-- Status: Live on staging since 2026-10-01 (`ae68dc2d-7380-4f5b-a037-e0ad9be53b42`), exact parity; production not enabled.
+- Status: Live on staging since 2026-10-01 (`ae68dc2d-7380-4f5b-a037-e0ad9be53b42`), exact parity; production enabled 2026-10-03 under D-046.
 
 ## D-043 — Edge hardening: TLS 1.2, no Web Analytics, a redirect-only www
 
