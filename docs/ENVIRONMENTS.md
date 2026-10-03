@@ -1,22 +1,21 @@
 # Environment and Resource Map
 
-## Current environment and resource map — 2026-09-28
+## Current environment and resource map — verified 2026-10-03
 
 Source-controlled `wrangler.jsonc` defines separate staging and production
-resources; this table is the current configuration map. The owner reports the
-production apex live on the Worker and Boss protected by Access. Read-only
-deployment status after the Notes release confirmed production version
-`df70be6e-02e6-476e-95b0-c4309b601fb5` at 100% traffic, deployment
-`fd2574d5-6d6d-4cff-b7b3-e05ba7a31e3e`. Staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`
-was deployed from Notes commit `4f74581` plus metadata fix `c88ba31` on
-2026-09-28. The production release used the existing Worker, bindings and apex;
-no resource configuration or data mutation occurred.
+resources; this table is the current configuration map. Production serves the
+apex and Boss is Access-protected. Read-only deployment status confirms
+production version `6bed54ba-7a65-4702-a91f-3b8315e9a08b` at 100% traffic,
+deployment `f47c968f-97a7-44c3-9830-19ec7b6098fa`; staging remains
+`ae68dc2d-7380-4f5b-a037-e0ad9be53b42`. This verification changed no resource.
 
 | Resource or setting | Staging | Production |
 | --- | --- | --- |
 | Public hostname / Worker | `staging.hakan.run` / `hakan-run-web-staging` | `hakan.run` / `hakan-run-web-production` |
 | `APP_DB` | `hakan-run-app-staging` | `hakan-run-app-production` |
 | `ANALYTICS_DB` | `hakan-run-analytics-staging` | `hakan-run-analytics-production` |
+| `DNDR_COLLECTOR` / entrypoint | `dndr-collector-staging#ProducerApi` | `dndr-collector#ProducerApi` |
+| Source-controlled producer props | `prd_hakan_run_staging_binding` | `prd_hakan_run_binding` |
 | Boss Access / Turnstile | Separate staging applications | Separate production applications |
 | `ANALYTICS_ENABLED` | `true` | `true` |
 | `NOTIFICATIONS_ENABLED` | `false` | `true` |
@@ -28,6 +27,13 @@ Both environments declare a restricted `EMAIL` send binding: recipient
 `NOTIFICATION_RECIPIENT=hakan@dndr.net`. `RESEND_API_KEY` is not required and
 there is no active Resend fallback. Old Hostinger and Supabase remain preserved
 rollback infrastructure; decommission is not authorized.
+
+DNDR forwarding is additive; source analytics and Boss remain independent.
+Production DNDR enrolment is still pending. Provider binding readback confirms
+service/entrypoint but does not expose producer props. Workers Builds API reads
+returned 403; authenticated dashboard readback then confirmed both source
+Workers show Git repository → Connect, with no connected Git build/deploy
+integration. Staging's existing daily analytics cron is independent of Git.
 
 All sections below record historical provisioning observations or plans.
 Their disabled flags, uncreated-resource entries and deployment versions do not

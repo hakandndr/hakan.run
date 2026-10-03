@@ -1,5 +1,40 @@
 # Operations
 
+## C1 source closeout gates — 2026-10-03
+
+- Read Git state and `git ls-remote` without fetch; inspect local commit
+  identities/trailers, tracked paths/content, hooks, workflows and live GitHub
+  webhooks/rulesets/branch runs before any push.
+- Download the deployed Worker main module using a read-only script GET and
+  compare it to `wrangler deploy --env production --dry-run --outdir <local-output>`.
+  The dry run uploads nothing. Current modules are byte-identical; see
+  `CURRENT_STATE.md` for the hash and scope of this evidence.
+- Verify source and central event/registry state with SELECT only. This
+  closeout returned `changes=0`, `rows_written=0`, `changed_db=false`. Do not
+  POST a new analytics event, replay or backfill the pre-seed event.
+- Run `npm run check`, the forwarder/failure-isolation tests included in it,
+  tracked-tree attribution/filename/hidden-file, credential and control-byte
+  scans, and `git diff --check`. No browser suite is required for these
+  documentation-only changes. Preserve both intentional U+001F separators in
+  `tools/legacy-analytics/map.js`.
+- Workers Builds API reads returned 403. Authenticated dashboard readback
+  resolved the gap: both source Workers show Git repository → Connect. Neither
+  is Git-connected; staging's analytics cron does not build or deploy from Git.
+- After that gate, recheck clean tree, live origin and ancestry, perform only
+  a normal branch fast-forward, verify SHA and 0/0 divergence, then read both
+  environments' deployments/settings again. Never substitute a redeploy for
+  source identity verification. The recovery target is this checkpoint's branch
+  tip; resolve exact local/origin SHAs from Git rather than embedding a commit's
+  own hash inside itself.
+
+No new production deploy is needed. Rollback remains the preserved production
+baseline and version `91051249-02b3-47d5-ade4-d8db380c20ed`, or a separately
+authorized central producer disable. Neither requires changing source analytics.
+The source Boss summary handler also returned 200 using seven SELECT-only reads
+against production `ANALYTICS_DB`, without a collector binding. Authenticated
+frontend verification remains an owner acceptance gate; this readback and the
+Access redirects do not substitute for a live authenticated panel session.
+
 ## DNDR Analytics production dual-write — 2026-10-03
 
 1. Drift review: `git log f8b5b0b..HEAD` (the commit production served) held

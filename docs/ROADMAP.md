@@ -63,7 +63,9 @@ than promised articles.
 
 - Objective: DNDR Analytics holds an exact secondary copy of this site's PAGE events and its history, without changing this site's authority.
 - Status: Staging dual-write live since 2026-10-01 with exact parity (D-044); production forwarding live since 2026-10-03 (D-046, `6bed54ba-…`); DNDR refuses the copies until its own production enrolment of `prd_hakan_run_binding`.
-- Remaining, each separately authorized: the DNDR-side enrolment (DNDR repository); a parity window after it; a production history import into DNDR (not planned).
+- Source status: **SOURCE SIDE COMPLETE — CENTRAL ACCEPTANCE PENDING**. Hygiene and Git-only push safety are verified; neither source Worker has a Git-connected Builds integration. No further source Worker deploy is needed.
+- Remaining, each separately authorized: DNDR production seed and registry readback; one new controlled post-seed visit; source/central acceptance and exact parity; native_start from that first accepted event; source Boss and DNDR Boss Projects → Hakan.run verification; owner acceptance. Exact sequence is in `HANDOFF.md`.
+- The rejected pre-seed event is source-only and must never be replayed, backfilled or used for native_start. Production history import is not planned or authorized.
 
 ## Historical roadmap snapshots (2026-09-15 and earlier)
 

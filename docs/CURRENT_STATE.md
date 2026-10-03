@@ -1,5 +1,46 @@
 # Current State
 
+## C1 source closeout verification — 2026-10-03
+
+**SOURCE SIDE COMPLETE — CENTRAL ACCEPTANCE PENDING.** Source recovery uses
+only a normal Git fast-forward; authenticated dashboard readback confirmed no
+Git-connected Builds integration on either source Worker. Completion is verified
+by equal local/live-origin branch tips, 0/0 divergence, clean tree and unchanged
+provider deployment/settings readback. No provider mutation is authorized.
+
+- Production remains `6bed54ba-7a65-4702-a91f-3b8315e9a08b` at 100%, deployment
+  `f47c968f-97a7-44c3-9830-19ec7b6098fa` from Wrangler. Staging remains
+  `ae68dc2d-7380-4f5b-a037-e0ad9be53b42`.
+- The downloaded production main module and local production dry-run are
+  byte-identical: 904,559 bytes, SHA-256
+  `296a99aa212a1c4a762258e86749795bdf9ad8858d6a14c5d3712b5ddb2ef9b6`.
+  Configuration and forwarder/ingest hashes match the deployment baseline.
+  This proves executable-module identity; it does not attest every provider
+  setting or static asset. Provider readback exposes the collector service and
+  entrypoint, but not its producer props; `prd_hakan_run_binding` is verified in
+  source configuration and the retained deployment evidence.
+- Source `ANALYTICS_DB` is authoritative. Its successful insert precedes
+  `waitUntil` forwarding; collector failure/rejection cannot change the public
+  response or source row. Boss analytics reads the source database only.
+- Controlled request `2026-10-03T04:32:06.330Z`, source id
+  `73299805-8672-4d65-a7c2-aef437070ad4`: exactly one source row, stored at
+  `04:32:06.690Z`; historical source count 3,919 → 3,920. Live readback now
+  shows 3,928 rows, including subsequent organic traffic, without generating a
+  new event for this verification.
+- DNDR production still has no Hakan.run producer/site/coverage row and no
+  central copy of this event. The retained controlled-visit evidence records
+  `producer_unknown` and one rejection; current rejection totals also include
+  later traffic and cannot be attributed solely to that visit.
+- The pre-seed event remains source-only. No replay/backfill; it must not
+  establish central native_start. A new accepted post-seed event must do that.
+- `/boss` and its analytics API still redirect unauthenticated requests to
+  Access (302). The same Boss summary handler returned 200 against production
+  `ANALYTICS_DB` through a SELECT-only local adapter: seven reads, zero writes,
+  no collector binding supplied. Source query/failure-isolation tests pass.
+  This verifies the live data/query path, not an authenticated frontend session.
+
+The checkpoint below is historical.
+
 ## DNDR Analytics production dual-write — 2026-10-03
 
 Production `6bed54ba-7a65-4702-a91f-3b8315e9a08b` (commit `b001c18`, previous

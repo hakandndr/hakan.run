@@ -1,5 +1,55 @@
 # hakan.run Modernization Handoff
 
+## C1 source verification and remote recovery gate — 2026-10-03
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; verification started at `835819f8a5b0bda8a72b81874a992f77574a8304`; resolve the resulting hygiene checkpoint with `git rev-parse HEAD` |
+| Current phase | **SOURCE SIDE COMPLETE — CENTRAL ACCEPTANCE PENDING**; Git-only fast-forward recovery safety verified |
+| Completed | Independent Git/provider/event verification; deployed Worker main module byte-identical to local production dry-run; narrow historical path neutralization; source-first, failure-isolated forwarding retained |
+| Exact next action | DNDR-side seed/readback and one new post-seed controlled event, following the sequence below under separate authorization. No source deploy |
+| Prohibited actions | No deploy, provider/database/seed/secret/binding/route/DNS mutation, replay, backfill, history rewrite or retention cleanup |
+| Push state | Recovery sequence: integration `b001c1848e126eeb3b5308ca6a9d81895db9f45b`, documentation `835819f8a5b0bda8a72b81874a992f77574a8304`, then this hygiene checkpoint. Final local/origin checkpoint is the branch tip: resolve with `git rev-parse HEAD` and `git ls-remote origin refs/heads/develop/hakan-run-v2`; completion requires equality, 0/0 divergence and clean `git status --short`. Starting origin was `d0e589802b7f81541467abea904fe13af44850ac` |
+| Deploy state | Read back production `6bed54ba-7a65-4702-a91f-3b8315e9a08b` at 100%; staging `ae68dc2d-7380-4f5b-a037-e0ad9be53b42`; no new deployment in this closeout |
+| Infrastructure state | `DNDR_COLLECTOR -> dndr-collector#ProducerApi`; source-controlled producer `prd_hakan_run_binding`; source `ANALYTICS_DB` and Boss remain authoritative and independent. Existing rollback infrastructure preserved |
+
+Push safety: no active local Git hook, GitHub webhook, ruleset or Actions run on
+this branch was found. The only workflow tests `main`/`master`, without deploy
+steps; no Cloudflare Pages project exists. Workers Builds API reads returned
+403, then authenticated dashboard readback independently showed **Git repository
+→ Connect** on both `hakan-run-web-production` and `hakan-run-web-staging`:
+neither is Git-connected. Staging exists despite an initially supplied screenshot
+showing a different Worker. Its existing daily analytics cron is not a Git or
+deployment trigger. Only a normal fast-forward on this branch is authorized.
+
+The controlled request began at `2026-10-03T04:32:06.330Z`; source row
+`73299805-8672-4d65-a7c2-aef437070ad4` exists once (stored at
+`2026-10-03T04:32:06.690Z`). DNDR rejected the forwarded copy as
+`producer_unknown`. Live readback confirms no central event, producer, site or
+coverage row. This pre-seed event stays source-only: **never replay or backfill
+it, and never use it to establish central native_start**.
+
+Exact DNDR-side continuation, separately authorized:
+
+1. Apply `seeds/analytics-v2/planned/production-hakan-run.sql` in DNDR production.
+2. Verify registry readback.
+3. Generate one **new** controlled Hakan.run visit after the seed.
+4. Verify the source accepts and stores it.
+5. Verify DNDR accepts the same producer event centrally.
+6. Establish native_start from that first accepted post-seed event.
+7. Verify exact parity.
+8. Verify Hakan.run Boss analytics remains operational.
+9. Verify DNDR Boss Projects → Hakan.run.
+10. Obtain owner acceptance. No further Hakan.run Worker deploy is needed.
+
+Rollback baseline: `D:\IT\_backups\dndr-control-plane\hakan.run\20261003T0428Z_c1-production-baseline\`;
+previous Worker `91051249-02b3-47d5-ade4-d8db380c20ed`. Rollback or disabling the
+central producer requires separate authorization and leaves source analytics
+intact. See `docs/OPERATIONS.md` for evidence limits and procedure.
+
+The checkpoint below is historical.
+
 ## DNDR Analytics production dual-write checkpoint — 2026-10-03
 
 | Field | Current value |
