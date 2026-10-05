@@ -4,7 +4,7 @@ deck: TürkiyeCennet needed visitor questions, answers and useful notes on its p
 date: 2026-09-28
 topic: Architecture
 project: TürkiyeCennet
-featured: 2
+featured: 3
 ---
 
 TürkiyeCennet started from a useful constraint. Places, routes and guides are Markdown collections that Astro builds into static HTML. The repository decides what a place is: its canonical identity, coordinates, sources, imagery and the Turkish and English prose. Once a build is deployed, nothing a visitor does can change that document, and no database read sits between a request and the page.

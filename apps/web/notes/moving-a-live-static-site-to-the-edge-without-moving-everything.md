@@ -4,7 +4,7 @@ deck: Moving oc-ca.com's public build to Cloudflare Static Assets exposed behavi
 date: 2026-09-28
 topic: Delivery
 project: OC-CA
-featured: 1
+featured: 2
 ---
 
 oc-ca.com is an Astro site. For most of its life, GitHub Actions built it and uploaded the output to Hostinger over FTP, with Cloudflare proxying in front of Hostinger's own CDN. It was easy to call that a static site. The pages were static, but the operating model was not: a daily events feed, visitor submissions, moderated Community records, a protected Boss panel, notification email and an inbound mailbox. Moving the HTML to the edge would not move any of those responsibilities, and several of them had nothing to do with where the HTML lived.

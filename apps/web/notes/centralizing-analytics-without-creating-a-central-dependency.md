@@ -4,7 +4,7 @@ deck: More than ten independent properties feed one private analytics plane whil
 date: 2026-10-04
 topic: Architecture
 project: DNDR Labs · Cross-project
-featured: 3
+featured: 1
 ---
 
 The first controlled production page view through Hakan.run's DNDR integration succeeded locally and failed centrally. Hakan.run stored it in `ANALYTICS_DB` and answered normally. DNDR returned `producer_unknown`: forwarding was deployed, but the producer was not enrolled. The website kept serving, the source record existed once, and the collector created no PAGE event for it.
