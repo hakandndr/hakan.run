@@ -10,11 +10,11 @@ import { readNotes } from './notes.js';
 const app = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const output = path.resolve(app, '../../dist/apps/web');
 
-test('source Markdown and generated catalogue contain the same ten notes', () => {
+test('source Markdown and generated catalogue contain the same eleven notes', () => {
   const source = readNotes();
   assert.deepEqual(NOTES, source);
   assert.deepEqual(NOTE_SLUGS, source.map((note) => note.slug));
-  assert.equal(source.length, 10);
+  assert.equal(source.length, 11);
   assert.equal(new Set(NOTE_SLUGS).size, NOTE_SLUGS.length);
   for (const note of source) {
     assert.match(note.html, /^<(p|h2)>/);

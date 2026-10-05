@@ -1,5 +1,6 @@
 // Generated from apps/web/notes/*.md by tools/notes.js.
 export const NOTE_SLUGS = [
+  "centralizing-analytics-without-creating-a-central-dependency",
   "a-write-path-for-a-mostly-static-site",
   "moving-a-live-static-site-to-the-edge-without-moving-everything",
   "the-engineering-rules-i-stopped-relearning",
