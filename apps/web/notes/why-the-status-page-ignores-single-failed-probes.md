@@ -4,7 +4,6 @@ deck: One rejected handshake out of 288 daily checks is a property of the monito
 date: 2026-07-24
 topic: Observability
 project: DNDR Labs
-featured: 3
 ---
 
 A monitor that checks a site every five minutes produces 288 probes per site per day. At that volume, an occasional failure says more about the path the probe travelled than about the site. A TLS handshake can be dropped between two networks, an origin can throttle an automated client, a check can time out while the same site answers real visitors normally. Recording each of those as downtime would report the monitor's network path as the site's state.
