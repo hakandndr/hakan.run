@@ -284,7 +284,7 @@ order. OC-CA uses the real `oc-ca-full.png` project brand asset and a compact
 engineering summary. The four existing cards and all other Portfolio fields
 were preserved; the other eleven sections remain at revision 1.
 
-About no longer renders the AI-generated workstation image. The real portrait
+About no longer renders the synthetic workstation illustration. The real portrait
 remains; the lower stories use two desktop text columns with narrower paragraph
 measures and one mobile column. The desk asset and old APP_DB image field are
 retained as historical data. The requested Beyond the IDE copy is not live:

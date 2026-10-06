@@ -8,7 +8,7 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 2. Design and implement first-party Engineering Notes information architecture and runtime at `/notes` — committed as `4f74581` with metadata fix `c88ba31`, pushed and accepted on staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`.
 3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production; expanded to ten source-verified articles with deeper engineering detail, live on 2026-09-29; the enter-only fade was replaced the same day by an owner-approved view-transition route motion with a persistent header.
 4. Add OC-CA to Portfolio's "What I've Built" as an engineering project — published in APP_DB revision 2 with the approved five-project order.
-5. Remove the AI-generated workstation image from rendered About and rebalance the lower layout — deployed; real portrait retained.
+5. Remove the synthetic workstation illustration from rendered About and rebalance the lower layout — deployed; real portrait retained.
 6. Perform focused visual and content QA — local desktop/mobile and production smoke passed for the deployed changes.
 7. Hold the final release checkpoint and owner review — the owner deferred the separate About APP_DB Beyond the IDE copy update to a later task.
 8. Deploy only under separate explicit authorization — current product commit deployed; any further release remains independently gated.
@@ -31,7 +31,7 @@ may appear as context metadata, not primary categories.
 
 Writing should show Hakan's engineering reasoning: concrete failures, wrong
 first models, production constraints, tradeoffs, validation and operational
-lessons. Use Hakan's voice, avoid marketing or AI-generated prose, generic best
+lessons. Use Hakan's voice, avoid marketing or formulaic prose, generic best
 practices, listicle templates and incidental runbook counts. The initial design
 has no newsletter, likes, comments or social-blog clutter; an article may sign
 off simply with “— Hakan”. `notes.dndr.net` may inform editorial work but must
