@@ -1,6 +1,12 @@
 # Current State
 
-## Outbound release candidate — 2026-10-06
+## Verified browser outbound correction — 2026-10-06
+
+Verified production: Worker b104882d-9cf9-4058-b2a8-f9ffebfb5ee0 at 100%; immediate rollback 1732fbe7-1127-4e5d-8c39-89fd64699618 has the earlier browser-script defect; pre-mission public/PAGE rollback e465800a-62a3-4e45-a7dc-fbca5b20e750. Source analytics 0003 adds only outbound_events. The unrelated stale notes expectation was corrected to the approved b17ddbd front matter, with explicit featured ranks; no article metadata changed. /project/* is explicitly Worker-first so project documents receive the component. Full lint/178 Worker/138 web/150 tools tests, production build/artifact and Wrangler 4.130.0 dry-run passed. Real GitHub navigation generated exactly one source and one central event; PAGE remained 4046 in both. Same-ID replay stayed one; all 4044 opening source rows matched by actual primary key. Boss still returns Access 302; authenticated panel UI was not repeated. Migration recovery bookmark 0000021c-00000000-000050fc-d0155f3067dbbd3779bc686a2e93468a. Keep additive records during a code rollback.
+
+The browser component is now literal standalone source. Serializing a function after bundling introduced an unavailable __name helper: endpoint-only acceptance had missed actual browser execution. The corrected deployed script is byte-identical to the shared component and was executed twice in a browser fixture with exactly one listener set, one normalized external request, internal-alias exclusion and uninterrupted navigation during network failure. Trusted binding identity, PAGE writers, source panels and historical records are preserved. Earlier checkpoints below are historical; no retention or business-data change was planned. Current build-trigger settings remain unknown; capture fresh rollback and compare the active deployment after any push.
+
+## Historical checkpoint — 2026-10-06
 
 Verified working copy: source-owned immutable outbound table and failure-isolated Service Binding copy are built and gated. The stale featured-note test now matches the approved b17ddbd source front matter; article metadata/content were not changed. Public project documents explicitly execute the Worker so external links receive the delegated component. Canonical gate: lint, 178 Worker tests, 138 web tests and 150 tools tests passed; production build/artifact and pinned 4.130.0 dry-run passed. Production remains e465800a-62a3-4e45-a7dc-fbca5b20e750 until the authorized additive 0003 migration and deploy. This is also the rollback target. No APP_DB, auth, contact, notifications or historical analytics change.
 
