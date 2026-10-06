@@ -1,5 +1,11 @@
 # Current State
 
+## Outbound release candidate — 2026-10-06
+
+Verified working copy: source-owned immutable outbound table and failure-isolated Service Binding copy are built and gated. The stale featured-note test now matches the approved b17ddbd source front matter; article metadata/content were not changed. Public project documents explicitly execute the Worker so external links receive the delegated component. Canonical gate: lint, 178 Worker tests, 138 web tests and 150 tools tests passed; production build/artifact and pinned 4.130.0 dry-run passed. Production remains e465800a-62a3-4e45-a7dc-fbca5b20e750 until the authorized additive 0003 migration and deploy. This is also the rollback target. No APP_DB, auth, contact, notifications or historical analytics change.
+
+Historical: earlier snapshots below. Planned: the scoped production migration/deployment and controlled readback. Unknown: final production acceptance until release.
+
 ## C1 source closeout verification — 2026-10-03
 
 **SOURCE SIDE COMPLETE — CENTRAL ACCEPTANCE PENDING.** Source recovery uses

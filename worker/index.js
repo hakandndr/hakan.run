@@ -11,7 +11,10 @@ import { PREVIEW_PATH, previewShell } from './boss/content-preview.js';
 import { json, methodNotAllowed, notFound, problem } from './lib/response.js';
 import { verifyAccess } from './lib/access.js';
 import { handleBossApi } from './boss/index.js';
-import { handlePageEvent } from './analytics/ingest.js';
+import { handlePageEvent, classify } from './analytics/ingest.js';
+import { handleOutbound, injectOutbound, outboundScriptResponse } from './outbound/outbound-source.js';
+import { isPublicPage, normalizePath } from './lib/routes.js';
+const OUTBOUND_ALIASES = ['hakan.run', 'www.hakan.run'];
 import { handleSubmission } from './public/submissions.js';
 import { handlePublicContent } from './public/content.js';
 import { handlePublicConfig } from './public/config.js';
@@ -61,6 +64,12 @@ const route = async (request, env, context) => {
     // The private shell itself carries no privileged data; every figure it
     // shows arrives through a separately verified API call.
     return env.ASSETS ? env.ASSETS.fetch(request) : notFound();
+  }
+
+  if (env.ENVIRONMENT === 'production' && path === '/api/analytics/outbound.js') return outboundScriptResponse();
+  if (env.ENVIRONMENT === 'production' && path === '/api/analytics/outbound') {
+    if (env.ANALYTICS_ENABLED !== 'true') return new Response(null, { status: 202 });
+    return handleOutbound(request, env, context, { aliases: OUTBOUND_ALIASES, db: env.ANALYTICS_DB, local: true, acceptsPath: value => isPublicPage(normalizePath(value)), profile: request => classify(request.headers.get('user-agent'), request.cf) });
   }
 
   if (path === '/api/analytics/page') {
@@ -115,7 +124,9 @@ const route = async (request, env, context) => {
 
 export default {
   async fetch(request, env, context) {
-    return withSecurityHeaders(request, await route(request, env, context));
+    const response = await route(request, env, context);
+    const instrumented = env.ENVIRONMENT === 'production' && request.method === 'GET' && isPublicPage(normalizePath(new URL(request.url).pathname)) ? injectOutbound(response, OUTBOUND_ALIASES, '/api/analytics/outbound', '/api/analytics/outbound.js') : response;
+    return withSecurityHeaders(request, instrumented);
   },
 
   // Scheduled aggregation. It aggregates the last complete local day and marks

@@ -24,7 +24,7 @@ const parseJsonc = (raw) =>
 const config = parseJsonc(readFileSync(fileURLToPath(CONFIG_URL), 'utf8'));
 const assets = config.assets ?? {};
 
-const EXPECTED_WORKER_FIRST = ['/', '/contact', '/card', '/api/*', '/boss', '/boss/*', '/notes', '/notes/*'];
+const EXPECTED_WORKER_FIRST = ['/', '/contact', '/card', '/api/*', '/boss', '/boss/*', '/notes', '/notes/*', '/project/*'];
 
 test('the SPA fallback is still what makes Worker-first routing necessary', () => {
   assert.equal(assets.not_found_handling, 'single-page-application');
@@ -37,7 +37,7 @@ test('Worker-first routing is declared', () => {
   );
 });
 
-test('Worker-first routing covers exactly the protected, API, Notes and public document paths', () => {
+test('Worker-first routing covers exactly the protected, API, Notes, project and public document paths', () => {
   assert.deepEqual([...assets.run_worker_first].sort(), [...EXPECTED_WORKER_FIRST].sort());
 });
 

@@ -1,5 +1,9 @@
 # hakan.run Modernization Handoff
 
+## Outbound release candidate — 2026-10-06
+
+Working copy D:/IT/hakan/hakan-run-next, branch develop/hakan-run-v2, starting HEAD b17ddbd8ce625473513ab8bc80f771f49fa06a89. Built/gated: source-owned outbound and project-document routing; approved featured-note test repaired without changing editorial state. Production remains e465800a-62a3-4e45-a7dc-fbca5b20e750. Next: authorized analytics-only 0003 migration, trusted permission, production deploy and one controlled source/central proof. APP_DB, secrets, auth, notifications and history remain outside this change. Current task authorizes only this scoped release; earlier snapshots retain their dates.
+
 ## C1 source verification and remote recovery gate — 2026-10-03
 
 | Field | Current value |

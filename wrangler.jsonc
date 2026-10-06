@@ -15,8 +15,9 @@
     // first for them; every other path keeps the default asset-first
     // behaviour, so static delivery is unchanged. Public documents at /,
     // /contact, /card and /notes* are rendered by the Worker from APP_DB so the
-    // first paint matches the hydrated application.
-    "run_worker_first": ["/", "/contact", "/card", "/api/*", "/boss", "/boss/*", "/notes", "/notes/*"]
+    // first paint matches the hydrated application. Project documents also run
+    // here so their external links receive the same source-owned outbound hook.
+    "run_worker_first": ["/", "/contact", "/card", "/api/*", "/boss", "/boss/*", "/notes", "/notes/*", "/project/*"]
   },
   "observability": { "enabled": true },
 

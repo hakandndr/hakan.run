@@ -39,11 +39,12 @@ test('notes are ordered by their single date, newest first', () => {
   for (const note of NOTES) assert.deepEqual(Object.keys(note).filter((key) => /date|updated|published|created/i.test(key)), ['date']);
 });
 
-test('the homepage selection is three source-controlled notes in a fixed order', () => {
+test('the homepage selection preserves the approved source-controlled featured order', () => {
+  assert.deepEqual(FEATURED_NOTES.map((note) => note.featured), [1, 2, 3]);
   assert.deepEqual(FEATURED_NOTES.map((note) => note.slug), [
+    'centralizing-analytics-without-creating-a-central-dependency',
     'moving-a-live-static-site-to-the-edge-without-moving-everything',
     'a-write-path-for-a-mostly-static-site',
-    'why-the-status-page-ignores-single-failed-probes',
   ]);
 });
 

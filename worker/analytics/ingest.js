@@ -12,7 +12,7 @@ const AUTOMATED_AGENT = /bot|crawler|spider|headless|curl|wget|facebookexternalh
 
 const bounded = (value, max) => (value ? String(value).slice(0, max) : null);
 
-const classify = (userAgent, cf) => {
+export const classify = (userAgent, cf) => {
   const agent = String(userAgent ?? '');
   const browser = /firefox\//i.test(agent)
     ? 'Firefox'
