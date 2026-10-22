@@ -3,11 +3,14 @@
 ## Purpose
 
 This is the technical specification of the public visual system as implemented
-on 2026-10-21 (production version `11f7232a-e6b7-4ac7-b50f-149b0515ea23`). It
+on 2026-10-22 (production version `d6f014cd-b6d2-4fab-993e-153788320800`). It
 started from the legacy baseline `e3467d221470f5776bf435a5c770a17d0c45f7fb` and
 now includes every owner-approved change since: Engineering Notes, the
 canonical `<h/>` mark, BootIntro, server-rendered first paint, CSS entrances,
-view-transition route motion, the `/card` surface and the native text cursor.
+view-transition route motion, the `/card` surface, the native text cursor, the
+server-rendered 404 document (D-047) and reduced-motion handling (D-049). The
+snapshots below are from 2026-10-21; nothing visible under default motion has
+changed since.
 It records existing behavior and does not approve a redesign. Earlier phase
 notes are kept at the end under *Historical notes*.
 
@@ -26,8 +29,7 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`,
 | `/card` | Server-rendered, hydrated | `public/components/PublicCard.jsx` | Owner name | Sitemap |
 | `/notes` | Server-rendered, hydrated; static HTML also generated | `src/notes/NotesPages.jsx` | `Engineering Notes` | Sitemap |
 | `/notes/<slug>` (11) | Server-rendered, hydrated; static HTML also generated | `src/notes/NotesPages.jsx` | Article title | Sitemap |
-| Unknown `/notes/*` | Worker 404 document | `worker/index.js` | `404 — Note not found` | `noindex`, HTTP 404 |
-| `/project/*`, `/admin` and other page-like paths | Server-rendered NotFound, hydrated (staging; production after release) | `pages/NotFound.jsx` | `404` | `noindex`, no canonical; HTTP 404 |
+| Unknown `/notes/*`, `/project/*`, `/admin` and other page-like paths | Server-rendered NotFound, hydrated | `pages/NotFound.jsx` | `404` | `noindex` (staging `noindex, nofollow`), no canonical; HTTP 404 |
 
 ## Home composition
 
@@ -172,7 +174,7 @@ The exact Tailwind defaults are `sm 640px`, `md 768px`, `lg 1024px`, `xl 1280px`
 ## Motion
 
 - CSS entrances (`index.css`) run from first paint: Hero copy 0.75 s, Hero photo 0.85 s after 0.18 s, Contact page and columns, Card. Durations and curves match the earlier Framer versions.
-- Framer Motion still drives the mobile menu, About groups, Stats value reveal, `SectionAnimator` (enters once from 50 px below at 10% visibility over 0.8 s `easeOut`), and the Konami overlay. NotFound enters with the CSS `enter-not-found` (20 px, 500 ms).
+- Framer Motion still drives the mobile menu, About groups, Stats value reveal, `SectionAnimator` (enters once from 50 px below at 10% visibility over 0.8 s `easeOut`), and the Konami overlay. NotFound enters with the CSS `enter-not-found` (20 px, 500 ms). With `prefers-reduced-motion: reduce`, Framer animations move nothing and only fade (`MotionPreference`, D-049), and CSS entrances and view transitions are off.
 - Expertise uses 0.3-second height/opacity and plus rotation. Portfolio hover uses 0.3-second card movement and 0.5-second image scale.
 - In-app moves into, within and out of Notes are committed inside `document.startViewTransition`: a 300 ms cross-fade with `cubic-bezier(0.4, 0, 0.2, 1)` under a live header. Hash navigation, document loads, reloads and reduced-motion navigation do not use it.
 - Under `prefers-reduced-motion: reduce`, CSS durations drop to 0.001 ms, entrances and view-transition animation are disabled, and smooth scrolling is off. Complete Framer reduction is not proven.
@@ -205,7 +207,6 @@ The captures therefore show fixture copy (for example "Published Top Label"), no
 ## Known visual inconsistencies and risks
 
 - The favicon and OG glyph differ from the canonical Header/Footer `<h/>` treatment, and no single brand asset exists.
-- Production still shows the designed 404 with HTTP 200 for unknown paths until the D-047 release.
 - The production build has a JavaScript chunk above Vite's 500 kB warning threshold; this is a performance observation, not a visual change.
 
 ## Visual parity acceptance contract

@@ -25,8 +25,9 @@ no deployment, Cloudflare, database or secret step.
 ## Known gaps
 
 - Node selection differs: `.nvmrc` pins `20.19.1`, the workflow uses `lts/*`.
-- If the workflow ever ran against this branch, the full browser suite would
-  report the older failures recorded in PROCESS (2026-10-21 maintenance entry).
+- The full browser suite passes when run by hand on this branch (2026-10-22:
+  261 passed, 5 intentional skips); the workflow itself still runs only for
+  `main` and `master`.
 - Adding CI for `develop/hakan-run-v2` is a separate decision; it should run
   `npm run check` and the browser specs that are known to pass.
 

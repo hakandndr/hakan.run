@@ -6,11 +6,12 @@ This roadmap describes approved sequencing, not completed implementation. Each p
 
 Nothing below is authorized by being listed. Each item needs its own approval.
 
-1. Outbound measurement and `/project/*` PAGE classification: one owner decision (recommendation in [DECISIONS.md](./DECISIONS.md#open--outbound-interaction-measurement)).
-2. Production aggregation schedule: optional; exact configuration in DECISIONS.
-3. HSTS promotion review (due since 2026-10-14) and the other security-hardening items below.
-4. About "Beyond the IDE" copy update in `APP_DB`, deferred by the owner on 2026-09-28.
-5. Optional features: the D-023 social card generator; `og:image` and Twitter tags for Notes.
+1. Outbound measurement: owner decision (recommendation in [DECISIONS.md](./DECISIONS.md#open--outbound-interaction-measurement)).
+2. Historical `/project/*` PAGE rows (9 native in production): a separate, evidence-based correction decision; D-050 already stops new ones.
+3. Production aggregation schedule: optional; exact configuration in DECISIONS.
+4. HSTS promotion review (due since 2026-10-14) and the other security-hardening items below.
+5. About "Beyond the IDE" copy update in `APP_DB`, deferred by the owner on 2026-09-28.
+6. Optional features: the D-023 social card generator; `og:image` and Twitter tags for Notes.
 
 The 2026-10-22 maintenance cycle is closed: real 404s (D-047), route heads (D-048), reduced motion (D-049), the Notes 404, scroll departure capture and the legacy cleanup are live in production.
 

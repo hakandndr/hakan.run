@@ -729,7 +729,11 @@ no second copy of the SQL for tests to pass against.
 
 PAGE-only is enforced at the write boundary in `worker/analytics/ingest.js`:
 anything that is not a canonical public page is refused, so `visitor_events`
-never holds asset, API or system paths. Read queries therefore carry no path
+never holds asset, API or system paths. The rule has one owner,
+`apps/web/src/router/public-pages.js` (D-050): the four canonical pages and the
+articles of the generated Notes manifest. The browser tracker applies it before
+sending and the Worker applies the same function before the insert and the
+DNDR `waitUntil`; the legacy importer keeps its own fixed version 1 contract. Read queries therefore carry no path
 allow-list, which keeps their index selection simple.
 
 `worker/analytics/coverage.js` plans sources and merges results;

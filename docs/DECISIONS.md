@@ -11,8 +11,7 @@ Not a decision. This records implemented behavior that no decision covers.
 - Policy tension: AGENTS.md bounds first-party analytics to PAGE events unless a broader scope is approved. D-045 keeps analytics work from changing public routes or interactions and keeps DNDR transport at the Worker write boundary; the outbound path adds a client script and a Worker-first route.
 - Owner decision needed: (a) ratify outbound measurement as a numbered decision with its fields, retention and Boss visibility; (b) ratify it with narrower data, for example without IP; or (c) withdraw it with a reviewed code change and leave the additive table and its rows in place. Until then, treat the feature as live but ungoverned, and do not extend it.
 
-- Additional finding (2026-10-22): `/project/<slug>` is still classified as PAGE by the client and the Worker (`worker/lib/routes.js`), though every such path is a 404 (D-047). Any such visit is stored and forwarded to DNDR, and the outbound endpoint accepts it as a source path. The legacy-import contract (`tools/legacy-analytics/classification.js`, version 1) reuses the same prefix for historical snapshots.
-- Recommendation (awaiting owner approval): ratify outbound measurement under option (b): keep `OUTBOUND_CLICK` as a distinct family in `outbound_events`, drop the raw IP from new rows, set a retention period and decide Boss visibility. In the same change, remove `/project/` from the current PAGE classification and from `run_worker_first`, and give the legacy importer a version 2 contract that keeps the prefix only for historical snapshots. Existing rows stay as they are.
+- Recommendation (awaiting owner approval): ratify outbound measurement under option (b): keep `OUTBOUND_CLICK` as a distinct family in `outbound_events`, drop the raw IP from new rows, set a retention period and decide Boss visibility. Existing rows stay as they are. The `/project/*` classification noted here earlier is resolved by D-050.
 
 ## Open — Production aggregation schedule
 
@@ -22,6 +21,15 @@ Not a decision. Production has no scheduled trigger; staging runs `30 8 * * *`.
 - Effect of adding it: one D1 write batch per day to production `ANALYTICS_DB`, idempotent per day, beginning the day after activation. Earlier days remain raw unless backfilled separately.
 - Exact configuration, if approved: `"triggers": { "crons": ["30 8 * * *"] }` in `env.production` of `wrangler.jsonc` (08:30 UTC, after Pacific midnight in both PST and PDT), deployed with the Worker.
 - Recommendation (awaiting owner approval): add it when raw-range query cost matters; it is not required for correctness.
+
+## D-050 — PAGE analytics accepts only the site's public pages, from one rule
+
+- Decision: `apps/web/src/router/public-pages.js` defines PAGE eligibility: `/`, `/card`, `/contact`, `/notes` and the articles in the generated Notes manifest. The browser tracker (`content-source/analytics.js`) and the Worker's write boundary (`worker/lib/routes.js`, used by `worker/analytics/ingest.js`) both call it. `/project/*` is not eligible.
+- Context: Project-detail pages were removed from source on 2026-09-10, and since D-047 every `/project/*` path answers 404. Both classifiers still accepted `/project/<slug>`, each from its own list, so such a visit, or a forged request, was stored in `ANALYTICS_DB` and forwarded to DNDR.
+- Alternatives considered: Keep two lists and test that they agree (they would still need hand edits); derive eligibility from the React route table at runtime (the Worker does not load it for API requests); version 2 of the legacy import contract (the legacy log predates the removal, so its own historical contract is the correct one for it).
+- Rationale: One function cannot drift between the browser and the Worker, and the Worker check alone stops stale or forged clients before storage or forwarding.
+- Consequences: The legacy importer's version 1 contract (canonical pages plus the `/project/` prefix) is now a fixed historical constant in `tools/legacy-analytics/classification.js`, so legacy records keep their meaning. Existing rows are untouched: production holds 69 legacy and 9 native `/project/*` rows (CURRENT_STATE, debt 2). `run_worker_first` keeps `/project/*`: with `not_found_handling: "none"` those paths reach the Worker either way, so removing it changes nothing. The outbound endpoint's source-path check uses the same rule; the outbound script is never injected into 404 documents, so genuine clicks are unaffected. `worker/tests/page-eligibility.test.js` and `tests/page-analytics.spec.ts` pin the behavior; their project cases fail against the previous classifiers.
+- Status: Live on staging (`bbfef991-a470-45c0-bdbe-3cccb689632d`) and production (`d6f014cd-b6d2-4fab-993e-153788320800`) since 2026-10-22.
 
 ## D-049 — framer-motion follows the reduced-motion preference through one MotionConfig
 

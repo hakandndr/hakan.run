@@ -41,7 +41,8 @@ What is deployed now, and what is unknown, is in
 The pre-modernization site used React with Supabase content and auth, a
 `/control-room` admin, PHP visitor logging, Formspree and Apache hosting. Those
 records are in [docs/archive/legacy-2026-07](./docs/archive/legacy-2026-07/README.md).
-`run/` and `supabase/` remain in the tree as unremoved legacy files.
+The PHP runtime (`run/`) and the Supabase client and seed were removed on
+2026-10-22; `supabase/migrations/` stays as the retired database's schema record.
 
 ## Repository layout
 
@@ -102,7 +103,8 @@ npx playwright test tests/notes.spec.ts tests/visual
 
 `npm run check` runs lint and the Worker, web and tools unit tests. Browser
 specs build the app and run against `vite preview` and a local Worker document
-server. Some older browser specs still fail; the current list is in PROCESS.md.
+server. The full suite passed on 2026-10-22 (261 passed, 5 intentional skips);
+[docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md#tests) keeps the current baseline.
 See [Operations](./docs/OPERATIONS.md) for the release procedure.
 
 ## Build and deployment boundary

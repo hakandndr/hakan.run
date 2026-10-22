@@ -4,11 +4,13 @@
 
 Source-controlled `wrangler.jsonc` defines separate staging and production
 resources; this table is the current configuration map. Production serves the
-apex and Boss is Access-protected. Cloudflare API readback on 2026-10-22 (UTC)
-shows production version `11f7232a-e6b7-4ac7-b50f-149b0515ea23` at 100%
-(deployment `55e644f9-41b9-4ee5-9705-635b59868b3c`) and staging version
-`d641bc37-c412-4e79-aae4-a844042f63f5` at 100%. Production bindings were read
-before and after that release and did not change.
+apex and Boss is Access-protected. Cloudflare API readback on 2026-10-22 (UTC),
+after the PAGE eligibility release (D-050), shows production version
+`d6f014cd-b6d2-4fab-993e-153788320800` at 100% (deployment `8190f2b8-0a48-44a4-b612-2d1ed2c39a86`)
+and staging version `bbfef991-a470-45c0-bdbe-3cccb689632d` at 100%
+(deployment `7a399eec-1252-4059-9515-c49db66cdf90`). Bindings, cron, compatibility and
+observability settings were read before and after that release and did not
+change.
 
 | Resource or setting | Staging | Production |
 | --- | --- | --- |

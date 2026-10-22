@@ -48,11 +48,11 @@ authorization.
 | `src/main.jsx`, `Application.jsx`, `App.jsx` | Browser entry selection (public, Boss, preview), router, public routes |
 | `src/entry-server.jsx` | Server renderer built into `dist/server` and used by the Worker |
 | `src/public/` | Snapshot bootstrap, hydration, home composition, section components, `/card` model |
-| `src/router/` | View-transition router for Notes navigation |
+| `src/router/` | View-transition router for Notes navigation; `public-pages.js`, the PAGE eligibility rule (D-050) |
 | `src/head/` | Canonical URL and robots directive owners |
 | `src/content-source/` | Snapshot schema and validation, visual tokens, PAGE analytics client, contact client, Turnstile hook |
 | `src/boss/` | Boss application: Dashboard, Analytics, Content, Submissions, Audit, System, private preview |
-| `src/components/` | BootIntro, Layout, ScrollManager, SectionAnimator, MotionPreference (reduced-motion contract), Konami overlay, UI primitives. `Testimonials` is unused (CURRENT_STATE debt 10) |
+| `src/components/` | BootIntro, Layout, ScrollManager, SectionAnimator, MotionPreference (reduced-motion contract), Konami overlay, UI primitives. `Testimonials` is unused (CURRENT_STATE debt 11) |
 | `src/pages/` | `NotFound.jsx`; `HomePage.jsx` is unused |
 | `src/content.js` | Offline historical/bootstrap input for tools and fixtures; not imported by the public runtime |
 | `src/index.css` | Tokens, typography attributes, CSS entrances, view-transition styling, Notes prose |

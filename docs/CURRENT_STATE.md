@@ -19,13 +19,13 @@ checkpoints of this file are frozen in
 | --- | --- | --- |
 | Worker | `hakan-run-web-production` | `hakan-run-web-staging` |
 | Hostname | `hakan.run` (custom domain) | `staging.hakan.run` (custom domain, noindex) |
-| Version at 100% | `75e50e37-1baf-4bf6-9fe2-febb5eda187c` | `3d84df99-c50d-4411-8f46-a998efc5d3ff` |
-| Deployment | `f805905c-0805-478a-a787-e8a20a1519e6` | `fe64e8d7-ff4e-4d34-9e72-c9cfc7f8c101` |
-| Source | `f1723ad` (maintenance closeout: scroll departure, reduced motion, shared Notes 404, legacy cleanup) | `f1723ad` (same, staging build) |
-| Rollback target | `fe90bb50-2322-4ff3-86ef-1e9f26a0f30a` | `2f26ec73-7ca7-4368-a825-1cbe799c47c8` |
+| Version at 100% | `d6f014cd-b6d2-4fab-993e-153788320800` | `bbfef991-a470-45c0-bdbe-3cccb689632d` |
+| Deployment | `8190f2b8-0a48-44a4-b612-2d1ed2c39a86` | `7a399eec-1252-4059-9515-c49db66cdf90` |
+| Source | `48c47aa` (PAGE eligibility excludes removed project pages, D-050) | `48c47aa` (same, staging build) |
+| Rollback target | `75e50e37-1baf-4bf6-9fe2-febb5eda187c` | `3d84df99-c50d-4411-8f46-a998efc5d3ff` |
 | Cron | none | `30 8 * * *` (analytics aggregation) |
 
-Both Workers run source `f1723ad`, each from its own build mode; the 13 hashed
+Both Workers run source `48c47aa`, each from its own build mode; the 13 hashed
 production assets are byte-identical to the local production build.
 `workers.dev` and preview URLs are disabled on both.
 Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
@@ -45,6 +45,9 @@ Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
   transition under a persistent header.
 - Unknown Notes slugs get the same 404 document as every other path that is
   not a page.
+- PAGE analytics accepts only public pages (`/`, `/card`, `/contact`,
+  `/notes` and known articles), in the browser and again at the Worker before
+  storage or DNDR forwarding (D-050).
 - Back and Forward restore the position an entry was left at, recorded at the
   moment of navigation.
 - With `prefers-reduced-motion: reduce`, nothing moves across the screen:
@@ -144,8 +147,8 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 
 **VERIFIED 2026-10-22** locally.
 
-- `npm run check`: lint, Worker 188, web 158 and tools 150 unit tests pass.
-- Full Playwright suite at `f1723ad`: 249 passed, 0 failed, 5 skipped. The
+- `npm run check`: lint, Worker 193, web 159 and tools 151 unit tests pass.
+- Full Playwright suite at `48c47aa`: 261 passed, 0 failed, 5 skipped. The
   skips are intentional: two desktop-header checks do not run in Mobile Chrome
   (the menu is covered by the hash-navigation and reduced-motion specs), and
   the visual matrix renders its desktop and phone viewports in the Chromium
@@ -165,21 +168,22 @@ Each item needs its own authorization.
    [DECISIONS.md](./DECISIONS.md#open--outbound-interaction-measurement).
    No integrity defect: it stores before forwarding, is idempotent per event
    id and injects only into 200 HTML.
-2. **`/project/*` still counts as a page in analytics** — the client
-   (`content-source/analytics.js`) and the Worker (`worker/lib/routes.js`)
-   classify `/project/<slug>` as PAGE, although every such path has been a
-   404 since D-047 (and had no page since 2026-09-10). A visit to any
-   `/project/<slug>` is stored in `ANALYTICS_DB` and forwarded to DNDR. Not
-   changed: it alters analytics semantics and the versioned legacy-import
-   contract. Owner decision in the same DECISIONS item. How many rows exist is
-   UNKNOWN (the token cannot read D1).
+2. **Historical `/project/*` PAGE rows** — since D-050 no new one is
+   accepted. Production `ANALYTICS_DB` holds 78 (VERIFIED 2026-10-22,
+   read-only): 69 `legacy_panel` rows (2026-05-17 to 2026-09-01, when project
+   pages existed; valid under the legacy contract) and 9 `native` rows
+   (2026-09-13 to 2026-10-19, after the pages were removed). Staging holds the
+   same 69 legacy rows and no native ones. The rows, DNDR's copies and any
+   aggregates are unchanged pending a separate correction decision.
 3. **Production aggregation schedule** — production has no cron. Reads stay
    correct: summaries use aggregates only for ledger-covered days and raw
    events otherwise (D-022), and production has no ledger rows. A schedule is
    an optional cost optimization (DECISIONS, open item).
-4. **Provider readback limits** — the account token reads Worker scripts and
+4. **Provider readback limits** — the deploy token reads Worker scripts and
    analytics for both Workers but not D1, Observability, zones or Workers
-   Builds; Wrangler reports a partial custom-domain update on every deploy.
+   Builds; Wrangler reports a partial custom-domain update on every deploy. D1
+   is readable through the separate Cloudflare connector (read-only queries,
+   2026-10-22).
 5. **HSTS** — still `max-age=86400`; the promotion review planned for
    2026-10-14 has not happened (PLANNED in [ROADMAP.md](./ROADMAP.md)).
 6. **Undocumented releases** — production versions 23–25 (2026-10-05) were
@@ -194,6 +198,10 @@ Each item needs its own authorization.
    on the legacy `main` branch and host, not in this tree.
 9. **Zone-managed robots block** — the zone prepends Cloudflare's managed AI
    crawler section to `robots.txt` (`User-agent: *` stays `Allow: /`).
-10. **Unused `Testimonials.jsx`** — no module imports it, but Tailwind scans it,
+10. **Stats "11 Production Properties"** — the published value is defined as
+    properties operated across the DNDR Labs network; no inventory in this
+    repository audits it. "4 Engineering Domains" matches its own description.
+    Editorial, for the owner; no content was changed.
+11. **Unused `Testimonials.jsx`** — no module imports it, but Tailwind scans it,
     so deleting it changes the generated CSS and every dependent asset hash.
     Remove it with the next release rather than in a release of its own.
