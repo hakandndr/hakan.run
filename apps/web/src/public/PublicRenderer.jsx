@@ -1,4 +1,5 @@
 import React from 'react';
+import MotionPreference from '@/components/MotionPreference';
 import { Toaster } from '@/components/ui/toaster';
 import PublicContact from '@/public/components/PublicContact';
 import PublicFooter from '@/public/components/PublicFooter';
@@ -15,9 +16,11 @@ export const PublicPageShell = ({ header, footer, children, interactive = false 
 );
 
 export const PublicPreviewRenderer = ({ page, snapshot }) => (
-  <PublicPageShell header={snapshot.content.header} footer={snapshot.content.footer}>
-    {page === 'contact'
-      ? <PublicContact contact={snapshot.content.contact} preview />
-      : <PublicHome snapshot={snapshot} />}
-  </PublicPageShell>
+  <MotionPreference>
+    <PublicPageShell header={snapshot.content.header} footer={snapshot.content.footer}>
+      {page === 'contact'
+        ? <PublicContact contact={snapshot.content.contact} preview />
+        : <PublicHome snapshot={snapshot} />}
+    </PublicPageShell>
+  </MotionPreference>
 );

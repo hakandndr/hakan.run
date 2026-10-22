@@ -1,20 +1,16 @@
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
-const StatValue = ({ value, suffix }) => {
-  const reduceMotion = useReducedMotion();
-
-  return (
-    <motion.span
-      initial={reduceMotion ? false : { opacity: 0, y: 6 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.5 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
-    >
-      {value}{suffix}
-    </motion.span>
-  );
-};
+const StatValue = ({ value, suffix }) => (
+  <motion.span
+    initial={{ opacity: 0, y: 6 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, amount: 0.5 }}
+    transition={{ duration: 0.35, ease: 'easeOut' }}
+  >
+    {value}{suffix}
+  </motion.span>
+);
 
 const PublicStats = ({ stats }) => (
   <section
