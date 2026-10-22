@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { applyDocumentHead, publicCanonicalUrl } from '../src/head/document-head.js';
 
 const app = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = path.join(app, 'notes');
@@ -78,26 +79,23 @@ export const writeNotesCatalog = (notes) => {
   fs.writeFileSync(manifestPath, `// Generated from apps/web/notes/*.md by tools/notes.js.\nexport const NOTE_SLUGS = ${JSON.stringify(notes.map((note) => note.slug), null, 2)};\nexport const isKnownNoteSlug = (slug) => NOTE_SLUGS.includes(slug);\n`, 'utf8');
 };
 
-const metadata = (template, title, description, pathname) => template
-  .replace('<title>hakan.run</title>', `<title>${escapeHtml(title)} | Hakan Dundar</title>`)
-  .replace('<link rel="canonical" href="https://hakan.run/" />', `<link rel="canonical" href="https://hakan.run${pathname}" />\n  <meta data-react-helmet="true" name="description" content="${escapeHtml(description)}" />\n  <meta data-react-helmet="true" property="og:title" content="${escapeHtml(title)}" />\n  <meta data-react-helmet="true" property="og:description" content="${escapeHtml(description)}" />\n  <meta data-react-helmet="true" property="og:url" content="https://hakan.run${pathname}" />`);
-
-// Static Notes documents. Their body is rendered by the same Notes components
-// the application uses (renderFallback comes from the server build), between
-// outlet markers the Worker replaces with the complete server-rendered page.
-// The static body is only seen when the Worker cannot read APP_DB.
+// Static Notes documents. Their body and head are rendered by the same Notes
+// components the application uses (renderFallback comes from the server
+// build). The Worker replaces the body between the outlet markers, and the
+// head, with the complete server-rendered page; the static document is only
+// seen when the Worker cannot read APP_DB.
 export const writeNotesArtifact = (output, mode, notes, renderFallback) => {
   const template = fs.readFileSync(path.join(output, 'index.html'), 'utf8');
   if (!template.includes('<div id="root"></div>')) throw new Error('index.html has no empty application root');
-  const pages = [{ pathname: '/notes', title: 'Engineering Notes', description: 'Engineering decisions, failures and operational lessons from systems I have built.' },
-    ...notes.map((note) => ({ pathname: `/notes/${note.slug}`, title: note.title, description: note.deck }))];
+  const pages = [{ pathname: '/notes' }, ...notes.map((note) => ({ pathname: `/notes/${note.slug}` }))];
   for (const page of pages) {
     // Cloudflare's default HTML handling serves file.html at /file without a
     // redirect. Directory index files would canonicalize to a trailing slash.
     const target = path.join(output, `${page.pathname.slice(1)}.html`);
     fs.mkdirSync(path.dirname(target), { recursive: true });
-    const body = `<!--ssr-fallback-->${renderFallback(page.pathname)}<!--/ssr-fallback-->`;
-    const document = metadata(template, page.title, page.description, page.pathname)
+    const { markup, head } = renderFallback(page.pathname);
+    const body = `<!--ssr-fallback-->${markup}<!--/ssr-fallback-->`;
+    const document = applyDocumentHead(template, { head, canonical: publicCanonicalUrl(page.pathname) })
       .replace('<div id="root"></div>', () => `<div id="root">${body}</div>`);
     fs.writeFileSync(target, document, 'utf8');
   }

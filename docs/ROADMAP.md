@@ -13,7 +13,7 @@ Nothing below is authorized by being listed. Each item needs its own approval.
 5. Remaining browser-suite failures (Boss content-v2, mobile hash-navigation): repair or retire them one group at a time.
 6. HSTS promotion review (due since 2026-10-14) and the other security-hardening items below.
 7. About "Beyond the IDE" copy update in `APP_DB`, deferred by the owner on 2026-09-28.
-8. Homepage social metadata: restore `og:*` and `twitter:*` tags for `/`, as a product change or through D-023.
+8. Homepage social metadata: repaired in source on 2026-10-22 (route heads in raw HTML); staging acceptance and production release need approval. The D-023 card generator remains separate.
 
 ## Approved sequence — 2026-09-28 (complete)
 

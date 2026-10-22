@@ -60,7 +60,8 @@ test('built Notes pages carry article content, title, canonical and production s
   for (const note of NOTES) {
     const url = `https://hakan.run/notes/${note.slug}`;
     const html = fs.readFileSync(path.join(output, 'notes', `${note.slug}.html`), 'utf8');
-    assert.match(html, new RegExp(`<title>${note.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\| Hakan Dundar</title>`));
+    assert.match(html, new RegExp(`<title\\b[^>]*>${note.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\| Hakan Dundar</title>`));
+    assert.equal(html.match(/<title\b/g).length, 1);
     assert.ok(html.includes(`<link rel="canonical" href="${url}" />`));
     assert.ok(html.includes(note.html));
     assert.ok(sitemap.includes(`<loc>${url}</loc>`));

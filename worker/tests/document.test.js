@@ -12,10 +12,12 @@ const payload = {
     { id: 'typography', revision: 1, publishedAt: 1, data: { headingFont: 'mono', bodySize: 'md', sectionSpacing: 'normal' } },
   ],
 };
-const template = '<html lang="en" style="background-color:#090909"><head></head><body style="background-color:#090909"><div id="root"></div><script type="module" src="/a.js"></script></body></html>';
+const template = '<html lang="en" style="background-color:#090909"><head><title>hakan.run</title><link rel="canonical" href="https://hakan.run/" /><meta name="robots" content="index, follow" /></head><body style="background-color:#090909"><div id="root"></div><script type="module" src="/a.js"></script></body></html>';
+const head = { title: '<title data-react-helmet="true">Page</title>', meta: '<meta data-react-helmet="true" property="og:title" content="Page"/>' };
+const route = { head, canonical: 'https://hakan.run/' };
 
 test('composition fills the empty root, writes theme tokens and embeds the payload', () => {
-  const html = composeDocument(template, { markup: '<main>page</main>', payload });
+  const html = composeDocument(template, { markup: '<main>page</main>', ...route, payload });
   assert.ok(html.includes('<div id="root"><main>page</main></div>'));
   assert.match(html, /<html lang="en" style="background-color:#090909;--color-accent-rgb:87 184 255;--color-bg:#090909;/);
   assert.match(html, /<body style="background-color:#090909" data-heading-font="mono" data-body-size="md" data-spacing="normal">/);
@@ -25,21 +27,29 @@ test('composition fills the empty root, writes theme tokens and embeds the paylo
 
 test('composition replaces the static Notes body between its outlet markers', () => {
   const notes = template.replace('<div id="root"></div>', '<div id="root"><!--ssr-fallback--><article>static</article><!--/ssr-fallback--></div>');
-  const html = composeDocument(notes, { markup: '<main>live</main>', payload });
+  const html = composeDocument(notes, { markup: '<main>live</main>', ...route, payload });
   assert.ok(html.includes('<div id="root"><main>live</main></div>'));
   assert.doesNotMatch(html, /ssr-fallback|static/);
 });
 
 test('embedded payload cannot close its script element', () => {
   const hostile = { ...payload, note: `</script><script>alert(1)</script>${String.fromCharCode(0x2028)}` };
-  const html = composeDocument(template, { markup: '', payload: hostile });
+  const html = composeDocument(template, { markup: '', ...route, payload: hostile });
   const embedded = html.match(/<script id="published-payload" type="application\/json">([^]*?)<\/script>/)[1];
   assert.doesNotMatch(embedded, /<\/?script/i);
   assert.deepEqual(JSON.parse(embedded), hostile);
 });
 
 test('a document without an application outlet is refused rather than guessed', () => {
-  assert.throws(() => composeDocument('<html style=""><body></body></html>', { markup: 'x', payload }), /document_outlet_missing/);
+  assert.throws(() => composeDocument('<html style=""><body></body></html>', { markup: 'x', ...route, payload }), /document_outlet_missing/);
+});
+
+test('composition writes the rendered route head into the document', () => {
+  const html = composeDocument(template, { markup: '<main>page</main>', head, canonical: 'https://hakan.run/contact', payload });
+  assert.ok(html.includes('<title data-react-helmet="true">Page</title>'));
+  assert.ok(html.includes('<link rel="canonical" href="https://hakan.run/contact" />\n  <meta data-react-helmet="true" property="og:title" content="Page"/>'));
+  assert.equal(html.match(/<title\b/g).length, 1);
+  assert.ok(html.includes('<meta name="robots" content="index, follow" />'));
 });
 
 test('without APP_DB the static asset is served unchanged', async () => {

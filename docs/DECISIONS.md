@@ -64,6 +64,7 @@ Not a decision. This records implemented behavior that no decision covers.
 - Rationale: One component tree and one content authority produce both the first paint and the hydrated state. The Worker already reads the same D1 rows for `/api/content`, so the per-view read moves from after JavaScript to before the first byte.
 - Consequences: `run_worker_first` includes the exact paths `/`, `/contact` and `/card`. First paint and hydrated markup are structurally equivalent and the painted DOM survives hydration (`tests/first-paint.spec.ts`). If APP_DB or rendering is unavailable, the Worker serves the static asset unchanged: D-027's empty-root path for `/`, and for Notes a body rendered by the same Notes components without the APP_DB-owned header and footer. Unknown non-Notes paths keep the static SPA fallback. Contact loses its exit animation (accepted in the motion release).
 - Status: Implemented and live in production (Worker `1f706882-4c85-400a-b5f3-7263f7d4b3a5`, 2026-09-29) after owner staging review; supersedes D-027's empty-root first paint for rendered routes and D-028's React-rendered BootIntro.
+- Head contract (2026-10-22, source): the server render also returns the title and meta tags the route declared through Helmet, and the Worker and the Notes build write them into the document with `apps/web/src/head/document-head.js`, together with the route canonical. Before this, the Helmet output was collected only to reset it and discarded, so raw HTML for `/`, `/contact` and `/card` carried the generic `index.html` head.
 
 ## D-040 — Engineering Notes is first-party engineering writing
 
@@ -396,7 +397,7 @@ Not a decision. This records implemented behavior that no decision covers.
 - Alternatives considered: Keep editing the PNG; a full visual card editor; generating the card from source constants only.
 - Rationale: Text is content and belongs in the content authority; visual identity is design and belongs in source. Splitting them keeps the card current without putting the brand at the mercy of a text field.
 - Consequences: The existing `og-image.png` design is the parity baseline the generator must reproduce. Card generation reads published content only, never drafts.
-- Status: Approved target; not implemented.
+- Status: Approved target; the generator is not implemented. Since 2026-10-22 (source) the homepage references the existing `og-image.png` through `SOCIAL_IMAGE` in `apps/web/src/head/document-head.js`, the single place a generated card URL will replace.
 
 ## D-024 — PAGE-only is enforced at the write boundary
 

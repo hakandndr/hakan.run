@@ -20,6 +20,7 @@ Access, and the Worker verifies the Access token and owner identity itself.
 | PAGE analytics | `ANALYTICS_DB` | `/api/analytics/page` with Worker classification | Boss Analytics |
 | Outbound clicks (production only) | `ANALYTICS_DB.outbound_events` | `/api/analytics/outbound` | Not displayed; no decision record (see DECISIONS, open item) |
 | Central analytics copy | DNDR, secondary | Best-effort `DNDR_COLLECTOR` calls after each source write | DNDR only; never this site's panels (D-044–D-046) |
+| Document head (title, description, social tags) | The route component's Helmet declaration | Server render collects it; the Worker and the Notes build write it with `head/document-head.js` | Raw HTML for crawlers and previews; Helmet adopts the same tags on hydration |
 | Security headers | `worker/lib/security-headers.js` | Build generates `_headers`; Worker applies the same module | Every response (D-042) |
 
 

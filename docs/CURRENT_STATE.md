@@ -48,6 +48,10 @@ Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
   not run JavaScript sees an indexable 200 (see known debt).
 - `/admin` redirects to `/` in the client. `/boss*` is the private surface.
 - Production documents are `index, follow`; the sitemap lists 15 URLs.
+- **Not yet deployed** (source `HEAD`, 2026-10-22): each server-rendered route
+  writes its own Helmet title, description and social tags, and its canonical,
+  into the raw HTML. Production still serves the generic `index.html` head for
+  `/`, `/contact` and `/card`.
 
 ## Worker and environment topology
 
@@ -130,10 +134,9 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 **VERIFIED 2026-10-21** locally.
 
 - `npm run check`: lint, Worker 178, web 138 and tools 150 unit tests pass.
-- Full Playwright suite: 188 passed, 15 failed, 5 skipped. The failures are
-  Boss `content-v2` (8; timeouts and a preview locator), mobile
-  `hash-navigation` (5; timeouts) and `seo.spec.ts` home social metadata (2;
-  a real product gap, item 8 below).
+- Full Playwright suite (2026-10-22): 200 passed, 13 failed, 5 skipped. The
+  failures are Boss `content-v2` (8; timeouts and a preview locator) and mobile
+  `hash-navigation` (5; timeouts).
 - CI: the only workflow targets `main`/`master`. Nothing runs automatically for
   `develop/hakan-run-v2` ([GITHUB-CI.md](./GITHUB-CI.md)).
 
@@ -159,8 +162,7 @@ Each item needs its own authorization.
 7. **Undocumented releases** — production versions 23–25 (2026-10-05) were
    deployed with the Notes commits `8f69516`, `33f8d41` and `b17ddbd`; that
    mapping is inferred from timestamps and not otherwise recorded.
-8. **Homepage social metadata** — since `f36a59c` (2026-09-10) the homepage
-   has no `og:*` or `twitter:*` tags: the static ones were removed from
-   `index.html` and the home route sets only title and description. Notes
-   pages carry their own. D-023 (generated social card) is approved but not
-   implemented. VERIFIED on production 2026-10-21.
+8. **Homepage social metadata** — production has had no `og:*` or `twitter:*`
+   tags on `/` since `f36a59c` (2026-09-10), and its raw title/description were
+   client-only because the server render discarded Helmet output (D-041).
+   Repaired in source on 2026-10-22; staging and production release pending.

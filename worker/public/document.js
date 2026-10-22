@@ -3,15 +3,16 @@
 // The browser's first paint must describe the same page the application
 // hydrates into. The page anatomy (header, footer, theme tokens) comes from
 // APP_DB at request time, so the Worker renders the public React tree with the
-// same published payload /api/content serves, writes the theme tokens onto
-// <html> and <body>, and embeds the payload for hydration. One component tree
-// and one content authority produce both states.
+// same published payload /api/content serves, writes the route's head (title,
+// Helmet meta tags, canonical) and the theme tokens, and embeds the payload for
+// hydration. One component tree and one content authority produce both states.
 //
 // If APP_DB or rendering is unavailable, the static asset is returned
 // unchanged and the client falls back to its existing fetch-then-render path.
 
 import { buildContentPayload, publishedContentQuery } from './content.js';
 import { publishedVisualTokens } from '../../apps/web/src/content-source/visual-tokens.js';
+import { applyDocumentHead, publicCanonicalUrl } from '../../apps/web/src/head/document-head.js';
 
 const STATIC_ROOT = '<div id="root"></div>';
 const FALLBACK_OUTLET = /<!--ssr-fallback-->[\s\S]*?<!--\/ssr-fallback-->/;
@@ -29,12 +30,13 @@ const embedJson = (value) => JSON.stringify(value)
 const sectionData = (payload, id) => payload.sections.find((section) => section.id === id)?.data;
 
 /** Pure: compose a server-rendered document from a static HTML asset. */
-export const composeDocument = (html, { markup, payload }) => {
+export const composeDocument = (html, { markup, head, canonical, payload }) => {
   const outlet = `<div id="root">${markup}</div>`;
   let composed;
   if (html.includes(STATIC_ROOT)) composed = html.replace(STATIC_ROOT, () => outlet);
   else if (FALLBACK_OUTLET.test(html)) composed = html.replace(FALLBACK_OUTLET, () => markup);
   else throw new Error('document_outlet_missing');
+  composed = applyDocumentHead(composed, { head, canonical });
 
   const { properties, bodyAttributes } = publishedVisualTokens({
     colors: sectionData(payload, 'colors'),
@@ -71,13 +73,14 @@ export const serveDocument = async (request, env) => {
   try {
     const [payload, renderer] = await Promise.all([readPublishedPayload(env), loadRenderer()]);
     const url = new URL(request.url);
-    const markup = renderer.renderPublicApplication({ url: `${url.pathname}${url.search}`, payload });
+    const { markup, head } = renderer.renderPublicApplication({ url: `${url.pathname}${url.search}`, payload });
+    const canonical = publicCanonicalUrl(url.pathname.replace(/\/$/, '') || '/');
     const headers = new Headers(asset.headers);
     headers.delete('etag');
     headers.delete('content-length');
     headers.set('content-type', 'text/html; charset=utf-8');
     headers.set('cache-control', DOCUMENT_CACHE_CONTROL);
-    return new Response(composeDocument(html, { markup, payload }), { status: 200, headers });
+    return new Response(composeDocument(html, { markup, head, canonical, payload }), { status: 200, headers });
   } catch (error) {
     console.error('[document] server render unavailable', error?.message ?? error);
     return passThrough();
