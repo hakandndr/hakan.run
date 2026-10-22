@@ -14,7 +14,7 @@ Access, and the Worker verifies the Access token and owner identity itself.
 
 ### HTTP route contract
 
-Staging since 2026-10-22 (`cfbf1728`); production after its release (D-047).
+Live on staging and production since 2026-10-22 (D-047).
 Static Assets use `not_found_handling: "none"`: a request that matches a file is
 served asset-first, and every other request reaches the Worker, which owns the
 status. `run_worker_first` additionally sends `/`, `/contact`, `/card`, `/api/*`,
@@ -45,6 +45,7 @@ preview, `/contact` and `/card` fetch the application shell explicitly
 | Outbound clicks (production only) | `ANALYTICS_DB.outbound_events` | `/api/analytics/outbound` | Not displayed; no decision record (see DECISIONS, open item) |
 | Central analytics copy | DNDR, secondary | Best-effort `DNDR_COLLECTOR` calls after each source write | DNDR only; never this site's panels (D-044–D-046) |
 | Document head (title, description, social tags) | The route component's Helmet declaration | Server render collects it; the Worker and the Notes build write it with `head/document-head.js` | Raw HTML for crawlers and previews; Helmet adopts the same tags on hydration |
+| Canonical link and robots directive (D-048) | Canonical: the page route's `useCanonicalUrl` declaration; the 404 declares none. Robots: the build directive from `head/indexing-policy.js`, overridden only by the 404 and Boss | The build writes robots into `index.html`; the Worker composes both per document; in the browser the hooks add, rewrite or remove the single node and restore the build directive | Raw HTML, and the live head after in-app route changes |
 | Security headers | `worker/lib/security-headers.js` | Build generates `_headers`; Worker applies the same module | Every response (D-042) |
 
 

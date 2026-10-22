@@ -3,6 +3,14 @@
 Newest first. Numbers 15–21 occur twice: the series at the end of the file is
 the older one. Numbers are labels, not references; nothing links to them.
 
+## 31. Restore the policy baseline, not the value you found
+
+- Problem: A client-side owner of a document singleton that saves "the previous value" and restores it on unmount assumes the document arrived in its baseline state.
+- Evidence / context: Once the Worker sent real 404 documents (D-047), the 404's robots value and missing canonical were already in the HTML. Leaving the 404 in-app put `noindex` back onto the homepage and left it without a canonical. Direct requests were all correct, so raw-HTML tests could not see it (D-048).
+- Reusable rule: When the server renders each route's head, a client owner restores the policy value, and every route declares what it owns. Test transitions out of each server-rendered state, not only direct loads.
+- Applies when: Head tags, body classes, scroll locks, or any global state that both the server and a mounted component write.
+- Exceptions / caveats: Restoring the found value is fine for state the server never sets per route.
+
 ## 30. A suite that is always red stops being evidence
 
 - Problem: A failing test that everyone expects to fail no longer reports anything, and the explanation recorded for it drifts from the cause.

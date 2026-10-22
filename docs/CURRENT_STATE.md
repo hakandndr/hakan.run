@@ -19,14 +19,15 @@ checkpoints of this file are frozen in
 | --- | --- | --- |
 | Worker | `hakan-run-web-production` | `hakan-run-web-staging` |
 | Hostname | `hakan.run` (custom domain) | `staging.hakan.run` (custom domain, noindex) |
-| Version at 100% | `b8117346-d874-4e45-9d71-69e7a494776d` | `cfbf1728-9eb8-446b-8876-6adad40dff08` |
-| Deployment | `87927ce8-ffc8-4df5-b1d3-83eaa84cdb6b` | `ea9f34df-f1ba-4900-a0d9-c9d1e84b64e0` |
-| Source | `17b6ce5` (route head metadata) | `1b94946` (real 404s, reduced-motion navigation, schema cleanup) |
-| Rollback target | `11f7232a-e6b7-4ac7-b50f-149b0515ea23` | `6898b2e6-1167-4da6-aa40-160426c361b3` |
+| Version at 100% | `fe90bb50-2322-4ff3-86ef-1e9f26a0f30a` | `2f26ec73-7ca7-4368-a825-1cbe799c47c8` |
+| Deployment | `bd547f21-1381-415c-a5d3-e0230ceb98b2` | `95393bb8-63c1-45c8-a9c5-843ea6eba539` |
+| Source | `e15735b` (real 404s, reduced-motion navigation, route head across 404 transitions) | `e15735b` (same, staging build) |
+| Rollback target | `b8117346-d874-4e45-9d71-69e7a494776d` | `cfbf1728-9eb8-446b-8876-6adad40dff08` |
 | Cron | none | `30 8 * * *` (analytics aggregation) |
 
-Both Workers run the same main module, byte-identical to the local dry-run of
-`17b6ce5`. `workers.dev` and preview URLs are disabled on both.
+Both Workers run source `e15735b`, each from its own build mode; the 13 hashed
+production assets are byte-identical to the local production build.
+`workers.dev` and preview URLs are disabled on both.
 Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
 2026-10-03; pushes since then created no versions).
 
@@ -43,17 +44,18 @@ Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
 - In-app moves into, within and out of Notes run inside a same-document view
   transition under a persistent header.
 - Unknown Notes slugs return HTTP 404 `noindex` from the Worker.
-- **Production** still answers `/project/*` and other unknown paths with HTTP 200
-  and the SPA shell. **Staging** (`cfbf1728`, VERIFIED 2026-10-22) serves the
-  route contract in [ARCHITECTURE.md](./ARCHITECTURE.md#http-route-contract): every
-  path that is not a page is a real 404; `/admin` is a 404 there. `/boss*` is the
-  private surface.
+- Both environments serve the route contract in
+  [ARCHITECTURE.md](./ARCHITECTURE.md#http-route-contract): every path that is
+  not a page is a real 404 (`/project/*` and `/admin` included), and a missing
+  file is a plain 404. `/boss*` is the private surface.
 - Production documents are `index, follow`; the sitemap lists 15 URLs.
 - Each server-rendered route writes its own Helmet title, description and
   social tags, and its canonical, into the raw HTML; hydration keeps those
   nodes. The homepage carries 12 Open Graph and Twitter tags with
-  `https://hakan.run/og-image.png` (1200×630). Unknown paths keep the generic
-  shell head.
+  `https://hakan.run/og-image.png` (1200×630). The 404 document has no
+  canonical, `noindex` (staging `noindex, nofollow`) and no social tags.
+- In-app moves into and out of the 404, and Back/Forward across it, end with
+  the head a direct request for the destination returns (D-048).
 
 ## Worker and environment topology
 
@@ -133,11 +135,15 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 
 ## Tests
 
-**VERIFIED 2026-10-21** locally.
+**VERIFIED 2026-10-22** locally.
 
-- `npm run check`: lint, Worker 178, web 138 and tools 150 unit tests pass.
-- Full Playwright suite (2026-10-22, at `1b94946`): 225 passed, 0 failed, 5
-  skipped. The skips are intentional: desktop-only navigation checks and the
+- `npm run check`: lint, Worker 187, web 158 and tools 150 unit tests pass.
+- Focused browser set at `e15735b` (route head, SEO, 404, HTTP routes, hash
+  navigation, scroll, first paint, Notes, CSP, card, contact, navigation, Boss
+  shell): all pass except the intermittent POP test in debt item 10.
+- Full Playwright suite (2026-10-22, at `1b94946`, not re-run since): 225
+  passed, 0 failed, 5 skipped. The skips are intentional: desktop-only
+  navigation checks and the
   Chromium-only visual matrix do not run in the Mobile Chrome project.
 - CI: the only workflow targets `main`/`master`. Nothing runs automatically for
   `develop/hakan-run-v2` ([GITHUB-CI.md](./GITHUB-CI.md)).
@@ -153,8 +159,10 @@ Each item needs its own authorization.
    `@supabase/supabase-js`, unused `TerminalLoader.jsx`, and
    `apps/web/public/.htaccess`, which is copied into the build and publicly
    served at `/.htaccess`.
-3. **Soft 404s in production** — fixed on staging (`cfbf1728`); production keeps
-   answering unknown paths with 200 until that release is approved.
+3. **Unknown-note 404 page** — the Worker answers an unknown Notes slug with a
+   minimal static page (`missingNote` in `worker/index.js`), not the
+   application's 404: its title differs from the in-app 404, and it says
+   `noindex` on staging too, where pages say `noindex, nofollow`.
 4. **Production aggregation** — no production cron (UNKNOWN intent).
 5. **Provider readback limits** — the account token reads Worker scripts and
    analytics for both Workers but not D1, Observability, zones or Workers
@@ -167,6 +175,11 @@ Each item needs its own authorization.
 8. **Social card generation** — the homepage references the hand-maintained
    `og-image.png`; the D-023 generator is not implemented. Notes pages carry no
    `og:image` or Twitter tags.
-9. **Reduced motion in Framer components** — section scrolling now honors the
-   preference (staging), but the mobile menu and other Framer animations still
-   animate under reduced motion.
+9. **Reduced motion in Framer components** — section scrolling honors the
+   preference, but the mobile menu and other Framer animations still animate
+   under reduced motion.
+10. **Intermittent POP restoration test** — `scroll-restoration.spec.ts`
+    "POP restores the destination entry…" fails about 3 in 10 runs under
+    parallel repetition (restores 4674 instead of 1200) and passes 10 of 10
+    serially. It fails the same way at `1b94946`, and the POP restore code is
+    unchanged since production `17b6ce5`; cause not established.

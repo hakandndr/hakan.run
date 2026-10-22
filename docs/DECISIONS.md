@@ -11,6 +11,15 @@ Not a decision. This records implemented behavior that no decision covers.
 - Policy tension: AGENTS.md bounds first-party analytics to PAGE events unless a broader scope is approved. D-045 keeps analytics work from changing public routes or interactions and keeps DNDR transport at the Worker write boundary; the outbound path adds a client script and a Worker-first route.
 - Owner decision needed: (a) ratify outbound measurement as a numbered decision with its fields, retention and Boss visibility; (b) ratify it with narrower data, for example without IP; or (c) withdraw it with a reviewed code change and leave the additive table and its rows in place. Until then, treat the feature as live but ungoverned, and do not extend it.
 
+## D-048 — The live head follows the route, not the document it arrived in
+
+- Decision: Each page route declares its canonical URL with `useCanonicalUrl` (the layout no longer does); the 404 declares none. The hook adds, rewrites or removes the one canonical link. A robots override (the 404, Boss) restores the build directive when it unmounts, not the value it found in the tag. `apps/web/src/head/indexing-policy.js` holds the policy values (the build directive per mode and the not-found directive); the build, the Worker's 404 composition and the browser all use it, and the browser takes the mode Vite compiled in.
+- Context: After D-047 the 404 document arrives without a canonical link and with the not-found directive. Leaving it in-app for `/` kept no canonical and kept `noindex`; entering an in-app 404 from a page named the 404's own URL as canonical. Direct requests were correct.
+- Alternatives considered: Keep a canonical link without `href` on the 404, or record the build value on its robots tag (extra markup for crawlers); patch the head on the 404 link click (misses Back, Forward and other entries); let the layout decide by matching paths (a second route table).
+- Rationale: The head after a route change must equal the head of a direct request for that route. The value found in the tag is only the baseline when the document arrived as a page.
+- Consequences: In-app 404 hydration keeps staging's `noindex, nofollow` (it used to become `noindex`). `useCanonicalUrl(undefined)` declares nothing; the private Contact preview uses it. `tests/route-head.spec.ts` pins the transitions and failed four of its five cases before the change.
+- Status: Live on staging (`2f26ec73-7ca7-4368-a825-1cbe799c47c8`) and production (`fe90bb50-2322-4ff3-86ef-1e9f26a0f30a`) since 2026-10-22.
+
 ## D-047 — Unmatched requests reach the Worker; only pages answer 200
 
 - Decision: Static Assets run with `not_found_handling: "none"`. Files stay asset-first; every request that matches no file reaches the Worker. The Worker answers pages with 200, page-like unknown paths with its server-rendered NotFound route and HTTP 404 (`noindex`, no canonical), and missing files with a plain 404. `run_worker_first` is unchanged.
@@ -18,7 +27,7 @@ Not a decision. This records implemented behavior that no decision covers.
 - Alternatives considered: `not_found_handling: "404-page"` with a prebuilt `404.html` (no Worker cost, but the page could not carry the published header and footer without a second rendering path, and it would paint differently from the hydrated app); `run_worker_first: ["/*"]` (every static asset through the Worker; rejected by the routing-boundary test); a route allow-list in the Worker for 200s (a second route authority).
 - Rationale: The Worker already owns every page's status and rendering. Sending only unmatched requests to it keeps file delivery asset-first and makes the 404 document the same React route, rendered and hydrated like every page. Missing files never render or read APP_DB, so path scans stay cheap.
 - Consequences: `/contact`, `/card`, the Boss shell and the private preview fetch the application shell explicitly. The client-only `/admin` redirect was removed. NotFound reads the router location and uses a CSS entrance, so the server markup is the final page. The local document server reproduces Cloudflare's dispatch for this configuration; `tests/http-routes.spec.ts` and `worker/tests/not-found.test.js` pin the contract.
-- Status: Implemented and accepted on staging 2026-10-22 (`cfbf1728-9eb8-446b-8876-6adad40dff08`); production release awaits owner approval.
+- Status: Accepted on staging 2026-10-22 (`cfbf1728-9eb8-446b-8876-6adad40dff08`); live in production since 2026-10-22 (`fe90bb50-2322-4ff3-86ef-1e9f26a0f30a`, with D-048).
 
 ## D-046 — Production sends the same best-effort copy to DNDR Analytics
 
