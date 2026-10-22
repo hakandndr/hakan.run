@@ -24,7 +24,7 @@ status. `run_worker_first` additionally sends `/`, `/contact`, `/card`, `/api/*`
 | --- | --- |
 | `/`, `/contact`, `/card`, `/notes`, known articles | 200, server-rendered, canonical, build robots value |
 | `/contact/`, `/card/` | 308 to the path without the slash |
-| Unknown Notes slug | 404 Notes page, `noindex` |
+| Unknown Notes slug | The same 404 document as below |
 | Other page-like path (`/project/*`, `/admin`, anything without a file extension) | 404, the NotFound route server-rendered and hydrated, `noindex`, no canonical or social tags |
 | Missing file (`/assets/x.js`, `/favicon.ico`, `/wp-login.php`) | Plain 404 from Static Assets, no render or database read |
 | Existing file | 200 from Static Assets with the generated `_headers` |
@@ -400,8 +400,15 @@ snapshot already admitted by `PublicBootstrap`.
 
 Navigation intent remains in `usePublicNavigation`; the route-bound
 `ScrollManager` remains the only code allowed to perform target and restoration
-scrolling. Header's scroll listener changes backdrop presentation only. Framer
-Motion in Header and Hero is presentation-only. Expertise correctness is owned by
+scrolling. It records an entry's position from scroll events and, through
+`recordScrollDeparture()` called first in `TransitionRouter`'s history
+listener, at the moment the entry is left, so a scroll event that arrives
+after the history change cannot leave the previous entry stale. Header's
+scroll listener changes backdrop presentation only. Framer Motion in Header
+and Hero is presentation-only. Every public React tree renders inside
+`components/MotionPreference.jsx` (`MotionConfig reducedMotion="user"`), the
+one reduced-motion contract for framer-motion, matching the CSS rule in
+`index.css`; components do not read the preference themselves. Expertise correctness is owned by
 one React index state; CSS transitions do not mount data, repair state or trigger
 navigation.
 

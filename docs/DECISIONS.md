@@ -11,6 +11,27 @@ Not a decision. This records implemented behavior that no decision covers.
 - Policy tension: AGENTS.md bounds first-party analytics to PAGE events unless a broader scope is approved. D-045 keeps analytics work from changing public routes or interactions and keeps DNDR transport at the Worker write boundary; the outbound path adds a client script and a Worker-first route.
 - Owner decision needed: (a) ratify outbound measurement as a numbered decision with its fields, retention and Boss visibility; (b) ratify it with narrower data, for example without IP; or (c) withdraw it with a reviewed code change and leave the additive table and its rows in place. Until then, treat the feature as live but ungoverned, and do not extend it.
 
+- Additional finding (2026-10-22): `/project/<slug>` is still classified as PAGE by the client and the Worker (`worker/lib/routes.js`), though every such path is a 404 (D-047). Any such visit is stored and forwarded to DNDR, and the outbound endpoint accepts it as a source path. The legacy-import contract (`tools/legacy-analytics/classification.js`, version 1) reuses the same prefix for historical snapshots.
+- Recommendation (awaiting owner approval): ratify outbound measurement under option (b): keep `OUTBOUND_CLICK` as a distinct family in `outbound_events`, drop the raw IP from new rows, set a retention period and decide Boss visibility. In the same change, remove `/project/` from the current PAGE classification and from `run_worker_first`, and give the legacy importer a version 2 contract that keeps the prefix only for historical snapshots. Existing rows stay as they are.
+
+## Open — Production aggregation schedule
+
+Not a decision. Production has no scheduled trigger; staging runs `30 8 * * *`.
+
+- Behavior today: `worker/index.js` `scheduled()` aggregates the last complete Pacific day into `analytics_daily` (delete and reinsert that day for the current `aggregate_version`) and then writes one `analytics_coverage` row. It never deletes raw events (D-021). Summaries read aggregates only for ledger-covered days and raw `visitor_events` for every other day (D-022), so production, with no ledger rows, answers every range from raw events with correct numbers.
+- Effect of adding it: one D1 write batch per day to production `ANALYTICS_DB`, idempotent per day, beginning the day after activation. Earlier days remain raw unless backfilled separately.
+- Exact configuration, if approved: `"triggers": { "crons": ["30 8 * * *"] }` in `env.production` of `wrangler.jsonc` (08:30 UTC, after Pacific midnight in both PST and PDT), deployed with the Worker.
+- Recommendation (awaiting owner approval): add it when raw-range query cost matters; it is not required for correctness.
+
+## D-049 — framer-motion follows the reduced-motion preference through one MotionConfig
+
+- Decision: Every public React tree (the application and the Boss preview renderer) renders inside `MotionConfig reducedMotion="user"` (`apps/web/src/components/MotionPreference.jsx`). With `prefers-reduced-motion: reduce`, framer-motion completes transform and layout animations at once and keeps opacity. Components do not read the preference themselves.
+- Context: Section entrances, the About blocks and the mobile menu slid across the screen for visitors who prefer reduced motion. The CSS rule in `index.css` cannot reach framer's JavaScript animations, and only Stats used its own `useReducedMotion`. That hook also rendered a different `initial` on the server and in the client.
+- Alternatives considered: A `useReducedMotion` check in each component (scattered, and it changes rendered markup); removing the animations (changes the approved design); CSS overrides of inline transforms (fights the library).
+- Rationale: It is the library's supported mechanism, one switch for every animation, and it changes animation only, never markup, so first paint and hydration are unaffected.
+- Consequences: Normal motion is unchanged. Reduced-motion visitors still see fades. `tests/reduced-motion.spec.ts` samples the moving elements on every frame with and without the preference.
+- Status: Live on staging (`3d84df99-c50d-4411-8f46-a998efc5d3ff`) and production (`75e50e37-1baf-4bf6-9fe2-febb5eda187c`) since 2026-10-22.
+
 ## D-048 — The live head follows the route, not the document it arrived in
 
 - Decision: Each page route declares its canonical URL with `useCanonicalUrl` (the layout no longer does); the 404 declares none. The hook adds, rewrites or removes the one canonical link. A robots override (the 404, Boss) restores the build directive when it unmounts, not the value it found in the tag. `apps/web/src/head/indexing-policy.js` holds the policy values (the build directive per mode and the not-found directive); the build, the Worker's 404 composition and the browser all use it, and the browser takes the mode Vite compiled in.
@@ -28,6 +49,7 @@ Not a decision. This records implemented behavior that no decision covers.
 - Rationale: The Worker already owns every page's status and rendering. Sending only unmatched requests to it keeps file delivery asset-first and makes the 404 document the same React route, rendered and hydrated like every page. Missing files never render or read APP_DB, so path scans stay cheap.
 - Consequences: `/contact`, `/card`, the Boss shell and the private preview fetch the application shell explicitly. The client-only `/admin` redirect was removed. NotFound reads the router location and uses a CSS entrance, so the server markup is the final page. The local document server reproduces Cloudflare's dispatch for this configuration; `tests/http-routes.spec.ts` and `worker/tests/not-found.test.js` pin the contract.
 - Status: Accepted on staging 2026-10-22 (`cfbf1728-9eb8-446b-8876-6adad40dff08`); live in production since 2026-10-22 (`fe90bb50-2322-4ff3-86ef-1e9f26a0f30a`, with D-048).
+- Amendment (2026-10-22, production `75e50e37-1baf-4bf6-9fe2-febb5eda187c`): unknown Notes slugs, which had a hand-written static 404 page in the Worker with its own title and a hardcoded `noindex`, now get the same 404 document.
 
 ## D-046 — Production sends the same best-effort copy to DNDR Analytics
 
@@ -415,7 +437,7 @@ Not a decision. This records implemented behavior that no decision covers.
 - Alternatives considered: Keep editing the PNG; a full visual card editor; generating the card from source constants only.
 - Rationale: Text is content and belongs in the content authority; visual identity is design and belongs in source. Splitting them keeps the card current without putting the brand at the mercy of a text field.
 - Consequences: The existing `og-image.png` design is the parity baseline the generator must reproduce. Card generation reads published content only, never drafts.
-- Status: Approved target; the generator is not implemented. Since 2026-10-22 (live) the homepage references the existing `og-image.png` through `SOCIAL_IMAGE` in `apps/web/src/head/document-head.js`, the single place a generated card URL will replace.
+- Status: Approved target, an optional feature with no scheduled work; the generator is not implemented. The served card was verified correct on 2026-10-22. Since 2026-10-22 (live) the homepage references the existing `og-image.png` through `SOCIAL_IMAGE` in `apps/web/src/head/document-head.js`, the single place a generated card URL will replace.
 
 ## D-024 — PAGE-only is enforced at the write boundary
 

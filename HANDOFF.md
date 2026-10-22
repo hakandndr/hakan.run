@@ -9,17 +9,17 @@ history in [PROCESS.md](./PROCESS.md), never here.
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` (legacy reference `D:\IT\hakan\hakan-run`, read-only) |
 | Branch | `develop/hakan-run-v2` |
-| HEAD | This checkpoint; resolve with `git rev-parse HEAD`. Runtime source `e15735b` (both environments) |
-| Current phase | Release complete: real HTTP 404s (D-047), reduced-motion section scrolling, schema cleanup and the route head repair (D-048) are live in production and staging |
-| Production | `hakan-run-web-production` version `fe90bb50-2322-4ff3-86ef-1e9f26a0f30a` at 100%, deployment `bd547f21-1381-415c-a5d3-e0230ceb98b2`, source `e15735b` |
-| Staging | `hakan-run-web-staging` version `2f26ec73-7ca7-4368-a825-1cbe799c47c8` at 100%, deployment `95393bb8-63c1-45c8-a9c5-843ea6eba539`, source `e15735b` |
-| Rollback targets | Production `b8117346-d874-4e45-9d71-69e7a494776d`; staging `cfbf1728-9eb8-446b-8876-6adad40dff08` |
-| Latest accepted change | Route head across in-app 404 transitions (`e15735b`), accepted on staging and production 2026-10-22 UTC |
-| Next bounded action | The outbound decision ([DECISIONS.md](./docs/DECISIONS.md#open--outbound-interaction-measurement)); otherwise one approved item from [ROADMAP.md](./docs/ROADMAP.md) |
-| Prohibited without separate authorization | Deploy, D1 write or migration, Cloudflare/DNS/Access/Turnstile/Email/secret/binding/route change, CMS production writes, Notes or featured-order changes, legacy file deletion |
+| HEAD | This checkpoint; resolve with `git rev-parse HEAD`. Runtime source `f1723ad` (both environments) |
+| Current phase | Maintenance cycle closed 2026-10-22: scroll departure capture, reduced motion (D-049), shared Notes 404, legacy cleanup live in production and staging |
+| Production | `hakan-run-web-production` version `75e50e37-1baf-4bf6-9fe2-febb5eda187c` at 100%, deployment `f805905c-0805-478a-a787-e8a20a1519e6`, source `f1723ad` |
+| Staging | `hakan-run-web-staging` version `3d84df99-c50d-4411-8f46-a998efc5d3ff` at 100%, deployment `fe64e8d7-ff4e-4d34-9e72-c9cfc7f8c101`, source `f1723ad` |
+| Rollback targets | Production `fe90bb50-2322-4ff3-86ef-1e9f26a0f30a`; staging `2f26ec73-7ca7-4368-a825-1cbe799c47c8` |
+| Latest accepted change | `9dd65f4`–`f1723ad`, accepted on staging and production 2026-10-22 UTC; full browser suite 249 passed, 0 failed, 5 intentional skips |
+| Next bounded action | Owner decisions: outbound measurement with the `/project/*` PAGE classification, and the optional production aggregation schedule ([DECISIONS.md](./docs/DECISIONS.md)) |
+| Prohibited without separate authorization | Deploy, D1 write or migration, Cloudflare/DNS/Access/Turnstile/Email/secret/binding/route/cron change, CMS production writes, analytics semantics, Notes or featured-order changes |
 | Push state | Pushed to `origin/develop/hakan-run-v2`; local and origin are expected 0/0. `main` is untouched legacy |
-| Infrastructure | Unchanged by the release apart from D-047's `not_found_handling: "none"`: bindings, schedules, compatibility date, observability and security headers equal the pre-deploy readback. `CMS_PRODUCTION_WRITES_ENABLED=false`; no production cron; no Git-connected builds |
-| Unresolved | Outbound governance gap awaiting an owner decision; legacy artifacts; the unknown-note static 404 page; an intermittent POP scroll test; Framer reduced motion; unknown production aggregation intent; token cannot read D1, Observability, zones or Builds. Details in [CURRENT_STATE.md](./docs/CURRENT_STATE.md#known-debt-and-unknowns) |
+| Infrastructure | Unchanged by the release: bindings, schedules, compatibility date, observability, `not_found_handling: "none"` and security headers equal the pre-deploy readback. `CMS_PRODUCTION_WRITES_ENABLED=false`; no production cron; no Git-connected builds |
+| Unresolved | Two owner decisions above; HSTS review; token cannot read D1, Observability, zones or Builds. Details in [CURRENT_STATE.md](./docs/CURRENT_STATE.md#known-debt-and-unknowns) |
 
 ## Where to look
 

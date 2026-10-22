@@ -52,14 +52,14 @@ authorization.
 | `src/head/` | Canonical URL and robots directive owners |
 | `src/content-source/` | Snapshot schema and validation, visual tokens, PAGE analytics client, contact client, Turnstile hook |
 | `src/boss/` | Boss application: Dashboard, Analytics, Content, Submissions, Audit, System, private preview |
-| `src/components/` | BootIntro, Layout, ScrollManager, SectionAnimator, Konami overlay, UI primitives. `TerminalLoader`, `Testimonials`, `TrustedClients` are unused |
+| `src/components/` | BootIntro, Layout, ScrollManager, SectionAnimator, MotionPreference (reduced-motion contract), Konami overlay, UI primitives. `Testimonials` is unused (CURRENT_STATE debt 10) |
 | `src/pages/` | `NotFound.jsx`; `HomePage.jsx` is unused |
 | `src/content.js` | Offline historical/bootstrap input for tools and fixtures; not imported by the public runtime |
 | `src/index.css` | Tokens, typography attributes, CSS entrances, view-transition styling, Notes prose |
 | `test-fixtures/published-site.js` | The complete published snapshot used by browser tests |
 | `tools/build.js` | Build orchestrator: llms, Vite client and server builds, Notes artifact, `_headers`, indexing policy, verification |
 | `tools/notes.js`, `indexing.js`, `document-artifact.js`, `verify-artifact.js`, `dependency-isolation.js`, `generate-llms.js` | Build steps and checks with their `*.test.js` |
-| `public/` | Static files: `robots.txt`, `sitemap.xml` (Notes entries added at build), `llms.txt`, `humans.txt`, media, portfolio art, early document scripts. `.htaccess` is a legacy leftover that is still copied and served |
+| `public/` | Static files: `robots.txt`, `sitemap.xml` (Notes entries added at build), `llms.txt`, `humans.txt`, media, portfolio art, early document scripts |
 
 ## Tools — `tools/`
 
@@ -88,6 +88,5 @@ authorization.
 
 | Path | Status |
 | --- | --- |
-| `run/` | Legacy PHP visitor log; replaced by PAGE analytics (D-017) |
-| `supabase/` | Legacy content table and seed; replaced by `APP_DB` (D-014) |
+| `supabase/migrations/` | Schema record of the retired Supabase content table; replaced by `APP_DB` (D-014). The seed, client and `run/` PHP log were removed 2026-10-22 |
 | `docs/archive/` | Historical documentation; see the [index](./README.md) |

@@ -19,13 +19,13 @@ checkpoints of this file are frozen in
 | --- | --- | --- |
 | Worker | `hakan-run-web-production` | `hakan-run-web-staging` |
 | Hostname | `hakan.run` (custom domain) | `staging.hakan.run` (custom domain, noindex) |
-| Version at 100% | `fe90bb50-2322-4ff3-86ef-1e9f26a0f30a` | `2f26ec73-7ca7-4368-a825-1cbe799c47c8` |
-| Deployment | `bd547f21-1381-415c-a5d3-e0230ceb98b2` | `95393bb8-63c1-45c8-a9c5-843ea6eba539` |
-| Source | `e15735b` (real 404s, reduced-motion navigation, route head across 404 transitions) | `e15735b` (same, staging build) |
-| Rollback target | `b8117346-d874-4e45-9d71-69e7a494776d` | `cfbf1728-9eb8-446b-8876-6adad40dff08` |
+| Version at 100% | `75e50e37-1baf-4bf6-9fe2-febb5eda187c` | `3d84df99-c50d-4411-8f46-a998efc5d3ff` |
+| Deployment | `f805905c-0805-478a-a787-e8a20a1519e6` | `fe64e8d7-ff4e-4d34-9e72-c9cfc7f8c101` |
+| Source | `f1723ad` (maintenance closeout: scroll departure, reduced motion, shared Notes 404, legacy cleanup) | `f1723ad` (same, staging build) |
+| Rollback target | `fe90bb50-2322-4ff3-86ef-1e9f26a0f30a` | `2f26ec73-7ca7-4368-a825-1cbe799c47c8` |
 | Cron | none | `30 8 * * *` (analytics aggregation) |
 
-Both Workers run source `e15735b`, each from its own build mode; the 13 hashed
+Both Workers run source `f1723ad`, each from its own build mode; the 13 hashed
 production assets are byte-identical to the local production build.
 `workers.dev` and preview URLs are disabled on both.
 Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
@@ -43,7 +43,14 @@ Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
   the browser's native cursor.
 - In-app moves into, within and out of Notes run inside a same-document view
   transition under a persistent header.
-- Unknown Notes slugs return HTTP 404 `noindex` from the Worker.
+- Unknown Notes slugs get the same 404 document as every other path that is
+  not a page.
+- Back and Forward restore the position an entry was left at, recorded at the
+  moment of navigation.
+- With `prefers-reduced-motion: reduce`, nothing moves across the screen:
+  CSS entrances and view transitions are off, framer-motion entrances and the
+  mobile menu only fade (`MotionConfig reducedMotion="user"`), and section
+  links jump.
 - Both environments serve the route contract in
   [ARCHITECTURE.md](./ARCHITECTURE.md#http-route-contract): every path that is
   not a page is a real 404 (`/project/*` and `/admin` included), and a missing
@@ -137,14 +144,14 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 
 **VERIFIED 2026-10-22** locally.
 
-- `npm run check`: lint, Worker 187, web 158 and tools 150 unit tests pass.
-- Focused browser set at `e15735b` (route head, SEO, 404, HTTP routes, hash
-  navigation, scroll, first paint, Notes, CSP, card, contact, navigation, Boss
-  shell): all pass except the intermittent POP test in debt item 10.
-- Full Playwright suite (2026-10-22, at `1b94946`, not re-run since): 225
-  passed, 0 failed, 5 skipped. The skips are intentional: desktop-only
-  navigation checks and the
-  Chromium-only visual matrix do not run in the Mobile Chrome project.
+- `npm run check`: lint, Worker 188, web 158 and tools 150 unit tests pass.
+- Full Playwright suite at `f1723ad`: 249 passed, 0 failed, 5 skipped. The
+  skips are intentional: two desktop-header checks do not run in Mobile Chrome
+  (the menu is covered by the hash-navigation and reduced-motion specs), and
+  the visual matrix renders its desktop and phone viewports in the Chromium
+  project only.
+- `scroll-restoration.spec.ts` passed 140 of 140 with `--repeat-each=10` in
+  parallel on both projects.
 - CI: the only workflow targets `main`/`master`. Nothing runs automatically for
   `develop/hakan-run-v2` ([GITHUB-CI.md](./GITHUB-CI.md)).
 
@@ -152,34 +159,41 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 
 Each item needs its own authorization.
 
-1. **Outbound measurement governance** — implemented without a decision record;
-   AGENTS.md bounds first-party analytics to PAGE unless a broader scope is
-   approved.
-2. **Legacy artifacts in the tree** — `run/*.php`, `supabase/`,
-   `@supabase/supabase-js`, unused `TerminalLoader.jsx`, and
-   `apps/web/public/.htaccess`, which is copied into the build and publicly
-   served at `/.htaccess`.
-3. **Unknown-note 404 page** — the Worker answers an unknown Notes slug with a
-   minimal static page (`missingNote` in `worker/index.js`), not the
-   application's 404: its title differs from the in-app 404, and it says
-   `noindex` on staging too, where pages say `noindex, nofollow`.
-4. **Production aggregation** — no production cron (UNKNOWN intent).
-5. **Provider readback limits** — the account token reads Worker scripts and
+1. **Outbound measurement governance** — implemented and live without a
+   decision record; AGENTS.md bounds first-party analytics to PAGE unless a
+   broader scope is approved. Recommendation awaiting the owner in
+   [DECISIONS.md](./DECISIONS.md#open--outbound-interaction-measurement).
+   No integrity defect: it stores before forwarding, is idempotent per event
+   id and injects only into 200 HTML.
+2. **`/project/*` still counts as a page in analytics** — the client
+   (`content-source/analytics.js`) and the Worker (`worker/lib/routes.js`)
+   classify `/project/<slug>` as PAGE, although every such path has been a
+   404 since D-047 (and had no page since 2026-09-10). A visit to any
+   `/project/<slug>` is stored in `ANALYTICS_DB` and forwarded to DNDR. Not
+   changed: it alters analytics semantics and the versioned legacy-import
+   contract. Owner decision in the same DECISIONS item. How many rows exist is
+   UNKNOWN (the token cannot read D1).
+3. **Production aggregation schedule** — production has no cron. Reads stay
+   correct: summaries use aggregates only for ledger-covered days and raw
+   events otherwise (D-022), and production has no ledger rows. A schedule is
+   an optional cost optimization (DECISIONS, open item).
+4. **Provider readback limits** — the account token reads Worker scripts and
    analytics for both Workers but not D1, Observability, zones or Workers
    Builds; Wrangler reports a partial custom-domain update on every deploy.
-6. **HSTS** — still `max-age=86400`; the promotion review planned for
+5. **HSTS** — still `max-age=86400`; the promotion review planned for
    2026-10-14 has not happened (PLANNED in [ROADMAP.md](./ROADMAP.md)).
-7. **Undocumented releases** — production versions 23–25 (2026-10-05) were
+6. **Undocumented releases** — production versions 23–25 (2026-10-05) were
    deployed with the Notes commits `8f69516`, `33f8d41` and `b17ddbd`; that
    mapping is inferred from timestamps and not otherwise recorded.
-8. **Social card generation** — the homepage references the hand-maintained
-   `og-image.png`; the D-023 generator is not implemented. Notes pages carry no
-   `og:image` or Twitter tags.
-9. **Reduced motion in Framer components** — section scrolling honors the
-   preference, but the mobile menu and other Framer animations still animate
-   under reduced motion.
-10. **Intermittent POP restoration test** — `scroll-restoration.spec.ts`
-    "POP restores the destination entry…" fails about 3 in 10 runs under
-    parallel repetition (restores 4674 instead of 1200) and passes 10 of 10
-    serially. It fails the same way at `1b94946`, and the POP restore code is
-    unchanged since production `17b6ce5`; cause not established.
+7. **Social card generator (optional feature)** — D-023's generator is not
+   implemented. The served `og-image.png` is correct: byte-identical to the
+   repository, 1200×630 PNG, named by the homepage's 12 social tags
+   (VERIFIED 2026-10-22). Notes pages carry no `og:image` or Twitter tags.
+8. **Retained legacy record** — `supabase/migrations/` stays as the schema
+   record of the external Supabase database. The legacy PHP endpoints remain
+   on the legacy `main` branch and host, not in this tree.
+9. **Zone-managed robots block** — the zone prepends Cloudflare's managed AI
+   crawler section to `robots.txt` (`User-agent: *` stays `Allow: /`).
+10. **Unused `Testimonials.jsx`** — no module imports it, but Tailwind scans it,
+    so deleting it changes the generated CSS and every dependent asset hash.
+    Remove it with the next release rather than in a release of its own.

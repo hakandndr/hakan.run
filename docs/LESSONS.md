@@ -3,6 +3,14 @@
 Newest first. Numbers 15–21 occur twice: the series at the end of the file is
 the older one. Numbers are labels, not references; nothing links to them.
 
+## 32. An intermittent test can be two behaviours, and the passing one can be the bug
+
+- Problem: A test that fails some of the time is usually treated as one behaviour with noise, and the passing runs as the evidence of correctness.
+- Evidence / context: The POP restoration test clicked the homepage's only `/contact` link, in the footer, so Playwright scrolled the page before clicking. When that scroll event arrived first, the entry saved the footer position and Back correctly restored it; the test, expecting 1200, failed. When the click landed in the same frame, the scroll event arrived after the history change and the entry kept 1200; the test passed on a stale value. Logging every scroll call, scroll event, history change and view transition showed both orders.
+- Reusable rule: Instrument the intermittent case until each outcome has its own event sequence, then decide which outcome is correct. Make the test control the state it measures, and pin the race with a test that produces it on purpose.
+- Applies when: Flaky browser tests around scrolling, focus, animation or history.
+- Exceptions / caveats: Serial runs passing is a timing fact, not a verdict.
+
 ## 31. Restore the policy baseline, not the value you found
 
 - Problem: A client-side owner of a document singleton that saves "the previous value" and restores it on unmount assumes the document arrived in its baseline state.

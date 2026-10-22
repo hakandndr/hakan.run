@@ -32,7 +32,10 @@ the Worker. Every step needs the approval named in AGENTS.md.
    redirects, the Access 302 on `/boss*`, and post-deploy invocation errors from
    GraphQL `workersInvocationsAdaptive`.
 8. **Acceptance.** Focused browser checks with `**/api/analytics/**` blocked, so
-   no PAGE or outbound event is written. Never submit the contact form.
+   no PAGE or outbound event is written. Never submit the contact form. A
+   server-rendered page is visible before React owns it: wait until the DOM
+   carries React's fiber keys before clicking, or the click is a native
+   navigation.
 9. **Record.** One PROCESS entry; update HANDOFF and CURRENT_STATE.
 
 **Rollback.** `npx wrangler rollback <version-id> --env production|staging` to
