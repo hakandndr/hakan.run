@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { fulfillPublishedContent, isolatePublicWrites } from './helpers/published-content';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.sessionStorage.setItem('booted', '1'));
+  await page.route('**/api/content', fulfillPublishedContent);
+  await isolatePublicWrites(page);
 });
 
 test('unknown routes render the 404 page', async ({ page }) => {

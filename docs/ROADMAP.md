@@ -10,9 +10,10 @@ Nothing below is authorized by being listed. Each item needs its own approval.
 2. Legacy cleanup: remove `run/`, `supabase/`, `@supabase/supabase-js`, `TerminalLoader.jsx` and the public `.htaccess` in one reviewed change.
 3. Soft 404s: return HTTP 404 for `/project/*` and other unknown paths instead of an indexable 200 shell.
 4. Production aggregation: decide whether production should run the daily aggregation cron that staging runs.
-5. Remaining browser-suite failures recorded on 2026-10-21 in PROCESS: repair or retire them one group at a time.
+5. Remaining browser-suite failures (Boss content-v2, mobile hash-navigation): repair or retire them one group at a time.
 6. HSTS promotion review (due since 2026-10-14) and the other security-hardening items below.
 7. About "Beyond the IDE" copy update in `APP_DB`, deferred by the owner on 2026-09-28.
+8. Homepage social metadata: restore `og:*` and `twitter:*` tags for `/`, as a product change or through D-023.
 
 ## Approved sequence — 2026-09-28 (complete)
 

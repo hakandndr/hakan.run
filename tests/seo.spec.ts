@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { fulfillPublishedContent, isolatePublicWrites } from './helpers/published-content';
+
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/content', fulfillPublishedContent);
+  await isolatePublicWrites(page);
+});
 
 test('home page ships social + SEO meta tags', async ({ page }) => {
   await page.goto('/');

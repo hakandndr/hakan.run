@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { fulfillPublishedContent, isolatePublicWrites } from './helpers/published-content';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.sessionStorage.setItem('booted', '1'));
+  await page.route('**/api/content', fulfillPublishedContent);
+  await isolatePublicWrites(page);
 });
 
 test('contact page shows a working form', async ({ page }) => {
@@ -19,7 +22,10 @@ test('email field enforces type validation', async ({ page }) => {
   await expect(email).toHaveAttribute('required', '');
 });
 
-test('a project detail page renders', async ({ page }) => {
+// The project detail renderer was deleted; any heading used to satisfy this
+// test, including the snapshot error page. It must be the designed 404.
+test('a legacy project path renders the designed 404', async ({ page }) => {
   await page.goto('/project/full-stack-development');
-  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: '404' })).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
 });

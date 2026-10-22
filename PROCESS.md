@@ -3900,3 +3900,10 @@ Current state and roadmap describe the previously removed workstation illustrati
 - Commits and push: Test commit `c8de963` and this documentation commit, both owner-authored without trailers; fast-forward push after push-safety checks. No deploy, migration or provider change. Production runtime is unchanged.
 - Remaining: The outbound decision; the fixture gap in `navigation`, `notfound` and `seo`; mobile hash-navigation and Boss content timeouts; legacy artifacts and soft 404s; production aggregation intent; token read scope.
 - Exact next action: Give `navigation.spec.ts`, `notfound.spec.ts` and `seo.spec.ts` the shared content fixture and re-check their assertions, as a test-only change.
+
+## 2026-10-21 — Public navigation, 404 and SEO test fixtures
+
+- Starting state: Clean `develop/hakan-run-v2` at `6c20216`, equal to origin. Scope: test-only repair of `navigation.spec.ts`, `notfound.spec.ts` and `seo.spec.ts`, plus this record.
+- Root causes: All 12 failures rendered `PUBLIC_SITE / ERROR`, because the specs never served the published snapshot. Adding the shared `fulfillPublishedContent` and `isolatePublicWrites` fixed 10 of them. The 2 remaining `seo.spec.ts` failures are a real product gap: since `f36a59c` the homepage has no `og:*` or `twitter:*` tags, which production also lacks. No application code was changed. `a project detail page renders` passed against the error page; it now asserts the designed 404 heading and `noindex`.
+- Validation: The three specs gave 14 passed and 2 failed (the SEO gap). The full suite gave 188 passed, 15 failed and 5 skipped: Boss content-v2 8, mobile hash-navigation 5, SEO 2. `git diff --check` passed.
+- Next: Owner decision on homepage social metadata. Separately, the Boss content-v2 and mobile hash-navigation groups.

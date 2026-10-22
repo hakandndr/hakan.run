@@ -130,9 +130,10 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 **VERIFIED 2026-10-21** locally.
 
 - `npm run check`: lint, Worker 178, web 138 and tools 150 unit tests pass.
-- Notes and visual-baseline Playwright specs pass after the 2026-10-21 repair.
-- Other browser specs carry older failures recorded in PROCESS (2026-09-28);
-  the latest full-suite result is recorded in the 2026-10-21 maintenance entry.
+- Full Playwright suite: 188 passed, 15 failed, 5 skipped. The failures are
+  Boss `content-v2` (8; timeouts and a preview locator), mobile
+  `hash-navigation` (5; timeouts) and `seo.spec.ts` home social metadata (2;
+  a real product gap, item 8 below).
 - CI: the only workflow targets `main`/`master`. Nothing runs automatically for
   `develop/hakan-run-v2` ([GITHUB-CI.md](./GITHUB-CI.md)).
 
@@ -158,3 +159,8 @@ Each item needs its own authorization.
 7. **Undocumented releases** — production versions 23–25 (2026-10-05) were
    deployed with the Notes commits `8f69516`, `33f8d41` and `b17ddbd`; that
    mapping is inferred from timestamps and not otherwise recorded.
+8. **Homepage social metadata** — since `f36a59c` (2026-09-10) the homepage
+   has no `og:*` or `twitter:*` tags: the static ones were removed from
+   `index.html` and the home route sets only title and description. Notes
+   pages carry their own. D-023 (generated social card) is approved but not
+   implemented. VERIFIED on production 2026-10-21.
