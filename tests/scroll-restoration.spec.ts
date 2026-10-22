@@ -116,7 +116,10 @@ test('direct user scrolling after READY is never replayed over', async ({ page }
   expect(await page.evaluate(() => window.history.state.__hakanRunScroll.y)).toBe(240);
 });
 
-test('PUSH and REPLACE each perform one intended top scroll', async ({ page }) => {
+// The public site's only REPLACE navigation was the client /admin redirect to
+// the homepage; /admin is now an HTTP 404 (tests/http-routes.spec.ts), so PUSH
+// is the navigation left to pin here.
+test('PUSH performs one intended top scroll', async ({ page }) => {
   await installScrollCallLog(page);
   await page.goto('/');
   await waitForPublishedSite(page);
@@ -129,12 +132,6 @@ test('PUSH and REPLACE each perform one intended top scroll', async ({ page }) =
   expect(await page.evaluate(() => window.__scrollCalls)).toEqual([
     { kind: 'scrollTo', args: [{ top: 0, left: 0, behavior: 'auto' }] },
   ]);
-
-  await page.goto('/admin');
-  await expect(page).toHaveURL(/\/$/);
-  await waitForPublishedSite(page);
-  const replaceCalls = await page.evaluate(() => window.__scrollCalls);
-  expect(replaceCalls.filter(call => call.kind === 'scrollTo')).toHaveLength(1);
 });
 
 test('POP restores the destination entry while hash PUSH scrolls exactly once', async ({ page }) => {
