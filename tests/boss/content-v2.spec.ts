@@ -1,11 +1,11 @@
 import { test, expect, Page } from '@playwright/test';
-import { siteContent } from '../../apps/web/src/content.js';
+import { completeSiteContent } from '../../apps/web/test-fixtures/published-site.js';
 import { previewShell } from '../../worker/boss/content-preview.js';
 
 // Local browser acceptance uses in-memory API fixtures and the actual private
 // shell builder. No Access bypass is added to the application or Worker.
 async function setup(page: Page, conflict = false) {
-  const records = Object.fromEntries(Object.entries(structuredClone(siteContent)).map(([section,published]) => [section,{ section,published,draft:null,updatedAt:100,publishedRevision:1 }]));
+  const records = Object.fromEntries(Object.entries(completeSiteContent()).map(([section,published]) => [section,{ section,published,draft:null,updatedAt:100,publishedRevision:1 }]));
   records.hero.published.future = { owner:'Hakan', flags:[1,true] };
   records.about.draft = { ...records.about.published, chips:['Saved draft tag'] };
   let writes = 0;
@@ -73,12 +73,15 @@ test('portfolio reorder retains IDs and new external projects can be added',asyn
   await page.locator('#cms-portfolio-cards\\.3\\.slug').fill('new-project');
   await page.locator('#cms-portfolio-cards\\.3\\.title').fill('New project');
   await page.locator('#cms-portfolio-cards\\.3\\.description').fill('Description');
-  await page.getByRole('button',{name:'Set External URL',exact:true}).last().click();
+  // A published card needs an external destination and a technology label, so
+  // the new project cannot be saved until both are present.
+  await expect(page.getByRole('button',{name:'Save draft',exact:true})).toBeDisabled();
   await page.locator('#cms-portfolio-cards\\.3\\.externalUrl').fill('https://example.com');
+  await page.locator('#cms-portfolio-cards\\.3\\.technology').fill('Playwright');
   await page.getByRole('button',{name:'Save draft',exact:true}).click();
   await expect(page.getByRole('status')).toContainText('draft completed');
   expect(fixture.records.portfolio.draft.cards.map(c=>c.id).slice(0,3)).toEqual([2,1,3]);
-  expect(fixture.records.portfolio.draft.cards[3].externalUrl).toBe('https://example.com');
+  expect(fixture.records.portfolio.draft.cards[3]).toMatchObject({ slug:'new-project', title:'New project', externalUrl:'https://example.com', technology:'Playwright' });
 });
 test('unsaved preview uses public components without writes, storage or outbound interactions',async({page},testInfo)=>{
   const fixture=await setup(page);

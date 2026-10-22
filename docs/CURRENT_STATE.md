@@ -135,9 +135,9 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 **VERIFIED 2026-10-21** locally.
 
 - `npm run check`: lint, Worker 178, web 138 and tools 150 unit tests pass.
-- Full Playwright suite (2026-10-22): 200 passed, 13 failed, 5 skipped. The
-  failures are Boss `content-v2` (8; timeouts and a preview locator) and mobile
-  `hash-navigation` (5; timeouts).
+- Full Playwright suite (2026-10-22, after the Boss content-v2 repair): 208
+  passed, 5 failed, 5 skipped. The failures are mobile `hash-navigation` (5;
+  timeouts).
 - CI: the only workflow targets `main`/`master`. Nothing runs automatically for
   `develop/hakan-run-v2` ([GITHUB-CI.md](./GITHUB-CI.md)).
 
@@ -166,3 +166,7 @@ Each item needs its own authorization.
 8. **Social card generation** — the homepage references the hand-maintained
    `og-image.png`; the D-023 generator is not implemented. Notes pages carry no
    `og:image` or Twitter tags.
+9. **Stale Portfolio validation message** — `schema.js` adds a second error to a
+   card without `externalUrl`, saying internal detail pages use three fixed
+   slugs. Those pages were deleted and `externalUrl` is already required for
+   every card, so the rule never changes the outcome; only the message misleads.
