@@ -1,5 +1,7 @@
 # Boss Content — staging JSON editor, phase 1
 
+> **Superseded.** The phase-1 staging JSON editor (2026-09-07), replaced by the field editor and private preview in [CMS V2](../../CONTENT-CMS-V2.md). Kept as design evidence; see the [current documentation index](../../README.md).
+
 ## Scope and authority
 
 This package is based on the supplied repository snapshot at `87ff487` and the

@@ -1,5 +1,7 @@
 # Deployment and Operations
 
+> **Historical.** Describes the legacy implementation at `main@50e7bac` (2026-07-20), not the current application. See [this archive's README](./README.md) and the [current documentation index](../../README.md).
+
 ## Evidence boundary
 
 The repository defines a static frontend artifact and separate PHP files. It has no automated production deployment workflow. Existing project documentation and configuration describe manual deployment to a web root with PHP under `/run/`, but Git alone cannot prove the current host, directory layout, CDN state, or live file versions.

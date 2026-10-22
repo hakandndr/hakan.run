@@ -1,5 +1,7 @@
 # Control Room Architecture
 
+> **Historical.** Describes the legacy implementation at `main@50e7bac` (2026-07-20), not the current application. See [this archive's README](./README.md) and the [current documentation index](../../README.md).
+
 ## Route and runtime boundary
 
 Control Room is the `/control-room` route in the public React bundle, implemented entirely in `apps/web/src/pages/Admin.jsx`. It is not a separate server application. It uses a standalone layout outside the public Header and Footer.

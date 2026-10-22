@@ -1,5 +1,7 @@
 # Repository History
 
+> **Historical.** Describes the legacy implementation at `main@50e7bac` (2026-07-20), not the current application. See [this archive's README](./README.md) and the [current documentation index](../../README.md).
+
 ## Evidence policy
 
 This history separates facts visible in Git from operational context that would require external records. The repository contains six commits through the documented baseline. Claims about pre-Git development, live deployments, provider changes, or incident timing are not independently proven by the commit graph unless a commit explicitly records them.

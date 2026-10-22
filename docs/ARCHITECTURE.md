@@ -1,5 +1,28 @@
 # Architecture
 
+## Current system and data authorities — 2026-10-21
+
+The sections after this one are dated records, newest first. This section is the
+current summary; [CURRENT_STATE.md](./CURRENT_STATE.md) records what was last
+verified.
+
+One Cloudflare Worker per environment serves Static Assets and an explicit
+route table (`worker/index.js`). Public documents (`/`, `/contact`, `/card`,
+`/notes` and known articles) are server-rendered from the public React tree and
+hydrated in the browser (D-041). Boss is a separate entry tree behind Cloudflare
+Access, and the Worker verifies the Access token and owner identity itself.
+
+| Data | Authority | Written by | Read by |
+| --- | --- | --- | --- |
+| Twelve CMS sections | `APP_DB` published rows | Boss Content (staging; production only in authorized write windows) | `/api/content`, server renderer, Boss |
+| Engineering Notes | Markdown in `apps/web/notes/` | Git | Build-generated catalogue, static HTML, sitemap |
+| Contact submissions and request diagnostics | `APP_DB` | `/api/contact` after Turnstile, before notification | Boss Submissions |
+| PAGE analytics | `ANALYTICS_DB` | `/api/analytics/page` with Worker classification | Boss Analytics |
+| Outbound clicks (production only) | `ANALYTICS_DB.outbound_events` | `/api/analytics/outbound` | Not displayed; no decision record (see DECISIONS, open item) |
+| Central analytics copy | DNDR, secondary | Best-effort `DNDR_COLLECTOR` calls after each source write | DNDR only; never this site's panels (D-044–D-046) |
+| Security headers | `worker/lib/security-headers.js` | Build generates `_headers`; Worker applies the same module | Every response (D-042) |
+
+
 ## Transport and response security layer — 2026-09-29
 
 Plain-HTTP requests never reach the Worker. Zone Single Redirect rules
@@ -470,7 +493,7 @@ Footer logo text remains published content. Source-controlled rendering isolates
 the slash and paints it white, matching the Header's canonical `<h/>` treatment
 without creating a second content value.
 
-## Implemented CMS V2 — local, not deployed
+## Implemented CMS V2 — staging accepted 2026-09-09; production writes disabled
 
 The editor and Worker share the explicit section schema. Full objects are retained while known paths are edited. Existing APP_DB draft/publish/revision/audit transactions are unchanged. The owner-only preview snapshot endpoint reads all saved sections once; the parent overlays optional unsaved editor data in memory and sends it to a separately protected iframe. A controlled provider renders the existing public components in that document. Preview never reads the public content API or browser storage. Project-detail CMS remains a later phase.
 

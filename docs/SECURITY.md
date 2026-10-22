@@ -1,5 +1,17 @@
 # Security
 
+## Outbound interaction measurement — live, ungoverned, 2026-10-06
+
+Production pages load a source-owned script that reports clicks on external
+links to `/api/analytics/outbound`. The Worker accepts an event only from its
+own origin with a same-origin referrer equal to the reported path, a UUID event
+id and an allowed destination, and only on production. It stores the event in
+`ANALYTICS_DB.outbound_events` with the request IP, user agent and Cloudflare
+geo, then forwards it to DNDR. That is the same request context PAGE events
+carry, but no decision defines its scope or retention; see the open item in
+[DECISIONS.md](./DECISIONS.md). The script is served from the site's own origin,
+so the CSP is unchanged.
+
 ## DNDR Analytics production dual-write — live, 2026-10-03
 
 - Trust boundary: the copy leaves this Worker only over an account-internal
@@ -423,7 +435,7 @@ Control Room authentication and browser content authority are removed. Private
 preview remains memory-only and independent of production write enablement.
 No deployed security configuration changed in this checkpoint.
 
-## Implemented CMS V2 boundary — local, not deployed
+## Implemented CMS V2 boundary — staging accepted 2026-09-09; production writes disabled
 
 The preview shell and snapshot API both pass existing Access signature, audience, issuer, expiry and owner checks in the Worker. Preview responses are non-cacheable. The shell removes public trackers and enforces restrictive CSP, no-referrer and same-origin framing. Only validated messages from the exact parent/origin are accepted. Unsaved data stays in memory; preview disables network connections, forms, external images and outbound interactions. Browser tests verify blocked requests; signed-token tests verify both allowed and denied identities. There is no new development authentication bypass in the runtime.
 

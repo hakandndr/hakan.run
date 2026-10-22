@@ -1,5 +1,18 @@
 # Reusable Engineering Lessons
 
+Newest first. Numbers 15–21 occur twice: the series at the end of the file is
+the older one. Numbers are labels, not references; nothing links to them.
+
+## 30. A suite that is always red stops being evidence
+
+- Problem: A failing test that everyone expects to fail no longer reports anything, and the explanation recorded for it drifts from the cause.
+- Evidence / context:
+  - From 2026-09-10 the visual matrix never supplied the published snapshot the public shell requires, so its header and sections never mounted. Its screenshots were from 2026-09-01. It was reported as "historical visual baseline failures" for six weeks and, on 2026-10-21, briefly attributed to the featured-Notes reorder before the fixture gap was found.
+  - Once it was repaired, the same suite caught a real stale contract: the mobile menu control had been renamed for accessibility and the test still looked for the old name.
+- Reusable rule: Keep the routinely run suite green. When a test must stay red, record the observed cause with the failing assertion, and re-check that cause before blaming a recent change.
+- Applies when: Labelling failures as pre-existing, choosing which tests gate a release, refreshing snapshots.
+- Exceptions / caveats: Refresh a screenshot only after each difference has been tied to an approved change; never widen tolerances to make a red suite green.
+
 ## 29. A probe is evidence only after it has failed once on purpose
 
 - Problem: Verification scripts can report success, or failure, for reasons unrelated to the property they claim to measure.

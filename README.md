@@ -13,59 +13,35 @@ Live site: [hakan.run](https://hakan.run)
 
 For the implemented site, start with the [documentation index](./docs/README.md). Modernization work is governed by [AGENTS.md](./AGENTS.md), continued from [HANDOFF.md](./HANDOFF.md), and tracked through [current state](./docs/CURRENT_STATE.md) and the [roadmap](./docs/ROADMAP.md).
 
-## Modernization status
+## Current implementation
 
-Boss Analytics free-text filtering is case-insensitive in the Worker query layer.
-Country, browser, page, city and referrer inputs retain their existing exact or
-prefix behavior while ignoring ASCII case. IP matching and controlled source/actor
-filters keep their previous semantics; stored analytics data is never normalized or
-rewritten for filtering.
+- One Cloudflare Worker per environment serves `hakan.run` (production) and
+  `staging.hakan.run` with Static Assets and an explicit route table. Boss
+  (`/boss`, `/api/boss/*`) is protected by Cloudflare Access and checked again
+  by the Worker.
+- The Worker server-renders `/`, `/contact`, `/card`, `/notes` and each
+  article from the same React tree the browser hydrates, so the first paint is
+  the final page (D-041).
+- The twelve CMS sections come only from published `APP_DB` rows, validated as
+  one snapshot; there is no bundled fallback. Production CMS writes are disabled.
+- Eleven Engineering Notes are Markdown files in `apps/web/notes/`; the build
+  generates their catalogue, static HTML and sitemap entries, and front matter
+  ranks the three homepage notes.
+- First-party PAGE analytics write `ANALYTICS_DB`, which Boss reads. DNDR
+  Analytics receives a best-effort secondary copy. Production also records
+  outbound link clicks, a feature that still lacks a decision record.
+- Contact submissions persist in `APP_DB` before Cloudflare Email notifies the
+  owner.
 
-Production cutover is complete. The modern Cloudflare Worker serves `hakan.run`,
-the canonical `www` redirect remains external and path/query preserving, production
-CMS content comes only from the isolated production `APP_DB`, and Boss remains protected
-by Cloudflare Access. Production native PAGE analytics is live for canonical public
-routes and writes to the isolated production `ANALYTICS_DB`; imported history remains
-distinguishable through `event_source`.
+What is deployed now, and what is unknown, is in
+[docs/CURRENT_STATE.md](./docs/CURRENT_STATE.md).
 
-The production client explicitly tracks `hakan.run` and the staging client tracks
-`staging.hakan.run`. The Worker remains the PAGE classification/write boundary, and
-assets, APIs, Boss routes and unknown routes cannot become PAGE events. Boss exposes
-separate `native` and `legacy_panel` filters. Its oldest-event Dashboard card is
-explicitly native-scoped because it describes the native raw-detail retention action.
+## Legacy technology (before 2026-09)
 
-The existing CMS public paths render from a complete, validated twelve-section `APP_DB` snapshot;
-the public application has no source-bundled fallback for its twelve CMS sections. Public, Boss and
-preview have separate entry trees. [CMS V2](./docs/CONTENT-CMS-V2.md) provides
-the private editor and preview; production CMS writes remain disabled. The React
-public shell serves `/`, `/contact`, `/notes`, known article routes, and the snapshot-derived `/card`; the home
-navigation links to sections, while Portfolio cards use published external URLs.
-Ten Engineering Notes articles are repository Markdown in
-`apps/web/notes/`; their build-generated catalogue powers `/notes` and known article
-routes, with static HTML and sitemap output. Front matter selects the three homepage
-notes. The Worker server-renders public documents from APP_DB and the browser
-hydrates them, so the first paint is the final page; see D-041.
-In-app pathname changes into, within and out of Notes are committed inside a same-document
-view transition (300ms, the site's standard chrome motion) under a persistent header;
-hash navigation, document loads, reloads and reduced-motion navigation do not use it.
-The ten notes are live on production after local, visual, staging and bounded
-production acceptance. Unknown
-Notes slugs return first-party HTTP 404; production Notes pages are indexable.
-Snapshot failure shows an explicit error instead of bundled copy. Hash navigation,
-reload and Back/Forward use the shared scroll manager. Detailed behavior and phase
-evidence are in [Architecture](./docs/ARCHITECTURE.md) and [Operations](./docs/OPERATIONS.md).
-
-## Legacy technology reference
-
-| Area | Implementation |
-| --- | --- |
-| Frontend | React 18, Vite 4, React Router 6, Tailwind CSS, Framer Motion |
-| Content and authentication | Supabase client, Postgres `site_content`, Supabase Auth and TOTP MFA |
-| Contact | Formspree |
-| Analytics | Google Analytics 4 and a separate PHP visitor log |
-| Testing | Playwright |
-| CI | GitHub Actions test workflow; no deployment workflow |
-| Hosting model | Static frontend artifact plus separately deployed PHP endpoints |
+The pre-modernization site used React with Supabase content and auth, a
+`/control-room` admin, PHP visitor logging, Formspree and Apache hosting. Those
+records are in [docs/archive/legacy-2026-07](./docs/archive/legacy-2026-07/README.md).
+`run/` and `supabase/` remain in the tree as unremoved legacy files.
 
 ## Repository layout
 
@@ -120,14 +96,14 @@ environment variables are part of the modernization public runtime.
 ## Validation
 
 ```bash
-npm run lint
-npm test
+npm run check
+npx playwright test tests/notes.spec.ts tests/visual
 ```
 
-The Phase 1 acceptance uses the focused snapshot/schema/preview contracts, the
-focused Chromium content lifecycle suite, lint, and production/staging builds. The
-historical full visual suite is deliberately outside this phase. See
-[Operations](./docs/OPERATIONS.md) for the exact commands and results.
+`npm run check` runs lint and the Worker, web and tools unit tests. Browser
+specs build the app and run against `vite preview` and a local Worker document
+server. Some older browser specs still fail; the current list is in PROCESS.md.
+See [Operations](./docs/OPERATIONS.md) for the release procedure.
 
 ## Build and deployment boundary
 

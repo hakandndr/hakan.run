@@ -1,95 +1,38 @@
-# GitHub and CI Architecture
+# GitHub and CI
 
-## Repository baseline
+## Repository
 
-- remote: `https://github.com/hakandndr/hakan.run.git`;
-- documented baseline: `main@50e7bac9198e39f251a45aebe287979e929ecdc7`;
-- workflow: `.github/workflows/playwright.yml`.
+- Remote: `https://github.com/hakandndr/hakan.run.git`.
+- `main` holds the legacy application (`50e7bac` and earlier). All
+  modernization and production work is on `develop/hakan-run-v2`.
 
-Repository visibility, branch protection, required checks, secrets, environment rules, and current workflow results are GitHub-side state and cannot be proven from the checked-out files alone.
+## What the workflow does
 
-## Workflow behavior
+`.github/workflows/playwright.yml` is the only workflow. It runs on pushes and
+pull requests to `main` or `master`: checkout, Node `lts/*`, `npm ci`, Chromium
+install, `npx playwright test`, and an HTML report artifact kept 30 days. It has
+no deployment, Cloudflare, database or secret step.
 
-The Playwright workflow triggers on pushes and pull requests targeting `main` or `master`. It:
+## What it does not do
 
-1. checks out the repository;
-2. selects Node using `actions/setup-node` with `lts/*`;
-3. runs root `npm ci`;
-4. installs Playwright Chromium with system dependencies;
-5. runs `npx playwright test`;
-6. uploads the HTML report artifact for 30 days when the job is not cancelled.
+- Nothing runs automatically for `develop/hakan-run-v2`. GitHub readback on
+  2026-10-21 found no workflow run on that branch, no webhook and no ruleset.
+- No Cloudflare Worker is connected to Git; Worker versions are created only by
+  `wrangler` (see [OPERATIONS.md](./OPERATIONS.md)).
+- The unit-test gate `npm run check` and the browser specs are run by hand
+  before each change.
 
-The job has a 60-minute timeout. Playwright uses one worker and two retries in CI.
+## Known gaps
 
-The workflow has no deployment, FTP, hosting, Supabase, migration, DNS, cache, or provider step.
+- Node selection differs: `.nvmrc` pins `20.19.1`, the workflow uses `lts/*`.
+- If the workflow ever ran against this branch, the full browser suite would
+  report the older failures recorded in PROCESS (2026-10-21 maintenance entry).
+- Adding CI for `develop/hakan-run-v2` is a separate decision; it should run
+  `npm run check` and the browser specs that are known to pass.
 
-## Playwright runtime
+## Traceability
 
-`playwright.config.ts` starts:
-
-```text
-npm run build --prefix apps/web && npm run start --prefix apps/web
-```
-
-The preview URL is `http://localhost:4173`. Two projects run:
-
-- desktop Chrome profile;
-- Pixel 5 mobile profile.
-
-Both use the Chromium engine. Firefox, WebKit, and real mobile browsers are not covered.
-
-## Current test coverage
-
-| Test file | Assertions |
-| --- | --- |
-| `home.spec.ts` | document title, visible H1, desktop navigation order |
-| `navigation.spec.ts` | contact controls, email type/required attributes, one project detail route |
-| `notfound.spec.ts` | designed 404 and back-home navigation |
-| `seo.spec.ts` | selected OG, Twitter card, and canonical elements |
-
-The suite does not cover:
-
-- mobile-menu opening or navigation;
-- every portfolio card and project slug;
-- unknown project-slug fallback;
-- real Formspree submission;
-- Supabase content loading or saving;
-- RLS or owner authorization;
-- Control Room login, MFA, editors, or Tracker;
-- PHP endpoint behavior;
-- GA4 delivery;
-- Apache headers or SPA fallback on the real host;
-- upload, cache purge, rollback, or production smoke tests.
-
-A green workflow proves only that these source-level browser checks passed in the workflow environment.
-
-## Node version drift
-
-The repository currently has three relevant observations:
-
-- `.nvmrc`: `20.19.1`;
-- GitHub Actions: moving `lts/*` selector.
-
-This can produce different dependency, build, or browser-launch behavior across environments. Aligning CI with `.nvmrc` requires a separately authorized workflow change and validation.
-
-## Commit and release traceability
-
-For each authorized release, record independently:
-
-1. source commit SHA;
-2. CI run and result;
-3. built artifact hash;
-4. upload time and target;
-5. PHP runtime version if changed;
-6. cache action;
-7. live smoke result.
-
-A commit is not a push, a push is not a production deployment, and a successful CI run is not evidence that production changed.
-
-## Repository hygiene
-
-- keep owner-only author and committer identity;
-- do not add secondary authorship or automated attribution metadata;
-- never commit environment files, `secure-config.php`, tokens, passwords, real logs, generated output, test reports, or local configuration;
-- stage explicit paths and inspect the complete staged diff;
-- keep source claims separate from live provider claims.
+For each release record, independently: source SHA, local gate results, Worker
+version and deployment IDs, rollback target, served asset hash and acceptance
+result. A commit is not a push, a push is not a deployment, and a green run is
+not evidence that production changed.

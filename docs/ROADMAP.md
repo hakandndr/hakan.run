@@ -2,11 +2,23 @@
 
 This roadmap describes approved sequencing, not completed implementation. Each phase requires its own explicit authorization and reviewed commit boundary where changes are retained.
 
-## Approved next sequence — 2026-09-28
+## Gated work — 2026-10-21
+
+Nothing below is authorized by being listed. Each item needs its own approval.
+
+1. Outbound interaction measurement: owner decision to ratify, narrow or withdraw (see the open item in [DECISIONS.md](./DECISIONS.md)).
+2. Legacy cleanup: remove `run/`, `supabase/`, `@supabase/supabase-js`, `TerminalLoader.jsx` and the public `.htaccess` in one reviewed change.
+3. Soft 404s: return HTTP 404 for `/project/*` and other unknown paths instead of an indexable 200 shell.
+4. Production aggregation: decide whether production should run the daily aggregation cron that staging runs.
+5. Remaining browser-suite failures recorded on 2026-10-21 in PROCESS: repair or retire them one group at a time.
+6. HSTS promotion review (due since 2026-10-14) and the other security-hardening items below.
+7. About "Beyond the IDE" copy update in `APP_DB`, deferred by the owner on 2026-09-28.
+
+## Approved sequence — 2026-09-28 (complete)
 
 1. Reconcile active documentation with the completed production cutover — committed and pushed as `a825df5`.
 2. Design and implement first-party Engineering Notes information architecture and runtime at `/notes` — committed as `4f74581` with metadata fix `c88ba31`, pushed and accepted on staging version `acacaee5-a802-4c1c-9e93-e2846fd27bd4`.
-3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production; expanded to ten source-verified articles with deeper engineering detail, live on 2026-09-29; the enter-only fade was replaced the same day by an owner-approved view-transition route motion with a persistent header.
+3. Prepare and review the first curated Engineering Notes content batch — five articles reviewed and live in production; expanded to ten source-verified articles with deeper engineering detail, live on 2026-09-29, and to eleven with the DNDR control-plane article on 2026-10-04 (featured order since `b17ddbd`: Centralizing analytics, Moving a live static site, A write path); the enter-only fade was replaced the same day by an owner-approved view-transition route motion with a persistent header.
 4. Add OC-CA to Portfolio's "What I've Built" as an engineering project — published in APP_DB revision 2 with the approved five-project order.
 5. Remove the synthetic workstation illustration from rendered About and rebalance the lower layout — deployed; real portrait retained.
 6. Perform focused visual and content QA — local desktop/mobile and production smoke passed for the deployed changes.
@@ -59,13 +71,12 @@ than promised articles.
   - Removal of the unused `sonner` dependency.
   - An optional CSP reporting endpoint.
 
-### DNDR Analytics integration — staging live; production forwarding live, DNDR enrolment pending
+### DNDR Analytics integration — live in staging and production
 
 - Objective: DNDR Analytics holds an exact secondary copy of this site's PAGE events and its history, without changing this site's authority.
-- Status: Staging dual-write live since 2026-10-01 with exact parity (D-044); production forwarding live since 2026-10-03 (D-046, `6bed54ba-…`); DNDR refuses the copies until its own production enrolment of `prd_hakan_run_binding`.
-- Source status: **SOURCE SIDE COMPLETE — CENTRAL ACCEPTANCE PENDING**. Hygiene and Git-only push safety are verified; neither source Worker has a Git-connected Builds integration. No further source Worker deploy is needed.
-- Remaining, each separately authorized: DNDR production seed and registry readback; one new controlled post-seed visit; source/central acceptance and exact parity; native_start from that first accepted event; source Boss and DNDR Boss Projects → Hakan.run verification; owner acceptance. Exact sequence is in `HANDOFF.md`.
-- The rejected pre-seed event is source-only and must never be replayed, backfilled or used for native_start. Production history import is not planned or authorized.
+- Status: Staging dual-write live since 2026-10-01 with exact parity (D-044); production forwarding live since 2026-10-03 (D-046). DNDR enrolled `prd_hakan_run_binding` on its side; on 2026-10-06 a live production event was accepted centrally and PAGE totals matched at 4,046 in both stores (PROCESS 2026-10-06), so the central copy includes earlier history. How that history was loaded is recorded on the DNDR side, not here.
+- Current parity is not re-verified: the account token used since 2026-10-21 cannot read D1 or DNDR.
+- The pre-seed event refused on 2026-10-03 must still never be replayed through live forwarding or used for native_start.
 
 ## Historical roadmap snapshots (2026-09-15 and earlier)
 
@@ -289,7 +300,7 @@ provenance and do not authorize or describe current work.
 - Main risks: Split authority, draft leakage, schema drift, unsafe fallback behavior.
 - Acceptance gates: Authority map, schema validation, draft/publish behavior, rollback, public-consumer verification.
 - Authorization boundaries: DATABASE, MIGRATE, DEPLOY, and content activation are separate.
-- Status: CMS V2 implemented and validated locally across twelve sections, including private saved/unsaved preview. Owner local fixture acceptance passed by owner report (1 passed, 2.9m). Separately authorized staging deployment and real Access/APP_DB acceptance remain pending. See [CMS V2](CONTENT-CMS-V2.md).
+- Status: CMS V2 implemented and validated locally across twelve sections, including private saved/unsaved preview. Owner local fixture acceptance passed by owner report (1 passed, 2.9m). Separately authorized staging deployment and real Access/APP_DB acceptance remain pending. See [CMS V2](CONTENT-CMS-V2.md). (Superseded: staging acceptance closed on 2026-09-09.)
 
 ### Phase 8 — Public content and positioning refinement
 

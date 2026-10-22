@@ -1,5 +1,18 @@
 # CMS V2 — field editing and private preview
 
+## Status — 2026-10-21
+
+| Stage | State |
+| --- | --- |
+| Local acceptance | Passed 2026-09-08 |
+| Staging acceptance | Passed 2026-09-09 with real Access and staging `APP_DB` (below) |
+| Production code | Deployed; Boss Content, field editors and private preview run behind Access |
+| Production writes | Disabled: `CMS_PRODUCTION_WRITES_ENABLED=false`. The Worker refuses draft, publish and restore with `production_writes_not_enabled` |
+| Production write windows | Recorded: 2026-09-28 only. A separately authorized uncommitted deploy set the flag to `true`, published Portfolio revision 2 only, and was reverted the same day |
+
+Having the editor in production is not authorization to write. Each production
+write window needs its own approval. Sections below are dated records.
+
 ## CMS V2 staging acceptance closed — 2026-09-09
 
 Code commit `19abe9a8250930d81d55fe14b13d3554ad97c1bd` was pushed to

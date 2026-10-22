@@ -1,5 +1,7 @@
 # Backend and Security Architecture
 
+> **Historical.** Describes the legacy implementation at `main@50e7bac` (2026-07-20), not the current application. See [this archive's README](./README.md) and the [current documentation index](../../README.md).
+
 ## Trust boundaries
 
 The repository has no general-purpose application server. Security is divided among:

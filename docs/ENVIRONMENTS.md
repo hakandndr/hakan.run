@@ -1,13 +1,14 @@
 # Environment and Resource Map
 
-## Current environment and resource map — verified 2026-10-03
+## Current environment and resource map — verified 2026-10-22
 
 Source-controlled `wrangler.jsonc` defines separate staging and production
 resources; this table is the current configuration map. Production serves the
-apex and Boss is Access-protected. Read-only deployment status confirms
-production version `6bed54ba-7a65-4702-a91f-3b8315e9a08b` at 100% traffic,
-deployment `f47c968f-97a7-44c3-9830-19ec7b6098fa`; staging remains
-`ae68dc2d-7380-4f5b-a037-e0ad9be53b42`. This verification changed no resource.
+apex and Boss is Access-protected. Cloudflare API readback on 2026-10-22 (UTC)
+shows production version `11f7232a-e6b7-4ac7-b50f-149b0515ea23` at 100%
+(deployment `55e644f9-41b9-4ee5-9705-635b59868b3c`) and staging version
+`d641bc37-c412-4e79-aae4-a844042f63f5` at 100%. Production bindings were read
+before and after that release and did not change.
 
 | Resource or setting | Staging | Production |
 | --- | --- | --- |
@@ -20,17 +21,22 @@ deployment `f47c968f-97a7-44c3-9830-19ec7b6098fa`; staging remains
 | `ANALYTICS_ENABLED` | `true` | `true` |
 | `NOTIFICATIONS_ENABLED` | `false` | `true` |
 | `CMS_PRODUCTION_WRITES_ENABLED` | Not defined | `false` |
+| Cron trigger | `30 8 * * *` (daily aggregation) | None |
+| `ANALYTICS_DB` migration `0003` | Unknown; outbound code does not run on staging | Applied 2026-10-06 (`outbound_events`, PROCESS) |
 
 Both environments declare a restricted `EMAIL` send binding: recipient
 `hakan@dndr.net`, allowed sender `noreply@hakan.run`. Both configure
 `NOTIFICATION_SENDER=noreply@hakan.run` and
 `NOTIFICATION_RECIPIENT=hakan@dndr.net`. `RESEND_API_KEY` is not required and
-there is no active Resend fallback. Old Hostinger and Supabase remain preserved
-rollback infrastructure; decommission is not authorized.
+there is no active Resend fallback. Old Hostinger and Supabase were recorded as
+preserved rollback infrastructure on 2026-10-03 (not re-verified since);
+decommission is not authorized.
 
 DNDR forwarding is additive; source analytics and Boss remain independent.
-Production DNDR enrolment is still pending. Provider binding readback confirms
-service/entrypoint but does not expose producer props. Workers Builds API reads
+DNDR enrolled the production producer on its side; the first centrally accepted
+production event and matching PAGE totals are recorded for 2026-10-06 in
+PROCESS. Provider binding readback confirms service and entrypoint but does not
+expose producer props. Workers Builds API reads
 returned 403; authenticated dashboard readback then confirmed both source
 Workers show Git repository → Connect, with no connected Git build/deploy
 integration. Staging's existing daily analytics cron is independent of Git.

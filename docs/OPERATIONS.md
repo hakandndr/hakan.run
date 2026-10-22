@@ -1,5 +1,50 @@
 # Operations
 
+## Current release procedure — 2026-10-21
+
+The procedure used for the native text cursor release. Sections after this one
+are dated records, newest first; the numbered preamble in PROCESS.md predates
+the Worker. Every step needs the approval named in AGENTS.md.
+
+1. **Baseline.** Clean tree on `develop/hakan-run-v2`, local equal to origin.
+   Read the current deployment of both Workers (`GET
+   /accounts/{id}/workers/scripts/{name}/deployments`) and record the version
+   at 100% as the rollback target.
+2. **Gates.** `npm run check` (lint plus Worker, web and tools unit tests) and
+   the Playwright specs for the changed surface. Browser specs run against a
+   fresh production build: Playwright starts `vite preview` on port 4173 and
+   the Worker document server (`tests/support/document-server.mjs`) on 4175.
+3. **Push.** Normal fast-forward only. No workflow, webhook, ruleset or
+   Git-connected build acts on this branch; confirm that no new Worker version
+   appears after the push.
+4. **Staging.** `npm run build:staging --prefix apps/web`, then
+   `npx wrangler deploy --dry-run --env staging` (bindings must equal the
+   staging readback), then `npx wrangler deploy --env staging`.
+5. **Production build.** `npm run build --prefix apps/web` immediately before
+   deploying. It overwrites the staging artifact in the same `dist/`. Check
+   `npm run verify:artifact --prefix apps/web`, `index, follow` on documents,
+   the sitemap, and `robots.txt`.
+6. **Production.** `npx wrangler deploy --dry-run --env production`; compare its
+   main module with the deployed one when only static assets should change.
+   Then `npx wrangler deploy --env production --message "<summary> (<sha>)"`.
+7. **Readback.** Deployment and version at 100%, bindings and schedules equal to
+   the pre-deploy snapshot, the served asset hash on the custom domain, headers,
+   redirects, the Access 302 on `/boss*`, and post-deploy invocation errors from
+   GraphQL `workersInvocationsAdaptive`.
+8. **Acceptance.** Focused browser checks with `**/api/analytics/**` blocked, so
+   no PAGE or outbound event is written. Never submit the contact form.
+9. **Record.** One PROCESS entry; update HANDOFF and CURRENT_STATE.
+
+**Rollback.** `npx wrangler rollback <version-id> --env production|staging` to
+the recorded target. Additive D1 rows stay in place across a code rollback.
+
+**Known provider limits (2026-10-22).** The account token can read and deploy
+both Workers and read Workers analytics. It cannot read D1, Workers
+Observability, zones, Pages or Workers Builds. Because it cannot read zones,
+every deploy prints `Trigger configuration … only partially updated` (code
+10084) for the custom domain. The existing domain keeps serving; confirm it with
+the served asset hash rather than treating the warning as success or failure.
+
 ## C1 source closeout gates — 2026-10-03
 
 - Read Git state and `git ls-remote` without fetch; inspect local commit
@@ -7,8 +52,9 @@
   webhooks/rulesets/branch runs before any push.
 - Download the deployed Worker main module using a read-only script GET and
   compare it to `wrangler deploy --env production --dry-run --outdir <local-output>`.
-  The dry run uploads nothing. Current modules are byte-identical; see
-  `CURRENT_STATE.md` for the hash and scope of this evidence.
+  The dry run uploads nothing. The modules were byte-identical on 2026-10-03; the
+  hash and scope of that evidence are in the
+  [archived CURRENT_STATE checkpoint](./archive/checkpoints/CURRENT_STATE-2026-09-01-to-2026-10-21.md).
 - Verify source and central event/registry state with SELECT only. This
   closeout returned `changes=0`, `rows_written=0`, `changed_db=false`. Do not
   POST a new analytics event, replay or backfill the pre-seed event.
@@ -1006,7 +1052,7 @@ CMS V2 is not deployed. Owner local fixture acceptance is complete by owner repo
 - Canonical remote: `https://github.com/hakandndr/hakan.run.git`.
 - Modernization base: `e3467d221470f5776bf435a5c770a17d0c45f7fb`.
 
-## Verified current commands
+## Command notes from Phase 1A onwards — historical
 
 The repository recommends Node `20.19.1` through `.nvmrc`. Dependencies must be installed only when separately authorized; Phase 1A did not install or change them.
 

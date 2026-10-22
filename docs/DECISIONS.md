@@ -2,6 +2,15 @@
 
 Each entry records an approved durable direction. Planned decisions do not imply implementation.
 
+## Open — Outbound interaction measurement
+
+Not a decision. This records implemented behavior that no decision covers.
+
+- Implemented: Since production version `b104882d-9cf9-4058-b2a8-f9ffebfb5ee0` (2026-10-06), public pages in production load a source-owned script (`worker/outbound/outbound-client.js`) that reports clicks to external hosts to `/api/analytics/outbound`. The Worker validates origin, referrer and destination, stores one `OUTBOUND_CLICK` row per event id in `ANALYTICS_DB.outbound_events` (`migrations/analytics/0003_outbound_events.sql`) with request IP, user agent and Cloudflare geo in `event_json`, then forwards it to DNDR through `DNDR_COLLECTOR.recordActivity`. `/project/*` became Worker-first so project documents receive the script. Staging does not run it; Boss does not display it.
+- Authorization on record: PROCESS (2026-10-06) records that a scoped production release, commit and push were authorized. No entry here defines the analytics scope, retention or visibility.
+- Policy tension: AGENTS.md bounds first-party analytics to PAGE events unless a broader scope is approved. D-045 keeps analytics work from changing public routes or interactions and keeps DNDR transport at the Worker write boundary; the outbound path adds a client script and a Worker-first route.
+- Owner decision needed: (a) ratify outbound measurement as a numbered decision with its fields, retention and Boss visibility; (b) ratify it with narrower data, for example without IP; or (c) withdraw it with a reviewed code change and leave the additive table and its rows in place. Until then, treat the feature as live but ungoverned, and do not extend it.
+
 ## D-046 — Production sends the same best-effort copy to DNDR Analytics
 
 - Decision: Owner approval of 2026-10-03 (DNDR Batch C1). Production forwards exactly as staging does under D-044: after `ANALYTICS_DB` stores a native PAGE event, in `waitUntil`, keyed by `visitor_events:<id>`, over a production Service Binding `DNDR_COLLECTOR` → `dndr-collector#ProducerApi` with `props.producerId = prd_hakan_run_binding`. `DNDR_FORWARD_ENVIRONMENTS` is `['staging', 'production']`; development never forwards. Each environment's binding names only its own collector and producer.
@@ -9,7 +18,7 @@ Each entry records an approved durable direction. Planned decisions do not imply
 - Alternatives considered: A new production-specific forwarder (a second protocol); a browser beacon to DNDR; enabling forwarding only after DNDR enrols the producer (it would need a second deploy here, while a refusal costs this site nothing).
 - Rationale: The staging implementation is proven (exact parity) and already isolated; promoting it changes one list and one binding. Until DNDR enrols the producer, DNDR refuses and counts each copy, and this site is unaffected.
 - Consequences: Boss Analytics still reads only `ANALYTICS_DB` (D-045). A DNDR outage, refusal, slowness or error never changes a response or a row (tested). Disabling the producer in DNDR, or a Worker rollback, stops the copy.
-- Status: Live in production since 2026-10-03T04:31Z (`6bed54ba-7a65-4702-a91f-3b8315e9a08b`); DNDR enrolment pending on the DNDR side.
+- Status: Live in production since 2026-10-03T04:31Z (`6bed54ba-7a65-4702-a91f-3b8315e9a08b`). DNDR-side enrolment followed; on 2026-10-06 a live event was accepted centrally and PAGE totals matched at 4,046 in both stores (PROCESS). Parity has not been re-read since.
 
 ## D-045 — This project's own analytics stay; analytics work does not change the public site
 
