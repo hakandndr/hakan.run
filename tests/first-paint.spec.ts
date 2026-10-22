@@ -114,7 +114,10 @@ for (const path of PAGES) {
 test('unknown Notes slug stays a first-party HTTP 404 through the Worker', async ({ request }) => {
   const response = await request.get(`${DOCUMENT_ORIGIN}/notes/not-a-real-note`, { maxRedirects: 0 });
   expect(response.status()).toBe(404);
-  expect(await response.text()).toContain('404 — Note not found');
+  const html = await response.text();
+  // The site's 404 document, the same as for any other path that is not a page.
+  expect(html).toContain('404 — Page Not Found | Hakan Dundar');
+  expect(html).toContain('no such file or directory');
 });
 
 test('server-rendered navigation keeps the soft route transition', async ({ page }) => {

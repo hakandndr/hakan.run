@@ -117,10 +117,7 @@ test('from a server-rendered 404, Back and Forward between it and other pages ke
 });
 
 test('an unknown note inside the document is the same 404 head, and leaving it restores the page', async ({ page }) => {
-  // A direct request for an unknown note gets the Worker's minimal static 404
-  // page, which never hydrates; inside the document the route renders the
-  // application's 404, whose head is the reference.
-  const missing = await directHead(page, '/no-such-page', 'text=404');
+  const missing = await directHead(page, '/notes/not-a-real-note', 'text=404');
   const notes = await directHead(page, '/notes', '[data-public-section="notes-index"]');
   await markDocument(page);
 

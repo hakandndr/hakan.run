@@ -35,7 +35,7 @@ const get = (path, env, init) => worker.fetch(new Request(`https://hakan.run${pa
 const head = (html) => html.slice(0, html.indexOf('</head>'));
 
 test('an unknown page-like path is the site 404 document, rendered and hydratable', { skip: !built }, async () => {
-  for (const path of ['/nonexistent-path', '/project/full-stack-development', '/admin', '/contact/extra']) {
+  for (const path of ['/nonexistent-path', '/project/full-stack-development', '/admin', '/contact/extra', '/notes/not-a-real-note', '/notes/a-write-path-for-a-mostly-static-site/extra']) {
     const response = await get(path, { ASSETS: assets(), APP_DB: database() });
     assert.equal(response.status, 404, path);
     assert.match(response.headers.get('content-type'), /^text\/html/, path);
@@ -105,13 +105,32 @@ test('a trailing slash on a public document redirects to its canonical address',
   }
 });
 
-test('unknown API paths keep their JSON 404 and unknown Notes keep their own 404', async () => {
+test('unknown API paths keep their JSON 404', async () => {
   const api = await get('/api/nope', { ASSETS: assets(), APP_DB: unreadableDatabase() });
   assert.equal(api.status, 404);
   assert.match(api.headers.get('content-type'), /application\/json/);
-  const note = await get('/notes/not-a-real-note', { ASSETS: assets(), APP_DB: unreadableDatabase() });
-  assert.equal(note.status, 404);
-  assert.match(await note.text(), /Note not found/);
+});
+
+test('an unknown note is the site 404 document, also for HEAD and without APP_DB', { skip: !built }, async () => {
+  const head404 = await get('/notes/not-a-real-note', { ASSETS: assets(), APP_DB: unreadableDatabase() }, { method: 'HEAD' });
+  assert.equal(head404.status, 404);
+  assert.equal(await head404.text(), '');
+  const post = await get('/notes/not-a-real-note', { ASSETS: assets(), APP_DB: unreadableDatabase() }, { method: 'POST' });
+  assert.equal(post.status, 405);
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    const seen = [];
+    const degraded = await get('/notes/not-a-real-note', { ASSETS: assets(seen), APP_DB: failingDatabase() });
+    assert.equal(degraded.status, 404);
+    const html = await degraded.text();
+    assert.match(html, /<meta name="robots" content="noindex" \/>/);
+    assert.doesNotMatch(head(html), /rel="canonical"/);
+    // Only the application shell was fetched, never the requested path.
+    assert.deepEqual(seen, ['/']);
+  } finally {
+    console.error = originalError;
+  }
 });
 
 test('the Boss shell is the application shell, fetched explicitly', async () => {

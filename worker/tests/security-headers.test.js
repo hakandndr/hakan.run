@@ -49,9 +49,12 @@ test('each CSP mode yields one consistent document policy', () => {
   assert.doesNotMatch(CONTENT_SECURITY_POLICY, /unsafe-eval|script-src[^;]*unsafe-inline|\s\*(;|$)/);
 });
 
+// The head the 404 composition rewrites, as the built shell carries it.
+const SHELL_HEAD = '<html><head><title>hakan.run</title>\n  <link rel="canonical" href="https://hakan.run/" />\n  <meta name="robots" content="index, follow" />\n</head><body><div id="root"></div></body></html>';
+
 test('Notes documents and the Notes 404 receive the public document policy', async () => {
   for (const path of ['/notes/reachable-is-not-current', '/notes/not-a-real-note']) {
-    const response = await worker.fetch(new Request(`https://hakan.run${path}`), assets(() => html()), {});
+    const response = await worker.fetch(new Request(`https://hakan.run${path}`), assets(() => html(SHELL_HEAD)), {});
     for (const [name, value] of Object.entries({ ...COMMON_HEADERS, ...documentHeaders() })) {
       assert.equal(response.headers.get(name), value, `${path} ${name}`);
     }

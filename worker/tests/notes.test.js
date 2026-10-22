@@ -17,13 +17,32 @@ test('known Notes URLs resolve to their built HTML assets', async () => {
   assert.deepEqual(seen, ['/notes', ...NOTES.map((note) => `/notes/${note.slug}`)]);
 });
 
-test('unknown Notes paths return an HTTP 404 without invoking the asset fallback', async () => {
-  const env = { ASSETS: { fetch: () => { throw new Error('asset fallback invoked'); } } };
+// The parts of the application shell the 404 composition rewrites.
+const SHELL = `<!doctype html><html><head><title>hakan.run</title>
+  <link rel="canonical" href="https://hakan.run/" />
+  <meta name="robots" content="index, follow" />
+</head><body><div id="root"></div></body></html>`;
+
+test('unknown Notes paths return the HTTP 404 document without asking assets for the path', async () => {
   for (const path of ['/notes/not-a-real-note', '/notes/reachable-is-not-current/extra']) {
+    const seen = [];
+    const env = {
+      ASSETS: {
+        fetch: async (request) => {
+          const { pathname } = new URL(request.url);
+          seen.push(pathname);
+          if (pathname !== '/') throw new Error(`asset requested for ${pathname}`);
+          return new Response(SHELL, { headers: { 'content-type': 'text/html' } });
+        },
+      },
+    };
     const response = await worker.fetch(new Request(`https://hakan.run${path}`), env, {});
     assert.equal(response.status, 404, path);
     assert.match(response.headers.get('content-type'), /text\/html/);
-    assert.match(await response.text(), /Note not found/);
+    const html = await response.text();
+    assert.match(html, /<meta name="robots" content="noindex" \/>/, path);
+    assert.doesNotMatch(html, /rel="canonical"/, path);
+    assert.deepEqual(seen, ['/'], path);
   }
 });
 
