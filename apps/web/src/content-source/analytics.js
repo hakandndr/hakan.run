@@ -1,18 +1,11 @@
-import { isKnownNoteSlug } from '../notes/manifest.js';
+import { isPublicPagePath } from '../router/public-pages.js';
 
+// The PAGE path for a location, or null when the location is not a public page
+// (router/public-pages.js, the same rule the Worker enforces).
 export const normalizePagePath = (pathname) => {
   if (typeof pathname !== 'string') return null;
   const path = pathname.replace(/\/+$/, '') || '/';
-
-  if (path === '/' || path === '/card' || path === '/contact') return path;
-  if (path === '/notes') return path;
-  if (path.startsWith('/notes/')) return isKnownNoteSlug(path.slice('/notes/'.length)) ? path : null;
-
-  if (/^\/project\/[^/]+$/.test(path)) {
-    return path;
-  }
-
-  return null;
+  return isPublicPagePath(path) ? path : null;
 };
 
 const TRACKED_HOSTNAMES = new Set(['hakan.run', 'staging.hakan.run']);

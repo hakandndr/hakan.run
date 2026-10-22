@@ -141,3 +141,14 @@ test('full-log CLI requires explicit mode and emits no stdout on prefix failure'
     assert.equal(bad.status, 1); assert.equal(bad.stdout, ''); assert.match(bad.stderr, /prefix mismatch/);
   }
 });
+
+test('legacy records keep the version 1 route contract after the live site dropped /project/*', async () => {
+  // The legacy log predates the removal of project-detail pages, so its
+  // contract is fixed (classification.js); the live rule refuses them (D-050).
+  const { currentClassification, isPublicPageFor } = await import('./classification.js');
+  const { isPublicPage } = await import('../../worker/lib/routes.js');
+  const legacy = currentClassification();
+  assert.deepEqual(legacy, { version: 1, canonicalPages: ['/', '/card', '/contact', '/notes'], projectPrefix: '/project/' });
+  assert.equal(isPublicPageFor('/project/full-stack-development', legacy), true);
+  assert.equal(isPublicPage('/project/full-stack-development'), false);
+});

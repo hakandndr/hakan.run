@@ -5,24 +5,20 @@
 // system paths. Read queries therefore carry no path allow-list, which keeps
 // their index selection simple and predictable.
 
-import { isKnownNoteSlug } from '../../apps/web/src/notes/manifest.js';
+import { isPublicPagePath } from '../../apps/web/src/router/public-pages.js';
 
-export const CANONICAL_PAGES = ['/', '/card', '/contact', '/notes'];
-export const PROJECT_PREFIX = '/project/';
-
-/** True when a normalized path is a public page worth recording. */
-export const isPublicPage = (path) => {
-  if (CANONICAL_PAGES.includes(path)) return true;
-  if (path.startsWith('/notes/')) return isKnownNoteSlug(path.slice('/notes/'.length));
-  if (!path.startsWith(PROJECT_PREFIX)) return false;
-  const slug = path.slice(PROJECT_PREFIX.length).replace(/\/$/, '');
-  return slug.length > 0 && slug.length <= 128 && /^[a-z0-9-]+$/.test(slug);
-};
+/**
+ * True when a normalized path is a public page worth recording. The rule is
+ * the application's own (apps/web/src/router/public-pages.js), which the
+ * browser also applies before sending a PAGE event; a request that skips the
+ * browser check is refused here before anything is stored or forwarded.
+ */
+export const isPublicPage = isPublicPagePath;
 
 /** Collapse duplicate slashes and drop query/hash before validation. */
 export const normalizePath = (rawPath) => {
   const path = rawPath.split('?')[0].split('#')[0].replace(/\/{2,}/g, '/');
-  if (path.length > 1 && path.endsWith('/') && path !== PROJECT_PREFIX) {
+  if (path.length > 1 && path.endsWith('/')) {
     return path.slice(0, -1) || '/';
   }
   return path || '/';

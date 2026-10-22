@@ -1,17 +1,24 @@
 // Versioned PAGE classification evidence for legacy-import snapshots.
 //
-// Public routes evolve with the application. A verified historical prefix must
-// therefore carry the route contract that classified it, while newly appended
-// records continue to use the current application contract.
-
-import { CANONICAL_PAGES, PROJECT_PREFIX } from '../../worker/lib/routes.js';
+// A verified historical prefix carries the route contract that classified it.
+// The legacy log is the retired PHP logger's record of the legacy site
+// (2026-03-26 to 2026-09-05), when project-detail pages existed, so version 1
+// is a fixed historical contract: the canonical pages and the `/project/`
+// prefix as they were. It deliberately does not follow the live runtime rule
+// (apps/web/src/router/public-pages.js), which dropped `/project/*` after those
+// pages were removed (D-050); following it would reinterpret history.
 
 export const CLASSIFICATION_CONTRACT_VERSION = 1;
 
+const LEGACY_CLASSIFICATION = Object.freeze({
+  canonicalPages: Object.freeze(['/', '/card', '/contact', '/notes']),
+  projectPrefix: '/project/',
+});
+
 export const currentClassification = () => ({
   version: CLASSIFICATION_CONTRACT_VERSION,
-  canonicalPages: [...CANONICAL_PAGES],
-  projectPrefix: PROJECT_PREFIX,
+  canonicalPages: [...LEGACY_CLASSIFICATION.canonicalPages],
+  projectPrefix: LEGACY_CLASSIFICATION.projectPrefix,
 });
 
 export const validateClassification = (classification) => {

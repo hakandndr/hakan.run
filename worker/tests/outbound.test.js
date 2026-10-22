@@ -25,9 +25,10 @@ test('browser identity claims, internal aliases and wrong source attribution are
 import fs from 'node:fs';
 import { isPublicPage } from '../lib/routes.js';
 
-test('project documents execute the Worker while private and non-page paths stay outside outbound', () => {
+test('removed project pages, private and non-page paths stay outside outbound', () => {
+  // /project/* still reaches the Worker first, where it is a 404 document
+  // (D-047), which never receives the outbound script and is not a page (D-050).
   const config = fs.readFileSync(new URL('../../wrangler.jsonc', import.meta.url), 'utf8');
   assert.match(config, /"run_worker_first": \[.*"\/project\/\*"/);
-  assert.equal(isPublicPage('/project/oc-ca'), true);
-  for (const path of ['/boss', '/api/content', '/assets/app.js', '/project/']) assert.equal(isPublicPage(path), false);
+  for (const path of ['/boss', '/api/content', '/assets/app.js', '/project/', '/project/oc-ca']) assert.equal(isPublicPage(path), false);
 });
