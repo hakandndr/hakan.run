@@ -122,11 +122,11 @@ test('homepage shows exactly the three selected Notes and /notes lists all of th
 // text. Zero opacity or no text would mean the new snapshot is an empty frame.
 const recordRouteTransitions = async (page: Page) => {
   await page.addInitScript(() => {
-    const w = window as unknown as { __routeTransitions: Array<Record<string, unknown>> };
+    const w = window as unknown as { __routeTransitions: Array<Record<string, unknown>>; __lastTransition?: ViewTransition };
     w.__routeTransitions = [];
     const original = document.startViewTransition?.bind(document);
     if (!original) return;
-    document.startViewTransition = ((update: () => void) => original(() => {
+    document.startViewTransition = ((update: () => void) => (w.__lastTransition = original(() => {
       update();
       const probe = document.elementFromPoint(window.innerWidth / 2, window.innerHeight * 0.45);
       let minOpacity = 1;
@@ -137,10 +137,14 @@ const recordRouteTransitions = async (page: Page) => {
         minOpacity,
         text: (document.querySelector('main')?.textContent ?? '').trim().length,
       });
-    })) as typeof document.startViewTransition;
+    }))) as typeof document.startViewTransition;
   });
 };
 const transitions = (page: Page) => page.evaluate(() => (window as unknown as { __routeTransitions: Array<Record<string, number | string>> }).__routeTransitions);
+// Resolves when the most recent route transition has finished animating.
+const routeTransitionFinished = (page: Page) => page.evaluate(async () => {
+  await (window as unknown as { __lastTransition?: ViewTransition }).__lastTransition?.finished;
+});
 
 test('Notes navigation blends through a view transition with persistent chrome and no empty frame', async ({ page }) => {
   await recordRouteTransitions(page);
@@ -155,12 +159,18 @@ test('Notes navigation blends through a view transition with persistent chrome a
   await page.locator('#notes').scrollIntoViewIfNeeded();
   await page.locator('#notes a[href="/notes"]').click();
   await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
-  await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
-  await page.waitForTimeout(300);
+  // The reader scrolls down the index to the article once the route transition
+  // has finished, and leaves from there. Scrolling the link into view first
+  // means the click does not scroll; two frames let the page observe the
+  // scroll, as it always has by the time a person clicks.
+  await routeTransitionFinished(page);
+  const articleLink = page.getByRole('link', { name: /Reachable is not current/ });
+  await articleLink.scrollIntoViewIfNeeded();
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const indexScroll = await page.evaluate(() => Math.round(window.scrollY));
   expect(indexScroll).toBeGreaterThan(300);
 
-  await page.getByRole('link', { name: /Reachable is not current/ }).click();
+  await articleLink.click();
   await expect(page.getByRole('heading', { level: 1, name: 'Reachable is not current' })).toBeVisible();
   await page.getByRole('link', { name: '← Back to Notes' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Engineering Notes' })).toBeVisible();
