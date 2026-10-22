@@ -90,13 +90,26 @@ test('Cloudflare-style static Notes HTML hydrates without duplicate metadata', a
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', 'https://hakan.run/notes/reachable-is-not-current');
 });
 
+// The owner-approved homepage selection, in rank order. It is stated here on
+// purpose: changing the featured front matter must also change this list.
+const APPROVED_FEATURED_SLUGS = [
+  'centralizing-analytics-without-creating-a-central-dependency',
+  'moving-a-live-static-site-to-the-edge-without-moving-everything',
+  'a-write-path-for-a-mostly-static-site',
+];
+
 test('homepage shows exactly the three selected Notes and /notes lists all of them', async ({ page }) => {
+  const featured = APPROVED_FEATURED_SLUGS.map((slug) => NOTES.find((note) => note.slug === slug));
+  expect(featured.map((note) => note?.featured)).toEqual([1, 2, 3]);
+  expect(NOTES.filter((note) => note.featured).map((note) => note.slug).sort()).toEqual([...APPROVED_FEATURED_SLUGS].sort());
+
   await page.goto('/');
-  await expect(page.locator('#notes li h3')).toHaveText([
-    'Moving a live static site to the edge without moving everything',
-    'A write path for a mostly static site',
-    'Why the status page ignores single failed probes',
-  ]);
+  const items = page.locator('#notes li');
+  await expect(items).toHaveCount(APPROVED_FEATURED_SLUGS.length);
+  await expect(items.locator('h3')).toHaveText(featured.map((note) => note!.title));
+  for (const [index, slug] of APPROVED_FEATURED_SLUGS.entries()) {
+    await expect(items.nth(index).locator('a')).toHaveAttribute('href', `/notes/${slug}`);
+  }
   await page.goto('/notes');
   await expect(page.locator('[data-public-section="notes-index"] li h2')).toHaveCount(NOTES.length);
   await expect(page.locator('[data-public-section="notes-index"] li h2')).toHaveText(NOTES.map((note) => note.title));

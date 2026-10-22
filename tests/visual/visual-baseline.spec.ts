@@ -1,11 +1,16 @@
 import { expect, Page, test } from '@playwright/test';
+import { fulfillPublishedContent, isolatePublicWrites } from '../helpers/published-content';
 
 const DESKTOP = { width: 1440, height: 1200 };
 const MOBILE = { width: 390, height: 844 };
 
-test.beforeEach(async ({ }, testInfo) => {
+test.beforeEach(async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'chromium',
     'The visual matrix uses explicit viewports in one Chromium project.');
+  // The public shell mounts only from a complete published snapshot, so the
+  // matrix renders the same fixture content as every other public spec.
+  await page.route('**/api/content', fulfillPublishedContent);
+  await isolatePublicWrites(page);
 });
 
 async function prepare(page: Page, path: string, viewport: { width: number; height: number }) {
@@ -66,7 +71,7 @@ test('desktop public visual baseline', async ({ page }) => {
 
   await prepare(page, '/project/full-stack-development', DESKTOP);
   await expectNoHorizontalOverflow(page);
-  await expect(page).toHaveScreenshot('project-desktop.png', { fullPage: true, animations: 'disabled' });
+  await expect(page).toHaveScreenshot('project-not-found-desktop.png', { fullPage: true, animations: 'disabled' });
 
   await prepare(page, '/visual-baseline-not-found', DESKTOP);
   await expectNoHorizontalOverflow(page);
@@ -84,7 +89,7 @@ test('mobile public visual baseline and menu states', async ({ page }) => {
   await expect(page.locator('#portfolio')).toHaveScreenshot('home-portfolio-mobile.png', { animations: 'disabled' });
 
   await page.locator('header button').filter({ hasText: '[=]' }).click();
-  const menuClose = page.locator('.fixed.inset-0').getByRole('button', { name: '[x]' });
+  const menuClose = page.locator('.fixed.inset-0').getByRole('button', { name: 'Close navigation menu' });
   await expect(menuClose).toBeVisible();
   await expect(page).toHaveScreenshot('mobile-navigation-open.png', { animations: 'disabled' });
   await menuClose.click();
@@ -95,7 +100,7 @@ test('mobile public visual baseline and menu states', async ({ page }) => {
 
   await prepare(page, '/project/full-stack-development', MOBILE);
   await expectNoHorizontalOverflow(page);
-  await expect(page).toHaveScreenshot('project-mobile.png', { fullPage: true, animations: 'disabled' });
+  await expect(page).toHaveScreenshot('project-not-found-mobile.png', { fullPage: true, animations: 'disabled' });
 
   await prepare(page, '/visual-baseline-not-found', MOBILE);
   await expectNoHorizontalOverflow(page);
