@@ -1,4 +1,5 @@
 import React, { useLayoutEffect } from 'react';
+import { prefersReducedMotion, resolveScrollBehavior } from '@/router/scroll-behavior';
 
 export const SCROLL_POSITION_KEY = '__hakanRunScroll';
 
@@ -49,7 +50,7 @@ const ScrollManager = ({ navigationType, location }) => {
         window.scrollTo({ top: saved.y, left: saved.x, behavior: 'auto' });
       }
     } else {
-      const behavior = location.state?.scrollBehavior === 'smooth' ? 'smooth' : 'auto';
+      const behavior = resolveScrollBehavior(location.state?.scrollBehavior, prefersReducedMotion());
       const target = location.hash
         ? document.getElementById(decodeURIComponent(location.hash.slice(1)))
         : null;

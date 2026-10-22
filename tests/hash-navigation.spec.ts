@@ -41,14 +41,30 @@ const expectSectionAligned = async (page: Page, id: string) => {
   }, id)).toBeLessThanOrEqual(80);
 };
 
-const clickHeaderHash = async (page: Page, id: string) => {
+// Below `md` the header links live in the mobile menu, so a phone user opens
+// the menu first; choosing a link must also close it. Both paths go through
+// the same navigation owner, which the assertions below pin.
+const mobileMenu = (page: Page) => page.getByRole('navigation', { name: 'Mobile navigation' });
+
+const openMobileMenu = async (page: Page) => {
+  await page.getByRole('button', { name: 'Open navigation menu' }).click();
+  await expect(mobileMenu(page)).toBeVisible();
+};
+
+const clickHeaderHash = async (page: Page, id: string, isMobile: boolean) => {
   const before = await page.evaluate(() => ({
     key: window.history.state?.key,
     index: window.history.state?.idx,
     scrollCalls: window.__hashNavigationLog.scrollCalls.length,
   }));
 
-  await page.locator(`header a[href="/#${id}"]:visible`).first().click();
+  if (isMobile) {
+    await openMobileMenu(page);
+    await mobileMenu(page).locator(`a[href="/#${id}"]`).click();
+    await expect(mobileMenu(page)).toHaveCount(0);
+  } else {
+    await page.locator(`header a[href="/#${id}"]:visible`).first().click();
+  }
   await expect(page).toHaveURL(new RegExp(`/#${id}$`));
   await expectSectionAligned(page, id);
 
@@ -73,30 +89,30 @@ test.beforeEach(async ({ page }) => {
   await installNavigationLog(page);
 });
 
-test('sequential and reverse hash PUSH navigation remains deterministic', async ({ page }) => {
+test('sequential and reverse hash PUSH navigation remains deterministic', async ({ page, isMobile }) => {
   await page.goto('/');
   await waitForPublishedSite(page);
 
   for (const id of ['portfolio', 'services', 'about', 'services', 'portfolio', 'about']) {
-    await clickHeaderHash(page, id);
+    await clickHeaderHash(page, id, isMobile);
   }
 });
 
-test('same hash twice does not poison the following navigation', async ({ page }) => {
+test('same hash twice does not poison the following navigation', async ({ page, isMobile }) => {
   await page.goto('/');
   await waitForPublishedSite(page);
 
-  await clickHeaderHash(page, 'portfolio');
-  await clickHeaderHash(page, 'portfolio');
-  await clickHeaderHash(page, 'services');
+  await clickHeaderHash(page, 'portfolio', isMobile);
+  await clickHeaderHash(page, 'portfolio', isMobile);
+  await clickHeaderHash(page, 'services', isMobile);
 });
 
-test('Back and Forward restore hash entries without a second section scroll', async ({ page }) => {
+test('Back and Forward restore hash entries without a second section scroll', async ({ page, isMobile }) => {
   await page.goto('/');
   await waitForPublishedSite(page);
-  await clickHeaderHash(page, 'portfolio');
-  await clickHeaderHash(page, 'services');
-  await clickHeaderHash(page, 'about');
+  await clickHeaderHash(page, 'portfolio', isMobile);
+  await clickHeaderHash(page, 'services', isMobile);
+  await clickHeaderHash(page, 'about', isMobile);
 
   let callCount = await page.evaluate(() => window.__hashNavigationLog.scrollCalls.length);
   await page.goBack();
@@ -120,12 +136,12 @@ test('Back and Forward restore hash entries without a second section scroll', as
     .toEqual([{ kind: 'scrollTo' }]);
 });
 
-test('smooth scrolling does not flood the History API', async ({ page }) => {
+test('smooth scrolling does not flood the History API', async ({ page, isMobile }) => {
   await page.goto('/');
   await waitForPublishedSite(page);
   const initialReplaceCount = await page.evaluate(() => window.__hashNavigationLog.replaceCount);
 
-  await clickHeaderHash(page, 'portfolio');
+  await clickHeaderHash(page, 'portfolio', isMobile);
   await expect.poll(() => page.evaluate(() => window.__hashNavigationLog.replaceCount))
     .toBeGreaterThan(initialReplaceCount);
 
@@ -137,7 +153,7 @@ test('smooth scrolling does not flood the History API', async ({ page }) => {
   expect(counts.replaces - initialReplaceCount).toBeLessThanOrEqual(2);
 });
 
-test('Hero, Footer, and pathname navigation share the public navigation owner', async ({ page }) => {
+test('Hero, Footer, and pathname navigation share the public navigation owner', async ({ page, isMobile }) => {
   await page.goto('/');
   await waitForPublishedSite(page);
 
@@ -155,9 +171,57 @@ test('Hero, Footer, and pathname navigation share the public navigation owner', 
   expect(await page.evaluate((start) => window.__hashNavigationLog.scrollCalls.slice(start), callCount))
     .toEqual([{ kind: 'scrollIntoView', id: 'services' }]);
 
-  await page.getByRole('button', { name: "Let's Run" }).first().click();
+  // The header call to action is in the mobile menu below `md`.
+  if (isMobile) {
+    await openMobileMenu(page);
+    await page.locator('#public-mobile-menu').getByRole('button', { name: "Let's Run" }).click();
+    await expect(mobileMenu(page)).toHaveCount(0);
+  } else {
+    await page.locator('header').getByRole('button', { name: "Let's Run" }).click();
+  }
   await expect(page).toHaveURL(/\/contact$/);
   await expect(page.locator('form')).toBeVisible();
+});
+
+// Samples the scroll position on every animation frame from the click until the
+// section is aligned. A smooth scroll passes through many positions; an
+// instant one goes straight from the start to the target.
+const scrollPositionsDuringSectionLink = async (
+  page: Page, id: string, isMobile: boolean, reducedMotion: 'reduce' | 'no-preference',
+) => {
+  await page.emulateMedia({ reducedMotion });
+  await page.goto('/');
+  await waitForPublishedSite(page);
+  expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(reducedMotion === 'reduce');
+  if (isMobile) await openMobileMenu(page);
+  await page.evaluate(() => {
+    const w = window as unknown as { __scrollSamples: number[]; __sampling: boolean };
+    w.__scrollSamples = [];
+    w.__sampling = true;
+    const tick = () => {
+      w.__scrollSamples.push(Math.round(window.scrollY));
+      if (w.__sampling) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  const link = isMobile ? mobileMenu(page).locator(`a[href="/#${id}"]`) : page.locator(`header a[href="/#${id}"]:visible`).first();
+  await link.click();
+  await expect(page).toHaveURL(new RegExp(`/#${id}$`));
+  await expectSectionAligned(page, id);
+  return page.evaluate(() => {
+    const w = window as unknown as { __scrollSamples: number[]; __sampling: boolean };
+    w.__sampling = false;
+    return [...new Set(w.__scrollSamples)].length;
+  });
+};
+
+test('section links scroll smoothly without a motion preference', async ({ page, isMobile }) => {
+  expect(await scrollPositionsDuringSectionLink(page, 'about', isMobile, 'no-preference')).toBeGreaterThan(5);
+});
+
+test('section links jump without animation when reduced motion is preferred', async ({ page, isMobile }) => {
+  // The start position and the target only.
+  expect(await scrollPositionsDuringSectionLink(page, 'about', isMobile, 'reduce')).toBeLessThanOrEqual(2);
 });
 
 declare global {
