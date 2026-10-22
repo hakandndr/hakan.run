@@ -14,7 +14,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ROBOTS_SELECTOR, applyRobotsDirective } from './useRobotsDirective.js';
+import { BUILD_ROBOTS_DIRECTIVE, ROBOTS_SELECTOR, applyRobotsDirective } from './useRobotsDirective.js';
+import { buildRobotsDirective, notFoundRobotsDirective } from './indexing-policy.js';
 
 const appDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const sourceDirectory = path.join(appDirectory, 'src');
@@ -91,20 +92,44 @@ const fakeHead = (attributes) => {
 
 test('applying a directive rewrites the existing tag rather than adding one', () => {
   const { meta, head } = fakeHead({ name: 'robots', content: 'index, follow' });
-  applyRobotsDirective(head, 'noindex, nofollow');
+  applyRobotsDirective(head, 'noindex, nofollow', 'index, follow');
   assert.equal(meta.attributes.content, 'noindex, nofollow');
 });
 
 test('restoring puts the build value back, whatever it was', () => {
   for (const built of ['index, follow', 'noindex, nofollow']) {
     const { meta, head } = fakeHead({ name: 'robots', content: built });
-    const restore = applyRobotsDirective(head, 'noindex, nofollow');
+    const restore = applyRobotsDirective(head, 'noindex, nofollow', built);
     restore();
     assert.equal(meta.attributes.content, built, `expected ${built} to survive a Boss visit`);
   }
 });
 
+test('leaving a document that arrived as a 404 restores the build value, not the 404 value', () => {
+  // The Worker sends the 404 document with the not-found directive already in
+  // the tag. The value found there is not the baseline of the next page.
+  for (const built of ['index, follow', 'noindex, nofollow']) {
+    const { meta, head } = fakeHead({ name: 'robots', content: notFoundRobotsDirective(built) });
+    const restore = applyRobotsDirective(head, notFoundRobotsDirective(built), built);
+    restore();
+    assert.equal(meta.attributes.content, built);
+  }
+});
+
+test('the build directive outside a Vite bundle is the production value', () => {
+  assert.equal(BUILD_ROBOTS_DIRECTIVE, 'index, follow');
+});
+
+test('the indexing policy: the build value per mode and the not-found value', () => {
+  assert.equal(buildRobotsDirective('production'), 'index, follow');
+  assert.equal(buildRobotsDirective('development'), 'index, follow');
+  assert.equal(buildRobotsDirective(undefined), 'index, follow');
+  assert.equal(buildRobotsDirective('staging'), 'noindex, nofollow');
+  assert.equal(notFoundRobotsDirective('index, follow'), 'noindex');
+  assert.equal(notFoundRobotsDirective('noindex, nofollow'), 'noindex, nofollow');
+});
+
 test('an artifact with no robots tag is left alone rather than given one', () => {
   const head = { querySelector: () => null };
-  assert.equal(applyRobotsDirective(head, 'noindex, nofollow'), undefined);
+  assert.equal(applyRobotsDirective(head, 'noindex, nofollow', 'index, follow'), undefined);
 });

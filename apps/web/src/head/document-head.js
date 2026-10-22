@@ -10,7 +10,10 @@
 // Canonical and robots are not Helmet tags. The document ships exactly one of
 // each (see useCanonicalUrl.js and useRobotsDirective.js): the canonical href
 // follows `publicCanonicalUrl`, and the robots value is owned by the build's
-// indexing policy and is left untouched here.
+// indexing policy (indexing-policy.js); a document that is not a page gets the
+// policy's not-found directive.
+
+import { notFoundRobotsDirective } from './indexing-policy.js';
 
 export const PUBLIC_ORIGIN = 'https://hakan.run';
 
@@ -61,7 +64,7 @@ export const applyDocumentHead = (html, { head, canonical, indexable = true }) =
   if (!indexable) {
     if (!ROBOTS.test(composed)) throw new Error('document_robots_missing');
     // Rewrite the value of the one robots tag, as useRobotsDirective does.
-    composed = composed.replace(ROBOTS, (tag, value) => (/\bnoindex\b/.test(value) ? tag : tag.replace(`content="${value}"`, 'content="noindex"')));
+    composed = composed.replace(ROBOTS, (tag, value) => tag.replace(`content="${value}"`, `content="${notFoundRobotsDirective(value)}"`));
   }
   const link = canonical === null ? '' : `<link rel="canonical" href="${escapeAttribute(canonical)}" />`;
   const replacement = [link, meta].filter(Boolean).join('\n  ');

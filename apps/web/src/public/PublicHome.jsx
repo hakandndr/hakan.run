@@ -9,6 +9,7 @@ import PublicPortfolio from '@/public/components/PublicPortfolio';
 import PublicStats from '@/public/components/PublicStats';
 import { NotesHomeSection } from '@/notes/NotesPages';
 import { publicCanonicalUrl, SOCIAL_IMAGE } from '@/head/document-head';
+import { useCanonicalUrl } from '@/head/useCanonicalUrl';
 
 const PublicHome = ({ snapshot }) => {
   const { content } = snapshot;
@@ -17,6 +18,7 @@ const PublicHome = ({ snapshot }) => {
   // repeat them so link previews describe the same page.
   const title = content.header.siteName;
   const description = content.hero.paragraph;
+  useCanonicalUrl(publicCanonicalUrl('/'));
 
   return (
     <>

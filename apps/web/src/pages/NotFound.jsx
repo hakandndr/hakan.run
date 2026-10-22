@@ -1,13 +1,17 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { useRobotsDirective } from '@/head/useRobotsDirective';
+import { notFoundRobotsDirective } from '@/head/indexing-policy';
+import { useCanonicalUrl } from '@/head/useCanonicalUrl';
+import { BUILD_ROBOTS_DIRECTIVE, useRobotsDirective } from '@/head/useRobotsDirective';
 
 const NotFound = () => {
   // Same single-owner rule as every other route: rewrite the one robots
-  // directive the document already has instead of appending another. The
-  // Worker sends this page with HTTP 404 and the same directive.
-  useRobotsDirective('noindex');
+  // directive the document already has instead of appending another, and name
+  // no canonical URL. The Worker sends this page with HTTP 404 and the same
+  // head (document-head.js).
+  useRobotsDirective(notFoundRobotsDirective(BUILD_ROBOTS_DIRECTIVE));
+  useCanonicalUrl(null);
   // The router location is the same on the server and in the browser, so the
   // server-rendered 404 hydrates without a text mismatch.
   const { pathname } = useLocation();

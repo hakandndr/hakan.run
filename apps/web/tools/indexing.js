@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { PRODUCTION_ROBOTS_DIRECTIVE, STAGING_MODE, STAGING_ROBOTS_DIRECTIVE } from '../src/head/indexing-policy.js';
 
 // Environment-aware indexing policy for the built site.
 //
@@ -19,7 +20,7 @@ import path from 'node:path';
 // These helpers are pure so that the difference between the two environments is
 // testable without running a build.
 
-export const STAGING_MODE = 'staging';
+export { STAGING_MODE };
 
 /** The build mode that must not be indexed. */
 export const isStagingBuild = (mode) => mode === STAGING_MODE;
@@ -37,8 +38,8 @@ User-agent: *
 Disallow: /
 `;
 
-export const PRODUCTION_ROBOTS_META = '<meta name="robots" content="index, follow" />';
-export const STAGING_ROBOTS_META = '<meta name="robots" content="noindex, nofollow" />';
+export const PRODUCTION_ROBOTS_META = `<meta name="robots" content="${PRODUCTION_ROBOTS_DIRECTIVE}" />`;
+export const STAGING_ROBOTS_META = `<meta name="robots" content="${STAGING_ROBOTS_DIRECTIVE}" />`;
 
 /**
  * Replace the document-level robots directive for a staging build.

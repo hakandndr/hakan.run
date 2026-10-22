@@ -2,12 +2,15 @@ import React, { useRef, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { CONTACT_RESULT, submitContact } from '@/content-source/contact';
 import { TURNSTILE_STATE, useTurnstile } from '@/content-source/useTurnstile';
+import { publicCanonicalUrl } from '@/head/document-head';
+import { useCanonicalUrl } from '@/head/useCanonicalUrl';
 
 
 const PublicContact = ({ contact, preview = false }) => {
   const [status, setStatus] = useState('');
   const challengeRef = useRef(null);
   const challenge = useTurnstile(challengeRef, !preview);
+  useCanonicalUrl(preview ? undefined : publicCanonicalUrl('/contact'));
 
   const fail = (message) => {
     setStatus(message);

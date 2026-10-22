@@ -2,6 +2,8 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useParams } from 'react-router-dom';
 import NotFound from '@/pages/NotFound';
+import { publicCanonicalUrl } from '@/head/document-head';
+import { useCanonicalUrl } from '@/head/useCanonicalUrl';
 import { FEATURED_NOTES, getNote, NOTES } from './catalog';
 
 const intro = 'Engineering decisions, failures and operational lessons from systems I have built.';
@@ -31,23 +33,23 @@ export const NotesHomeSection = () => (
   </section>
 );
 
-export const NotesIndex = () => (
-  <section data-public-section="notes-index" className="min-h-screen bg-[#090909] pt-36 pb-24 px-6">
-    <Helmet><title>Engineering Notes | Hakan Dundar</title><meta name="description" content={intro} /><meta property="og:title" content="Engineering Notes" /><meta property="og:description" content={intro} /><meta property="og:url" content="https://hakan.run/notes" /></Helmet>
-    <div className="max-w-3xl mx-auto">
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent-purple/80">Engineering / Notes</p>
-      <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white">Engineering Notes</h1>
-      <p className="mt-5 text-base sm:text-lg leading-relaxed text-gray-400">{intro}</p>
-      <ul className="mt-12">{NOTES.map((note) => <NoteLink key={note.slug} note={note} />)}</ul>
-    </div>
-  </section>
-);
+export const NotesIndex = () => {
+  useCanonicalUrl(publicCanonicalUrl('/notes'));
+  return (
+    <section data-public-section="notes-index" className="min-h-screen bg-[#090909] pt-36 pb-24 px-6">
+      <Helmet><title>Engineering Notes | Hakan Dundar</title><meta name="description" content={intro} /><meta property="og:title" content="Engineering Notes" /><meta property="og:description" content={intro} /><meta property="og:url" content="https://hakan.run/notes" /></Helmet>
+      <div className="max-w-3xl mx-auto">
+        <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent-purple/80">Engineering / Notes</p>
+        <h1 className="mt-4 text-4xl sm:text-5xl font-bold tracking-tight text-white">Engineering Notes</h1>
+        <p className="mt-5 text-base sm:text-lg leading-relaxed text-gray-400">{intro}</p>
+        <ul className="mt-12">{NOTES.map((note) => <NoteLink key={note.slug} note={note} />)}</ul>
+      </div>
+    </section>
+  );
+};
 
-export const NotesArticle = ({ slug: fixedSlug }) => {
-  const params = useParams();
-  const slug = fixedSlug ?? params.slug;
-  const note = getNote(slug);
-  if (!note) return <NotFound />;
+const NoteArticle = ({ note }) => {
+  useCanonicalUrl(publicCanonicalUrl(`/notes/${note.slug}`));
   return (
     <article data-public-section="note-article" className="min-h-screen bg-[#090909] pt-36 pb-24 px-6">
       <Helmet><title>{note.title} | Hakan Dundar</title><meta name="description" content={note.deck} /><meta property="og:title" content={note.title} /><meta property="og:description" content={note.deck} /><meta property="og:url" content={`https://hakan.run/notes/${note.slug}`} /></Helmet>
@@ -64,4 +66,10 @@ export const NotesArticle = ({ slug: fixedSlug }) => {
       </div>
     </article>
   );
+};
+
+export const NotesArticle = ({ slug: fixedSlug }) => {
+  const params = useParams();
+  const note = getNote(fixedSlug ?? params.slug);
+  return note ? <NoteArticle note={note} /> : <NotFound />;
 };
