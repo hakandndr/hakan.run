@@ -8,7 +8,8 @@
 //   json-counter  JSON with global/daily counters       no path, no referrer
 //   json-event    JSON with path, referrer, ua_full     complete
 //
-// `run/get_log.php` accepts JSON lines and pipe lines with five or more
+// The legacy host's `run/get_log.php` (kept on the legacy `main` branch, not
+// in this tree) accepts JSON lines and pipe lines with five or more
 // fields, and silently drops anything else — which is why the dash records are
 // invisible in the panel. This parser accepts all four and records which
 // format each line was, so the three totals stay reconcilable rather than
