@@ -1,6 +1,24 @@
 # hakan.run Modernization Handoff
 
-## Current outbound continuation — 2026-10-06
+## Current continuation — native text cursor, 2026-10-21
+
+| Field | Current value |
+| --- | --- |
+| Working copy | `D:\IT\hakan\hakan-run-next` |
+| Branch / HEAD | `develop/hakan-run-v2`; started at `ebe75eca888e1799cb22a6500416496cc4163bc8` (equal to origin); this checkpoint is the next commit, resolve with `git rev-parse HEAD` |
+| Current phase | Cursor fix committed locally; not pushed or deployed |
+| Completed | Removed `cursor: default` from the global `body, html` rule in `apps/web/src/index.css`. Text inherits native `cursor: auto`; links, buttons, inputs and text selection are unchanged; full-page screenshots before and after are identical on `/`, `/notes`, one article, `/contact` and `/card` (desktop and Pixel 5) |
+| Exact next action | Under separate authorization: push, staging deploy and staging cursor check, then a production deploy of this CSS-only change |
+| Prohibited actions | No push, deploy, provider, database, DNS, Access, secret or routing change without separate authorization |
+| Push state | Local branch is one commit ahead of `origin/develop/hakan-run-v2` (`ebe75ec`) |
+| Deploy state | Production `b104882d-9cf9-4058-b2a8-f9ffebfb5ee0` at 100% (read back 2026-10-22T05Z); its main module is byte-identical to a production dry-run of `ebe75ec`. Staging not read back: the current token has no staging access |
+| Infrastructure state | Unchanged. Production bindings equal `wrangler.jsonc`; no production cron; `workers.dev` and preview URLs disabled |
+
+Known test debt, unchanged by this fix and reproduced on `ebe75ec`: `tests/notes.spec.ts:93`
+still expects the featured selection from before `33f8d41`/`b17ddbd`, and three
+`tests/visual/visual-baseline.spec.ts` tests use snapshots from before those commits.
+
+## Outbound release checkpoint — 2026-10-06 (historical)
 
 Verified production: Worker b104882d-9cf9-4058-b2a8-f9ffebfb5ee0 at 100%; immediate rollback 1732fbe7-1127-4e5d-8c39-89fd64699618 has the earlier browser-script defect; pre-mission public/PAGE rollback e465800a-62a3-4e45-a7dc-fbca5b20e750. Source analytics 0003 adds only outbound_events. The unrelated stale notes expectation was corrected to the approved b17ddbd front matter, with explicit featured ranks; no article metadata changed. /project/* is explicitly Worker-first so project documents receive the component. Full lint/178 Worker/138 web/150 tools tests, production build/artifact and Wrangler 4.130.0 dry-run passed. Real GitHub navigation generated exactly one source and one central event; PAGE remained 4046 in both. Same-ID replay stayed one; all 4044 opening source rows matched by actual primary key. Boss still returns Access 302; authenticated panel UI was not repeated. Migration recovery bookmark 0000021c-00000000-000050fc-d0155f3067dbbd3779bc686a2e93468a. Keep additive records during a code rollback.
 

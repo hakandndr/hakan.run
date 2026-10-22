@@ -3860,3 +3860,16 @@ The browser component is now literal standalone source. Serializing a function a
 ## 2026-10-06 — Neutral current-state artifact wording
 
 Current state and roadmap describe the previously removed workstation illustration without generation attribution. The historical PROCESS wording is preserved as an append-only record of that removal, not as a shipped project credit. No article, public asset, code or production version changed.
+
+## 2026-10-21 — Native text cursor
+
+- Objective and starting state: Restore the browser's text cursor over ordinary text. Started clean on `develop/hakan-run-v2` at `ebe75eca888e1799cb22a6500416496cc4163bc8`, equal to origin.
+- Approved scope: Remove one CSS declaration and record this checkpoint. Documentation archive moves, test updates and other cleanup were explicitly out of scope.
+- Root cause: `cursor: default` on `body, html` in `apps/web/src/index.css`, inherited by every text element. It arrived with the initial import (`2905eaf`) and appears in no decision, visual contract or test.
+- Changed files: `apps/web/src/index.css` (one line removed), `HANDOFF.md`, `docs/CURRENT_STATE.md`, this entry. No architecture, data or security behavior changed.
+- Validation: Production build passed. A probe on the local Worker document server measured computed cursor, hit-testing, mouse selection and full-page screenshots on `/`, `/notes`, one article, `/contact` and `/card`, on desktop and Pixel 5. Text changed from `default` to `auto`; links, buttons and `.cursor-pointer` stay `pointer`; inputs stay `text`; all ten screenshots are identical. `npm run check` passed (lint; Worker 178, web 138, tools 150).
+- Failures: Focused Playwright gave 71 passed, 5 failed, 4 skipped. The same five failures reproduce on unchanged `ebe75ec`: `tests/notes.spec.ts:93` in both browser projects and three Chromium visual-baseline tests still expect the homepage from before `33f8d41`/`b17ddbd`. They were left unchanged.
+- Provider readback (read-only): Production deployment `38bce4d2-6fb1-419b-a935-094892e23443` serves `b104882d-9cf9-4058-b2a8-f9ffebfb5ee0` at 100%. Its main module is byte-identical to a production dry-run of `ebe75ec` (SHA-256 `6b9951307a6f46f05b4e40f4b1eb0a031d6e6679ed13c9802d554cec2d83087f`). Bindings match `wrangler.jsonc`. Over seven days there were zero invocation errors. The current account token reaches only the production Worker, with no D1, Observability, zone or staging read.
+- Deliberate non-actions: No push, deploy, migration, provider, D1, DNS, Access or secret change; no documentation moved; no test edited.
+- Commit, push and deploy state: One owner-authored commit with no trailers; not pushed; production unchanged.
+- Exact next action: Under separate authorization, push, deploy to staging and verify the cursor there, then release the same artifact to production.

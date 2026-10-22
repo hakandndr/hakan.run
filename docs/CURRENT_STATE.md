@@ -1,5 +1,16 @@
 # Current State
 
+## Native text cursor — local, not deployed, 2026-10-21
+
+The global `body, html` rule no longer sets `cursor: default`. That inherited
+value made ordinary text show the arrow instead of the browser's text cursor.
+Verified locally on the Worker document server: text elements now compute
+`cursor: auto`, interactive controls keep `pointer`, inputs keep `text`, mouse
+selection works, and full-page screenshots are identical before and after on
+desktop and mobile. Lint and 466 unit tests pass. Production still serves
+`b104882d-9cf9-4058-b2a8-f9ffebfb5ee0`, which carries the old rule; the
+2026-10-06 section below remains the verified production state.
+
 ## Verified browser outbound correction — 2026-10-06
 
 Verified production: Worker b104882d-9cf9-4058-b2a8-f9ffebfb5ee0 at 100%; immediate rollback 1732fbe7-1127-4e5d-8c39-89fd64699618 has the earlier browser-script defect; pre-mission public/PAGE rollback e465800a-62a3-4e45-a7dc-fbca5b20e750. Source analytics 0003 adds only outbound_events. The unrelated stale notes expectation was corrected to the approved b17ddbd front matter, with explicit featured ranks; no article metadata changed. /project/* is explicitly Worker-first so project documents receive the component. Full lint/178 Worker/138 web/150 tools tests, production build/artifact and Wrangler 4.130.0 dry-run passed. Real GitHub navigation generated exactly one source and one central event; PAGE remained 4046 in both. Same-ID replay stayed one; all 4044 opening source rows matched by actual primary key. Boss still returns Access 302; authenticated panel UI was not repeated. Migration recovery bookmark 0000021c-00000000-000050fc-d0155f3067dbbd3779bc686a2e93468a. Keep additive records during a code rollback.
