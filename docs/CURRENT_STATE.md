@@ -19,14 +19,14 @@ checkpoints of this file are frozen in
 | --- | --- | --- |
 | Worker | `hakan-run-web-production` | `hakan-run-web-staging` |
 | Hostname | `hakan.run` (custom domain) | `staging.hakan.run` (custom domain, noindex) |
-| Version at 100% | `11f7232a-e6b7-4ac7-b50f-149b0515ea23` | `d641bc37-c412-4e79-aae4-a844042f63f5` |
-| Deployment | `55e644f9-41b9-4ee5-9705-635b59868b3c` | `1ed3e85a-8cd0-4ac0-95b9-b60f4f0c18ec` |
-| Source | `bce99db` (native text cursor) | `bce99db` |
-| Rollback target | `b104882d-9cf9-4058-b2a8-f9ffebfb5ee0` | `acc69539-0338-4638-a92c-3932da080c18` |
+| Version at 100% | `b8117346-d874-4e45-9d71-69e7a494776d` | `6898b2e6-1167-4da6-aa40-160426c361b3` |
+| Deployment | `87927ce8-ffc8-4df5-b1d3-83eaa84cdb6b` | `1f05e2e4-ceee-425b-8412-1013cb3e4e6d` |
+| Source | `17b6ce5` (route head metadata) | `17b6ce5` |
+| Rollback target | `11f7232a-e6b7-4ac7-b50f-149b0515ea23` | `d641bc37-c412-4e79-aae4-a844042f63f5` |
 | Cron | none | `30 8 * * *` (analytics aggregation) |
 
-Production's Worker module is byte-identical to `b104882d`; the cursor release
-changed only static assets. `workers.dev` and preview URLs are disabled on both.
+Both Workers run the same main module, byte-identical to the local dry-run of
+`17b6ce5`. `workers.dev` and preview URLs are disabled on both.
 Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
 2026-10-03; pushes since then created no versions).
 
@@ -48,10 +48,11 @@ Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
   not run JavaScript sees an indexable 200 (see known debt).
 - `/admin` redirects to `/` in the client. `/boss*` is the private surface.
 - Production documents are `index, follow`; the sitemap lists 15 URLs.
-- **Not yet deployed** (source `HEAD`, 2026-10-22): each server-rendered route
-  writes its own Helmet title, description and social tags, and its canonical,
-  into the raw HTML. Production still serves the generic `index.html` head for
-  `/`, `/contact` and `/card`.
+- Each server-rendered route writes its own Helmet title, description and
+  social tags, and its canonical, into the raw HTML; hydration keeps those
+  nodes. The homepage carries 12 Open Graph and Twitter tags with
+  `https://hakan.run/og-image.png` (1200×630). Unknown paths keep the generic
+  shell head.
 
 ## Worker and environment topology
 
@@ -162,7 +163,6 @@ Each item needs its own authorization.
 7. **Undocumented releases** — production versions 23–25 (2026-10-05) were
    deployed with the Notes commits `8f69516`, `33f8d41` and `b17ddbd`; that
    mapping is inferred from timestamps and not otherwise recorded.
-8. **Homepage social metadata** — production has had no `og:*` or `twitter:*`
-   tags on `/` since `f36a59c` (2026-09-10), and its raw title/description were
-   client-only because the server render discarded Helmet output (D-041).
-   Repaired in source on 2026-10-22; staging and production release pending.
+8. **Social card generation** — the homepage references the hand-maintained
+   `og-image.png`; the D-023 generator is not implemented. Notes pages carry no
+   `og:image` or Twitter tags.
