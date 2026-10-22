@@ -19,10 +19,10 @@ checkpoints of this file are frozen in
 | --- | --- | --- |
 | Worker | `hakan-run-web-production` | `hakan-run-web-staging` |
 | Hostname | `hakan.run` (custom domain) | `staging.hakan.run` (custom domain, noindex) |
-| Version at 100% | `b8117346-d874-4e45-9d71-69e7a494776d` | `6898b2e6-1167-4da6-aa40-160426c361b3` |
-| Deployment | `87927ce8-ffc8-4df5-b1d3-83eaa84cdb6b` | `1f05e2e4-ceee-425b-8412-1013cb3e4e6d` |
-| Source | `17b6ce5` (route head metadata) | `17b6ce5` |
-| Rollback target | `11f7232a-e6b7-4ac7-b50f-149b0515ea23` | `d641bc37-c412-4e79-aae4-a844042f63f5` |
+| Version at 100% | `b8117346-d874-4e45-9d71-69e7a494776d` | `cfbf1728-9eb8-446b-8876-6adad40dff08` |
+| Deployment | `87927ce8-ffc8-4df5-b1d3-83eaa84cdb6b` | `ea9f34df-f1ba-4900-a0d9-c9d1e84b64e0` |
+| Source | `17b6ce5` (route head metadata) | `1b94946` (real 404s, reduced-motion navigation, schema cleanup) |
+| Rollback target | `11f7232a-e6b7-4ac7-b50f-149b0515ea23` | `6898b2e6-1167-4da6-aa40-160426c361b3` |
 | Cron | none | `30 8 * * *` (analytics aggregation) |
 
 Both Workers run the same main module, byte-identical to the local dry-run of
@@ -43,10 +43,11 @@ Neither Worker has a Git-connected build (HISTORICAL, dashboard readback
 - In-app moves into, within and out of Notes run inside a same-document view
   transition under a persistent header.
 - Unknown Notes slugs return HTTP 404 `noindex` from the Worker.
-- `/project/*` and other unknown paths return HTTP 200 with the SPA shell; the
-  client then renders the designed 404 and sets `noindex`. A crawler that does
-  not run JavaScript sees an indexable 200 (see known debt).
-- `/admin` redirects to `/` in the client. `/boss*` is the private surface.
+- **Production** still answers `/project/*` and other unknown paths with HTTP 200
+  and the SPA shell. **Staging** (`cfbf1728`, VERIFIED 2026-10-22) serves the
+  route contract in [ARCHITECTURE.md](./ARCHITECTURE.md#http-route-contract): every
+  path that is not a page is a real 404; `/admin` is a 404 there. `/boss*` is the
+  private surface.
 - Production documents are `index, follow`; the sitemap lists 15 URLs.
 - Each server-rendered route writes its own Helmet title, description and
   social tags, and its canonical, into the raw HTML; hydration keeps those
@@ -135,9 +136,9 @@ before the 2026-10-22 staging deploy and match `wrangler.jsonc`.
 **VERIFIED 2026-10-21** locally.
 
 - `npm run check`: lint, Worker 178, web 138 and tools 150 unit tests pass.
-- Full Playwright suite (2026-10-22, after the Boss content-v2 repair): 208
-  passed, 5 failed, 5 skipped. The failures are mobile `hash-navigation` (5;
-  timeouts).
+- Full Playwright suite (2026-10-22, at `1b94946`): 225 passed, 0 failed, 5
+  skipped. The skips are intentional: desktop-only navigation checks and the
+  Chromium-only visual matrix do not run in the Mobile Chrome project.
 - CI: the only workflow targets `main`/`master`. Nothing runs automatically for
   `develop/hakan-run-v2` ([GITHUB-CI.md](./GITHUB-CI.md)).
 
@@ -152,8 +153,8 @@ Each item needs its own authorization.
    `@supabase/supabase-js`, unused `TerminalLoader.jsx`, and
    `apps/web/public/.htaccess`, which is copied into the build and publicly
    served at `/.htaccess`.
-3. **Soft 404s** — `/project/*`, `/control-room`, `/run/*` and other unknown
-   paths answer 200 with an indexable shell.
+3. **Soft 404s in production** — fixed on staging (`cfbf1728`); production keeps
+   answering unknown paths with 200 until that release is approved.
 4. **Production aggregation** — no production cron (UNKNOWN intent).
 5. **Provider readback limits** — the account token reads Worker scripts and
    analytics for both Workers but not D1, Observability, zones or Workers
@@ -166,7 +167,6 @@ Each item needs its own authorization.
 8. **Social card generation** — the homepage references the hand-maintained
    `og-image.png`; the D-023 generator is not implemented. Notes pages carry no
    `og:image` or Twitter tags.
-9. **Stale Portfolio validation message** — `schema.js` adds a second error to a
-   card without `externalUrl`, saying internal detail pages use three fixed
-   slugs. Those pages were deleted and `externalUrl` is already required for
-   every card, so the rule never changes the outcome; only the message misleads.
+9. **Reduced motion in Framer components** — section scrolling now honors the
+   preference (staging), but the mobile menu and other Framer animations still
+   animate under reduced motion.

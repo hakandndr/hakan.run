@@ -27,8 +27,7 @@ The tracked evidence is under `tests/visual/visual-baseline.spec.ts-snapshots/`,
 | `/notes` | Server-rendered, hydrated; static HTML also generated | `src/notes/NotesPages.jsx` | `Engineering Notes` | Sitemap |
 | `/notes/<slug>` (11) | Server-rendered, hydrated; static HTML also generated | `src/notes/NotesPages.jsx` | Article title | Sitemap |
 | Unknown `/notes/*` | Worker 404 document | `worker/index.js` | `404 — Note not found` | `noindex`, HTTP 404 |
-| `/project/*` and other paths | SPA shell, client 404 | `pages/NotFound.jsx` | `404` | Client `noindex`; HTTP 200 |
-| `/admin` | Client redirect to `/` | `App.jsx` | — | — |
+| `/project/*`, `/admin` and other page-like paths | Server-rendered NotFound, hydrated (staging; production after release) | `pages/NotFound.jsx` | `404` | `noindex`, no canonical; HTTP 404 |
 
 ## Home composition
 
@@ -173,7 +172,7 @@ The exact Tailwind defaults are `sm 640px`, `md 768px`, `lg 1024px`, `xl 1280px`
 ## Motion
 
 - CSS entrances (`index.css`) run from first paint: Hero copy 0.75 s, Hero photo 0.85 s after 0.18 s, Contact page and columns, Card. Durations and curves match the earlier Framer versions.
-- Framer Motion still drives the mobile menu, About groups, Stats value reveal, `SectionAnimator` (enters once from 50 px below at 10% visibility over 0.8 s `easeOut`), NotFound and the Konami overlay.
+- Framer Motion still drives the mobile menu, About groups, Stats value reveal, `SectionAnimator` (enters once from 50 px below at 10% visibility over 0.8 s `easeOut`), and the Konami overlay. NotFound enters with the CSS `enter-not-found` (20 px, 500 ms).
 - Expertise uses 0.3-second height/opacity and plus rotation. Portfolio hover uses 0.3-second card movement and 0.5-second image scale.
 - In-app moves into, within and out of Notes are committed inside `document.startViewTransition`: a 300 ms cross-fade with `cubic-bezier(0.4, 0, 0.2, 1)` under a live header. Hash navigation, document loads, reloads and reduced-motion navigation do not use it.
 - Under `prefers-reduced-motion: reduce`, CSS durations drop to 0.001 ms, entrances and view-transition animation are disabled, and smooth scrolling is off. Complete Framer reduction is not proven.
@@ -206,7 +205,7 @@ The captures therefore show fixture copy (for example "Published Top Label"), no
 ## Known visual inconsistencies and risks
 
 - The favicon and OG glyph differ from the canonical Header/Footer `<h/>` treatment, and no single brand asset exists.
-- `/project/*` and unknown paths show the designed 404 with HTTP 200.
+- Production still shows the designed 404 with HTTP 200 for unknown paths until the D-047 release.
 - The production build has a JavaScript chunk above Vite's 500 kB warning threshold; this is a performance observation, not a visual change.
 
 ## Visual parity acceptance contract

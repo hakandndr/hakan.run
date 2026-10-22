@@ -8,9 +8,9 @@ Nothing below is authorized by being listed. Each item needs its own approval.
 
 1. Outbound interaction measurement: owner decision to ratify, narrow or withdraw (see the open item in [DECISIONS.md](./DECISIONS.md)).
 2. Legacy cleanup: remove `run/`, `supabase/`, `@supabase/supabase-js`, `TerminalLoader.jsx` and the public `.htaccess` in one reviewed change.
-3. Soft 404s: return HTTP 404 for `/project/*` and other unknown paths instead of an indexable 200 shell.
+3. Release to production: real HTTP 404s (D-047), reduced-motion section scrolling and the schema cleanup, accepted on staging 2026-10-22.
 4. Production aggregation: decide whether production should run the daily aggregation cron that staging runs.
-5. Remaining browser-suite failures: mobile hash-navigation (5). Boss content-v2 was repaired on 2026-10-22.
+5. Browser suite: green on 2026-10-22 (225 passed, 5 intentional skips). Framer animations (mobile menu and others) still ignore reduced motion.
 6. HSTS promotion review (due since 2026-10-14) and the other security-hardening items below.
 7. About "Beyond the IDE" copy update in `APP_DB`, deferred by the owner on 2026-09-28.
 8. Social card: route heads and homepage social tags are live since 2026-10-22. Remaining: the D-023 generator, and optionally `og:image` and Twitter tags for Notes.

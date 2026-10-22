@@ -25,7 +25,7 @@ sources instead.
 | `analytics/` | PAGE ingest, aggregation, coverage, Boss queries and summaries, DNDR forwarding (`dndr-forward.js`) |
 | `outbound/` | Outbound click script, destination checks, storage and forwarding (production only) |
 | `boss/` | Boss API: content management (draft, publish, restore) and the private preview |
-| `lib/` | Access verification, security headers (single policy module), Turnstile, Email, routes, responses, time |
+| `lib/` | Access verification, security headers (single policy module), application shell fetch, Turnstile, Email, routes, responses, time |
 | `tests/` | `node --test` Worker unit tests |
 
 ## Data — `migrations/`
@@ -78,6 +78,7 @@ authorization.
 | --- | --- |
 | `notes.spec.ts` | Notes direct-open, metadata, featured selection, navigation, view transitions |
 | `first-paint.spec.ts` | Server-rendered first paint and hydration through the Worker document server |
+| `http-routes.spec.ts` | Status, type and directives of every kind of path, the 404 document with and without JavaScript |
 | `visual/visual-baseline.spec.ts` | Screenshot matrix for home, contact, 404 and `/project/*` at four widths |
 | `home`, `navigation`, `contact`, `card`, `content`, `boot-intro`, `hash-navigation`, `scroll-restoration`, `notfound`, `seo`, `llms`, `security-csp`, `public-renderer-phase2b/2c` | Public routes, content lifecycle, motion, scroll, metadata and CSP |
 | `boss/boss-shell.spec.ts`, `boss/content-v2.spec.ts` | Boss shell and field editor with stubbed APIs |

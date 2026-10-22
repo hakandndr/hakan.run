@@ -12,6 +12,30 @@ route table (`worker/index.js`). Public documents (`/`, `/contact`, `/card`,
 hydrated in the browser (D-041). Boss is a separate entry tree behind Cloudflare
 Access, and the Worker verifies the Access token and owner identity itself.
 
+### HTTP route contract
+
+Staging since 2026-10-22 (`cfbf1728`); production after its release (D-047).
+Static Assets use `not_found_handling: "none"`: a request that matches a file is
+served asset-first, and every other request reaches the Worker, which owns the
+status. `run_worker_first` additionally sends `/`, `/contact`, `/card`, `/api/*`,
+`/boss*` and `/notes*` to the Worker even where a file could match.
+
+| Request | Answer |
+| --- | --- |
+| `/`, `/contact`, `/card`, `/notes`, known articles | 200, server-rendered, canonical, build robots value |
+| `/contact/`, `/card/` | 308 to the path without the slash |
+| Unknown Notes slug | 404 Notes page, `noindex` |
+| Other page-like path (`/project/*`, `/admin`, anything without a file extension) | 404, the NotFound route server-rendered and hydrated, `noindex`, no canonical or social tags |
+| Missing file (`/assets/x.js`, `/favicon.ico`, `/wp-login.php`) | Plain 404 from Static Assets, no render or database read |
+| Existing file | 200 from Static Assets with the generated `_headers` |
+| `/api/*` | JSON; unknown endpoints JSON 404 |
+| `/boss*`, `/api/boss/*` | Access 302 at the edge, then Worker verification |
+
+If APP_DB or rendering fails, a valid page still answers 200 from its static
+shell and the 404 document still answers 404. The Boss shell, the private
+preview, `/contact` and `/card` fetch the application shell explicitly
+(`worker/lib/app-shell.js`).
+
 | Data | Authority | Written by | Read by |
 | --- | --- | --- | --- |
 | Twelve CMS sections | `APP_DB` published rows | Boss Content (staging; production only in authorized write windows) | `/api/content`, server renderer, Boss |
