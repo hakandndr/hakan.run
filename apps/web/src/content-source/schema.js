@@ -17,7 +17,6 @@ const block = (label, item = story) => object(label, {
   image: url('Image reference', 'image'), imageAlt: text('Image description'),
   sections: list('Stories', item), visible: optional(bool('Visible')),
 });
-export const INTERNAL_PROJECT_SLUGS = ['full-stack-development', 'ai-and-automation', 'it-infrastructure'];
 export const SECTION_SCHEMAS = {
   hero: object('Hero', {
     badge: text('Badge'), headingLine1: text('First heading line'), headingLine2: text('Second heading line'),
@@ -115,7 +114,6 @@ export function validateSection(section, data) {
       if (!isObject(c)) return;
       if (ids.has(String(c.id))) error(`cards.${i}.id`, 'Duplicate ID'); ids.add(String(c.id));
       if (slugs.has(c.slug)) error(`cards.${i}.slug`, 'Duplicate slug'); slugs.add(c.slug);
-      if (!c.externalUrl && !INTERNAL_PROJECT_SLUGS.includes(c.slug)) error(`cards.${i}.externalUrl`, 'This project needs an external URL; internal detail pages use the existing three slugs');
     });
   }
   try { if (new TextEncoder().encode(JSON.stringify(data)).length > 131072) error('', 'Section exceeds 128 KiB'); } catch { error('', 'Invalid JSON'); }

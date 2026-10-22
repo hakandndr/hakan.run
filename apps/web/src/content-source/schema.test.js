@@ -59,6 +59,22 @@ test('portfolio IDs and slugs are unique; external projects need no detail route
   const fresh = newValue(SECTION_SCHEMAS.portfolio.fields.cards.item);
   assert.notEqual(fresh.id,newValue(SECTION_SCHEMAS.portfolio.fields.cards.item).id);
 });
+test('every portfolio card needs its own external destination and technology, whatever its slug', () => {
+  // The three original slugs once had internal detail pages; those pages are
+  // gone (/project/* is a 404), so their cards need an external URL too.
+  for (const slug of ['full-stack-development', 'ai-and-automation', 'it-infrastructure', 'new-project']) {
+    for (const [field, value] of [['externalUrl', ''], ['externalUrl', undefined], ['technology', '']]) {
+      const p = structuredClone(contractContent.portfolio);
+      p.cards = [p.cards[0]];
+      p.cards[0].slug = slug;
+      if (value === undefined) delete p.cards[0][field]; else p.cards[0][field] = value;
+      const errors = validateSection('portfolio', p);
+      assert.equal(errors.length, 1, `${slug} ${field}=${value}`);
+      assert.equal(errors[0].path, `cards.0.${field}`);
+      assert.match(errors[0].message, /^(Required value|Expected string)$/);
+    }
+  }
+});
 test('private snapshot overlays unsaved data only in memory, checks concurrency and identifies drafts', () => {
   const snapshot = { sections: Object.entries(contractContent).map(([id,data]) => ({ id,data,revision: 1,updatedAt: 100,draft: id === 'about' })) };
   const result = composePreview(snapshot,{ section: 'hero',data: { ...contractContent.hero,badge: 'Unsaved' },unsaved: true,expected: { expectedVersion: 100,expectedRevision: 1 } });
