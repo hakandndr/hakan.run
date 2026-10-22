@@ -74,14 +74,16 @@ test('a failed content read falls back to the static document', async () => {
   }
 });
 
-test('public documents are routed through the document renderer', async () => {
+test('public documents are routed through the document renderer and start from the application shell', async () => {
   const seen = [];
   const env = { ASSETS: { fetch: async (request) => { seen.push(new URL(request.url).pathname); return new Response('asset', { status: 200 }); } } };
   for (const path of ['/', '/contact', '/card']) {
     const response = await worker.fetch(new Request(`https://hakan.run${path}`), env, {});
     assert.equal(response.status, 200, path);
   }
-  assert.deepEqual(seen, ['/', '/contact', '/card']);
+  // /contact and /card have no file of their own; Static Assets has no SPA
+  // fallback, so they ask for the shell explicitly.
+  assert.deepEqual(seen, ['/', '/', '/']);
   const post = await worker.fetch(new Request('https://hakan.run/', { method: 'POST' }), env, {});
   assert.equal(post.status, 405);
 });

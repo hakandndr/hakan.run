@@ -6,17 +6,18 @@
   "assets": {
     "directory": "dist/apps/web",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
-    // Static assets are served before the Worker by default, and a top-level
-    // navigation that matches no file receives index.html without the Worker
-    // ever running. That made /boss render the public 404 shell and
-    // /api/boss/* return HTML instead of JSON, with Worker-side Access
-    // verification never executing. Listing these routes runs the Worker
-    // first for them; every other path keeps the default asset-first
-    // behaviour, so static delivery is unchanged. Public documents at /,
-    // /contact, /card and /notes* are rendered by the Worker from APP_DB so the
-    // first paint matches the hydrated application. Project documents also run
-    // here so their external links receive the same source-owned outbound hook.
+    // A request that matches a file is served from Static Assets without the
+    // Worker. Any other request reaches the Worker, which owns the HTTP status:
+    // pages are rendered, and everything else is a real 404 (the site's 404
+    // document for page-like paths, a plain 404 for missing files). There is no
+    // SPA fallback, so an unknown path can never return a 200 copy of the
+    // application shell.
+    "not_found_handling": "none",
+    // These paths run the Worker even where a file could match: Boss and its
+    // API must pass Worker-side Access verification, /api/* must answer JSON,
+    // Notes need exact-slug validation, and /, /contact, /card and /notes* are
+    // rendered from APP_DB so the first paint matches the hydrated
+    // application. Removed /project/* pages answer 404 from the Worker.
     "run_worker_first": ["/", "/contact", "/card", "/api/*", "/boss", "/boss/*", "/notes", "/notes/*", "/project/*"]
   },
   "observability": { "enabled": true },

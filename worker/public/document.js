@@ -13,6 +13,7 @@
 import { buildContentPayload, publishedContentQuery } from './content.js';
 import { publishedVisualTokens } from '../../apps/web/src/content-source/visual-tokens.js';
 import { applyDocumentHead, publicCanonicalUrl } from '../../apps/web/src/head/document-head.js';
+import { fetchAppShell } from '../lib/app-shell.js';
 
 const STATIC_ROOT = '<div id="root"></div>';
 const FALLBACK_OUTLET = /<!--ssr-fallback-->[\s\S]*?<!--\/ssr-fallback-->/;
@@ -30,13 +31,13 @@ const embedJson = (value) => JSON.stringify(value)
 const sectionData = (payload, id) => payload.sections.find((section) => section.id === id)?.data;
 
 /** Pure: compose a server-rendered document from a static HTML asset. */
-export const composeDocument = (html, { markup, head, canonical, payload }) => {
+export const composeDocument = (html, { markup, head, canonical, indexable = true, payload }) => {
   const outlet = `<div id="root">${markup}</div>`;
   let composed;
   if (html.includes(STATIC_ROOT)) composed = html.replace(STATIC_ROOT, () => outlet);
   else if (FALLBACK_OUTLET.test(html)) composed = html.replace(FALLBACK_OUTLET, () => markup);
   else throw new Error('document_outlet_missing');
-  composed = applyDocumentHead(composed, { head, canonical });
+  composed = applyDocumentHead(composed, { head, canonical, indexable });
 
   const { properties, bodyAttributes } = publishedVisualTokens({
     colors: sectionData(payload, 'colors'),
@@ -64,25 +65,49 @@ const readPublishedPayload = async (env) => {
 // bundles it into the Worker; a checkout without a build cannot render.
 const loadRenderer = () => import('../../dist/server/entry-server.mjs');
 
-export const serveDocument = async (request, env) => {
-  const asset = await env.ASSETS.fetch(request);
-  if (request.method !== 'GET' || !asset.ok || !env.APP_DB) return asset;
+const documentHeaders = (asset) => {
+  const headers = new Headers(asset.headers);
+  headers.delete('etag');
+  headers.delete('content-length');
+  headers.set('content-type', 'text/html; charset=utf-8');
+  headers.set('cache-control', DOCUMENT_CACHE_CONTROL);
+  return headers;
+};
+
+/**
+ * Serve a public document.
+ *
+ * `fromShell` documents (/, /contact, /card and the 404 document) start from
+ * the application shell; Notes start from their own prebuilt asset. A
+ * `notFound` document is the React tree's NotFound route for this URL, sent
+ * with HTTP 404, `noindex` and no canonical. When APP_DB or rendering is
+ * unavailable, a valid page degrades to its static asset with its normal
+ * status, and the 404 document degrades to the shell with the same 404 status
+ * and directives, so an outage never turns a page into a 404 or a missing
+ * page into a 200.
+ */
+export const serveDocument = async (request, env, { fromShell = false, notFound = false } = {}) => {
+  const asset = await (fromShell || notFound ? fetchAppShell(request, env) : env.ASSETS.fetch(request));
+  if (!asset.ok) return asset;
+  const status = notFound ? 404 : 200;
+  const url = new URL(request.url);
+  const canonical = notFound ? null : publicCanonicalUrl(url.pathname.replace(/\/$/, '') || '/');
+
+  if (!notFound && (request.method !== 'GET' || !env.APP_DB)) return asset;
+  if (request.method !== 'GET') return new Response(null, { status, headers: documentHeaders(asset) });
   const html = await asset.text();
-  const passThrough = () => new Response(html, { status: asset.status, headers: asset.headers });
+  const degraded = () => (notFound
+    ? new Response(applyDocumentHead(html, { head: null, canonical: null, indexable: false }), { status, headers: documentHeaders(asset) })
+    : new Response(html, { status: asset.status, headers: asset.headers }));
+  if (!env.APP_DB) return degraded();
 
   try {
     const [payload, renderer] = await Promise.all([readPublishedPayload(env), loadRenderer()]);
-    const url = new URL(request.url);
     const { markup, head } = renderer.renderPublicApplication({ url: `${url.pathname}${url.search}`, payload });
-    const canonical = publicCanonicalUrl(url.pathname.replace(/\/$/, '') || '/');
-    const headers = new Headers(asset.headers);
-    headers.delete('etag');
-    headers.delete('content-length');
-    headers.set('content-type', 'text/html; charset=utf-8');
-    headers.set('cache-control', DOCUMENT_CACHE_CONTROL);
-    return new Response(composeDocument(html, { markup, head, canonical, payload }), { status: 200, headers });
+    const composed = composeDocument(html, { markup, head, canonical, indexable: !notFound, payload });
+    return new Response(composed, { status, headers: documentHeaders(asset) });
   } catch (error) {
     console.error('[document] server render unavailable', error?.message ?? error);
-    return passThrough();
+    return degraded();
   }
 };

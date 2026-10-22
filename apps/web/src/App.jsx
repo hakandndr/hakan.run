@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigationType } from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import PublicHome from '@/public/PublicHome';
 import PublicCard from '@/public/components/PublicCard';
@@ -29,7 +29,6 @@ function App({ snapshot }) {
           <Route path="notes/:slug" element={<NotesArticle />} />
           <Route path="*" element={<NotFound />} />
         </Route>
-        <Route path="/admin" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );

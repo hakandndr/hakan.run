@@ -1,10 +1,13 @@
-// Local production-shaped server for first-paint tests.
+// Local production-shaped server for first-paint and HTTP-contract tests.
 //
 // `vite preview` serves static files only, so it can never show what the
-// Worker sends. This runs the real Worker module against the built assets:
-// ASSETS follows Cloudflare's Static Assets rules used by this project
-// (file, file.html, SPA fallback to index.html) and APP_DB answers the
-// published-content query from the same fixture the other browser tests use.
+// Worker sends. This runs the real Worker module against the built assets with
+// Cloudflare's dispatch for this project's configuration: run_worker_first
+// paths go to the Worker, other paths that match a file (file, file.html,
+// dir/index.html) are served as assets, and everything else reaches the Worker.
+// ASSETS has no fallback (not_found_handling "none"): a missing file is a 404.
+// APP_DB answers the published-content query from the same fixture the other
+// browser tests use.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -27,8 +30,17 @@ const assetFile = (pathname) => {
   for (const candidate of [direct, `${direct}.html`, path.join(direct, 'index.html')]) {
     if (fs.existsSync(candidate) && fs.statSync(candidate).isFile()) return candidate;
   }
-  return path.join(root, 'index.html');
+  return null;
 };
+
+// The Worker-first patterns, read from the deployed configuration so this
+// server cannot drift from it. Patterns are exact paths or "/prefix/*".
+const wrangler = JSON.parse(fs.readFileSync(new URL('../../wrangler.jsonc', import.meta.url), 'utf8')
+  .replace(/^\s*\/\/.*$/gm, '').replace(/,(\s*[}\]])/g, '$1'));
+if (wrangler.assets.not_found_handling !== 'none') throw new Error('document server emulates not_found_handling "none" only');
+const workerFirst = (pathname) => wrangler.assets.run_worker_first.some((pattern) => (pattern.endsWith('/*')
+  ? pathname.startsWith(pattern.slice(0, -1))
+  : pathname === pattern));
 
 // Static Assets apply the generated _headers file to asset responses. The
 // build emits a single "/*" rule, which is all this emulation supports.
@@ -74,7 +86,9 @@ http.createServer(async (incoming, outgoing) => {
       headers: incoming.headers,
       body: ['GET', 'HEAD'].includes(incoming.method) ? undefined : Buffer.concat(chunks),
     });
-    const response = await worker.fetch(request, env, { waitUntil() {} });
+    const pathname = new URL(request.url).pathname;
+    const assetFirst = !workerFirst(pathname) && assetFile(pathname) !== null;
+    const response = assetFirst ? await ASSETS.fetch(request) : await worker.fetch(request, env, { waitUntil() {} });
     outgoing.writeHead(response.status, Object.fromEntries(response.headers));
     outgoing.end(incoming.method === 'HEAD' ? undefined : Buffer.from(await response.arrayBuffer()));
   } catch (error) {

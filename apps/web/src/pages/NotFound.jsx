@@ -1,21 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
-import { motion } from 'framer-motion';
 import { useRobotsDirective } from '@/head/useRobotsDirective';
 
 const NotFound = () => {
   // Same single-owner rule as every other route: rewrite the one robots
-  // directive the document already has instead of appending another.
+  // directive the document already has instead of appending another. The
+  // Worker sends this page with HTTP 404 and the same directive.
   useRobotsDirective('noindex');
+  // The router location is the same on the server and in the browser, so the
+  // server-rendered 404 hydrates without a text mismatch.
+  const { pathname } = useLocation();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-    >
+    // The entrance runs in CSS so the server-rendered page is visible from its
+    // first paint, with or without JavaScript.
+    <div className="enter-not-found">
       <Helmet>
         <title>404 — Page Not Found | Hakan Dundar</title>
       </Helmet>
@@ -25,7 +25,7 @@ const NotFound = () => {
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 font-mono text-xs text-gray-600 mb-8">
               <span className="text-accent-purple select-none">&#10095;</span>
-              <span>cd {typeof window !== 'undefined' ? window.location.pathname : '/unknown'}</span>
+              <span>cd {pathname}</span>
               <span className="animate-pulse text-accent-purple select-none">&#9611;</span>
             </div>
 
@@ -52,7 +52,7 @@ const NotFound = () => {
           </div>
         </div>
       </section>
-    </motion.div>
+    </div>
   );
 };
 

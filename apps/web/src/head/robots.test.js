@@ -43,9 +43,15 @@ test('index.html declares exactly one robots directive', () => {
   assert.equal(matches.length, 1, `expected one robots meta in index.html, found ${matches.length}`);
 });
 
+// The server head composer names the tag in order to rewrite the value of the
+// one the build ships (404 documents become noindex); document-head.test.js
+// proves the composed document still carries exactly one robots directive.
+const SANCTIONED_REWRITERS = new Set([path.join('src', 'head', 'document-head.js')]);
+
 test('no component declares a second robots directive', () => {
   const offenders = sourceFiles(sourceDirectory).filter((file) =>
-    declaresRobotsMeta(readFileSync(file, 'utf8')),
+    !SANCTIONED_REWRITERS.has(path.relative(appDirectory, file))
+    && declaresRobotsMeta(readFileSync(file, 'utf8')),
   );
 
   assert.deepEqual(

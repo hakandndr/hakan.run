@@ -1,14 +1,15 @@
-// The Worker-first routing boundary is part of authorization, not performance.
+// The asset routing configuration is part of the HTTP contract.
 //
 // Cloudflare Static Assets are served before the Worker. Under
-// not_found_handling "single-page-application", a top-level navigation that
-// matches no file receives index.html and the Worker never runs, so
-// verifyAccess never executes and /api/* returns HTML instead of JSON.
-// run_worker_first makes protected, API, and Notes paths reach the Worker
-// first. Notes needs exact-slug validation before the SPA fallback. The exact
-// public document paths /, /contact and /card are server-rendered by the
-// Worker so their first paint matches the hydrated application. Dropping or
-// widening these patterns changes their HTTP contract.
+// not_found_handling "single-page-application" a request that matches no file
+// receives index.html with 200 and the Worker never runs: unknown paths were
+// soft 404s, and a missing script was answered with HTML. With "none" every
+// unmatched request reaches the Worker, which owns its status.
+// run_worker_first still sends protected, API and Notes paths, and the exact
+// public documents /, /contact and /card, to the Worker even where a file
+// could match: Access verification, JSON APIs, exact Notes slugs and server
+// rendering must never be bypassed by a static file. Dropping or widening these
+// patterns changes their HTTP contract.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -26,8 +27,8 @@ const assets = config.assets ?? {};
 
 const EXPECTED_WORKER_FIRST = ['/', '/contact', '/card', '/api/*', '/boss', '/boss/*', '/notes', '/notes/*', '/project/*'];
 
-test('the SPA fallback is still what makes Worker-first routing necessary', () => {
-  assert.equal(assets.not_found_handling, 'single-page-application');
+test('unmatched requests reach the Worker instead of an SPA or static 404 fallback', () => {
+  assert.equal(assets.not_found_handling, 'none');
 });
 
 test('Worker-first routing is declared', () => {

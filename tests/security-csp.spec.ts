@@ -77,12 +77,18 @@ test('asset-first and Worker-rendered documents carry the same security policy',
   expect(worker.nosniff).toBe('nosniff');
   expect(worker.frame).toBe('DENY');
   expect(worker.csp).toContain("frame-ancestors 'none'");
-  // The local server is plain HTTP and routes every request through the Worker,
-  // which withholds HSTS over HTTP. HSTS on asset-first responses is proven on
-  // the deployed HTTPS environment (tools/verify-security-headers.js).
-  expect(asset).toEqual(worker);
+  // The local server is plain HTTP. The Worker withholds HSTS over HTTP, while
+  // an asset-first response carries the generated _headers file, which always
+  // includes it; on the deployed HTTPS origin both send it
+  // (tools/verify-security-headers.js). Every other directive is identical.
+  const { hsts: assetHsts, ...assetPolicy } = asset;
+  const { hsts: workerHsts, ...workerPolicy } = worker;
+  expect(assetPolicy).toEqual(workerPolicy);
+  expect(assetHsts).toMatch(/^max-age=\d+/);
+  expect(workerHsts).toBeNull();
   expect(notFound).toEqual(worker);
-  expect(worker.hsts).toBeNull();
+  const pageNotFound = policy((await request.get(`${ORIGIN}/this-route-does-not-exist`)).headers());
+  expect(pageNotFound).toEqual(worker);
   const api = (await request.get(`${ORIGIN}/api/config`)).headers();
   expect(api['x-content-type-options']).toBe('nosniff');
   expect(api['content-security-policy']).toBeUndefined();

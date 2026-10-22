@@ -29,10 +29,13 @@ export const SOCIAL_IMAGE = Object.freeze({
 const TITLE = /<title\b[^>]*>[\s\S]*?<\/title>/;
 const HELMET_META = /[ \t]*<meta\b[^>]*\bdata-react-helmet="true"[^>]*>\n?/g;
 const CANONICAL = /<link rel="canonical" href="[^"]*" \/>/;
+const CANONICAL_LINE = /([ \t]*)<link rel="canonical" href="[^"]*" \/>(\r?\n?)/;
 
 const escapeAttribute = (value) => String(value).replace(/[&<>"']/g, (character) => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
 })[character]);
+
+const ROBOTS = /<meta name="robots" content="([^"]*)" \/>/;
 
 /**
  * Pure: write a route's collected head into a document.
@@ -42,14 +45,26 @@ const escapeAttribute = (value) => String(value).replace(/[&<>"']/g, (character)
  * document cannot carry two sets, the route's meta tags follow the canonical
  * link, and the canonical href becomes `canonical`. A document without a title
  * or canonical link is refused rather than guessed.
+ *
+ * A document that is not a page of the site (an HTTP 404) passes
+ * `canonical: null` and `indexable: false`: it names no canonical URL, and its
+ * robots directive becomes `noindex` unless the build already forbids
+ * indexing (staging keeps its stricter `noindex, nofollow`).
  */
-export const applyDocumentHead = (html, { head, canonical }) => {
+export const applyDocumentHead = (html, { head, canonical, indexable = true }) => {
   if (!TITLE.test(html)) throw new Error('document_title_missing');
   if (!CANONICAL.test(html)) throw new Error('document_canonical_missing');
   const title = head?.title ?? '';
-  const meta = (head?.meta ?? '').trim();
+  const meta = (head?.meta ?? '').trim().replace(/\/><meta/g, '/>\n  <meta');
   let composed = html.replace(HELMET_META, '');
   if (/>[^<]+</.test(title)) composed = composed.replace(TITLE, () => title);
-  const link = `<link rel="canonical" href="${escapeAttribute(canonical)}" />`;
-  return composed.replace(CANONICAL, () => (meta ? `${link}\n  ${meta.replace(/\/><meta/g, '/>\n  <meta')}` : link));
+  if (!indexable) {
+    if (!ROBOTS.test(composed)) throw new Error('document_robots_missing');
+    // Rewrite the value of the one robots tag, as useRobotsDirective does.
+    composed = composed.replace(ROBOTS, (tag, value) => (/\bnoindex\b/.test(value) ? tag : tag.replace(`content="${value}"`, 'content="noindex"')));
+  }
+  const link = canonical === null ? '' : `<link rel="canonical" href="${escapeAttribute(canonical)}" />`;
+  const replacement = [link, meta].filter(Boolean).join('\n  ');
+  // The canonical line is replaced as a whole line, so removing it leaves no gap.
+  return composed.replace(CANONICAL_LINE, (line, indent, newline) => (replacement ? `${indent}${replacement}${newline}` : ''));
 };

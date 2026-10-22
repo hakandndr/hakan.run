@@ -1,6 +1,7 @@
 import { json } from '../lib/response.js';
 import { CANONICAL_SECTIONS } from '../lib/content-sections.js';
 import { validateSection } from '../../apps/web/src/content-source/schema.js';
+import { fetchAppShell } from '../lib/app-shell.js';
 export const PREVIEW_PATH = '/boss/content/preview';
 export const PREVIEW_CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; frame-src 'none'; frame-ancestors 'self'; object-src 'none'";
 export const previewHeaders = {
@@ -27,7 +28,7 @@ export async function contentPreview(env) {
 }
 export async function previewShell(request, env) {
   if (!env.ASSETS) return new Response('Unavailable', { status: 503, headers: previewHeaders });
-  const asset = await env.ASSETS.fetch(request);
+  const asset = await fetchAppShell(request, env);
   if (!asset.ok) return new Response('Preview unavailable', { status: 503, headers: previewHeaders });
   // The normal shell contains public tracking scripts. Only its local module
   // entry and stylesheet links belong in this isolated document.

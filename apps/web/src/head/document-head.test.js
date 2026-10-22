@@ -44,6 +44,17 @@ test('a route without a Helmet title keeps the document title', () => {
   assert.equal(count(html, /data-react-helmet/g), 0);
 });
 
+test('a document that is not a page names no canonical and is not indexable', () => {
+  const production = template.replace('noindex, nofollow', 'index, follow');
+  const html = applyDocumentHead(production, { head, canonical: null, indexable: false });
+  assert.equal(count(html, /rel="canonical"/g), 0);
+  assert.match(html, /<meta name="robots" content="noindex" \/>/);
+  assert.equal(count(html, /name="robots"/g), 1);
+  assert.match(html, /<title data-react-helmet="true">Hakan Dundar<\/title>\n {2}<meta data-react-helmet="true" name="description"/);
+  // Staging already forbids indexing more strictly; that directive stays.
+  assert.match(applyDocumentHead(template, { head, canonical: null, indexable: false }), /<meta name="robots" content="noindex, nofollow" \/>/);
+});
+
 test('the canonical href is escaped', () => {
   const html = applyDocumentHead(template, { head, canonical: 'https://hakan.run/"><script>' });
   assert.match(html, /href="https:\/\/hakan.run\/&quot;&gt;&lt;script&gt;"/);

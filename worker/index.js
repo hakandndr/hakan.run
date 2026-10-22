@@ -22,11 +22,18 @@ import { serveDocument } from './public/document.js';
 import { aggregationStatements, lastCompleteDay } from './analytics/aggregate.js';
 import { isKnownNoteSlug } from '../apps/web/src/notes/manifest.js';
 import { withSecurityHeaders } from './lib/security-headers.js';
+import { fetchAppShell } from './lib/app-shell.js';
 
 const isBossPath = (path) => path === '/boss' || path.startsWith('/boss/');
 // Public documents rendered by the Worker. Notes articles are added after their
-// slug is validated below. Other paths keep the static SPA fallback.
+// slug is validated below. Every other path that reaches the Worker matched no
+// static asset, so it is not a page of the site.
 const RENDERED_DOCUMENTS = new Set(['/', '/contact', '/card']);
+
+// A path whose last segment has no extension is asked for as a document; the
+// others (/favicon.ico, /wp-login.php, /assets/missing.js) are missing files
+// and get a plain 404 without rendering or a database read.
+const isDocumentPath = (path) => !/\.[^/]*$/.test(path);
 const isBossApi = (path) => path.startsWith('/api/boss/');
 
 const denied = (reason) =>
@@ -63,7 +70,7 @@ const route = async (request, env, context) => {
     }
     // The private shell itself carries no privileged data; every figure it
     // shows arrives through a separately verified API call.
-    return env.ASSETS ? env.ASSETS.fetch(request) : notFound();
+    return env.ASSETS ? fetchAppShell(request, env) : notFound();
   }
 
   if (env.ENVIRONMENT === 'production' && path === '/api/analytics/outbound.js') return outboundScriptResponse();
@@ -115,10 +122,22 @@ const route = async (request, env, context) => {
   if (RENDERED_DOCUMENTS.has(path)) {
     if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed('GET');
     if (!env.ASSETS) return problem('assets_unavailable', 503);
-    return serveDocument(request, env);
+    return serveDocument(request, env, { fromShell: true });
+  }
+
+  // A trailing slash on a public document is the same page; send it to the
+  // canonical address instead of serving a second copy or a 404.
+  const withoutSlash = path.replace(/\/+$/, '');
+  if (withoutSlash !== path && RENDERED_DOCUMENTS.has(withoutSlash)) {
+    return Response.redirect(`${url.origin}${withoutSlash}${url.search}`, 308);
   }
 
   if (!env.ASSETS) return problem('assets_unavailable', 503);
+  // Nothing else is a page: answer with the site's 404 document, or with the
+  // asset layer's plain 404 for a missing file.
+  if ((request.method === 'GET' || request.method === 'HEAD') && isDocumentPath(path)) {
+    return serveDocument(request, env, { notFound: true });
+  }
   return env.ASSETS.fetch(request);
 };
 

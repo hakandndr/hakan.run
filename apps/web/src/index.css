@@ -197,9 +197,10 @@ body[data-spacing="spacious"] section { padding-top: 10rem !important; padding-b
 .enter-contact-intro { --enter-x: -30px; animation: public-enter 800ms cubic-bezier(0.42, 0, 0.58, 1) 200ms both; }
 .enter-contact-links { animation: public-enter 500ms cubic-bezier(0.42, 0, 0.58, 1) 900ms both; }
 .enter-contact-form { --enter-y: 30px; animation: public-enter 800ms cubic-bezier(0.42, 0, 0.58, 1) 500ms both; }
+.enter-not-found { --enter-y: 20px; animation: public-enter 500ms cubic-bezier(0.42, 0, 0.58, 1) both; }
 @media (prefers-reduced-motion: reduce) {
   .enter-hero-copy, .enter-hero-profile, .enter-card, .enter-contact-page,
-  .enter-contact-intro, .enter-contact-links, .enter-contact-form { animation: none !important; }
+  .enter-contact-intro, .enter-contact-links, .enter-contact-form, .enter-not-found { animation: none !important; }
 }
 
 /* Route view transitions (see src/router/TransitionRouter.jsx) blend the
