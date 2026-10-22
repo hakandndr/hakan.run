@@ -1,18 +1,18 @@
 # hakan.run Modernization Handoff
 
-## Current continuation — native text cursor, 2026-10-21
+## Current continuation — native text cursor live, 2026-10-21
 
 | Field | Current value |
 | --- | --- |
 | Working copy | `D:\IT\hakan\hakan-run-next` |
-| Branch / HEAD | `develop/hakan-run-v2`; started at `ebe75eca888e1799cb22a6500416496cc4163bc8` (equal to origin); this checkpoint is the next commit, resolve with `git rev-parse HEAD` |
-| Current phase | Cursor fix committed locally; not pushed or deployed |
-| Completed | Removed `cursor: default` from the global `body, html` rule in `apps/web/src/index.css`. Text inherits native `cursor: auto`; links, buttons, inputs and text selection are unchanged; full-page screenshots before and after are identical on `/`, `/notes`, one article, `/contact` and `/card` (desktop and Pixel 5) |
-| Exact next action | Under separate authorization: push, staging deploy and staging cursor check, then a production deploy of this CSS-only change |
-| Prohibited actions | No push, deploy, provider, database, DNS, Access, secret or routing change without separate authorization |
-| Push state | Local branch is one commit ahead of `origin/develop/hakan-run-v2` (`ebe75ec`) |
-| Deploy state | Production `b104882d-9cf9-4058-b2a8-f9ffebfb5ee0` at 100% (read back 2026-10-22T05Z); its main module is byte-identical to a production dry-run of `ebe75ec`. Staging not read back: the current token has no staging access |
-| Infrastructure state | Unchanged. Production bindings equal `wrangler.jsonc`; no production cron; `workers.dev` and preview URLs disabled |
+| Branch / HEAD | `develop/hakan-run-v2`; product commit `bce99db62d6770b8822db303f5d531fa6184c163`; this release record is the next commit, resolve with `git rev-parse HEAD` |
+| Current phase | Cursor fix released to staging and production and accepted |
+| Completed | Removed `cursor: default` from the global `body, html` rule in `apps/web/src/index.css`. On staging and production, text computes `cursor: auto`, links and buttons stay `pointer`, inputs stay `text`, mouse selection works, the painted DOM survives hydration, and screenshots with the old rule re-injected are identical |
+| Exact next action | None for this release. Maintenance stays separately authorized: stale Notes/visual Playwright expectations, the `outbound_events` decision record, documentation index and archive, and legacy `run/`, `supabase/` and public `.htaccess` cleanup |
+| Prohibited actions | No deploy, provider, database, DNS, Access, secret or routing change without separate authorization |
+| Push state | `bce99db` pushed as a fast-forward; this record is pushed after it; local and origin must be 0/0 |
+| Deploy state | Production deployment `55e644f9-41b9-4ee5-9705-635b59868b3c`, version `11f7232a-e6b7-4ac7-b50f-149b0515ea23` at 100%; rollback `b104882d-9cf9-4058-b2a8-f9ffebfb5ee0`. Staging deployment `1ed3e85a-8cd0-4ac0-95b9-b60f4f0c18ec`, version `d641bc37-c412-4e79-aae4-a844042f63f5` at 100%; rollback `acc69539-0338-4638-a92c-3932da080c18` |
+| Infrastructure state | Unchanged. Bindings, schedules and settings equal the pre-deploy readback; `CMS_PRODUCTION_WRITES_ENABLED=false`. Wrangler reports a partial trigger update because the account token cannot read zones; the existing `hakan.run` and `staging.hakan.run` custom domains kept serving the new versions |
 
 Known test debt, unchanged by this fix and reproduced on `ebe75ec`: `tests/notes.spec.ts:93`
 still expects the featured selection from before `33f8d41`/`b17ddbd`, and three

@@ -1,15 +1,17 @@
 # Current State
 
-## Native text cursor — local, not deployed, 2026-10-21
+## Native text cursor — live, 2026-10-21
 
 The global `body, html` rule no longer sets `cursor: default`. That inherited
 value made ordinary text show the arrow instead of the browser's text cursor.
-Verified locally on the Worker document server: text elements now compute
-`cursor: auto`, interactive controls keep `pointer`, inputs keep `text`, mouse
-selection works, and full-page screenshots are identical before and after on
-desktop and mobile. Lint and 466 unit tests pass. Production still serves
-`b104882d-9cf9-4058-b2a8-f9ffebfb5ee0`, which carries the old rule; the
-2026-10-06 section below remains the verified production state.
+Text elements now compute `cursor: auto`, interactive controls keep `pointer`,
+inputs keep `text`, and mouse selection works, verified locally, on staging and
+on production. Production serves version `11f7232a-e6b7-4ac7-b50f-149b0515ea23`
+(deployment `55e644f9-41b9-4ee5-9705-635b59868b3c`); rollback is
+`b104882d-9cf9-4058-b2a8-f9ffebfb5ee0`. Its Worker main module is byte-identical
+to `b104882d`; only static assets changed. Staging serves
+`d641bc37-c412-4e79-aae4-a844042f63f5`. Everything else in the 2026-10-06
+section below remains the verified production state.
 
 ## Verified browser outbound correction — 2026-10-06
 
