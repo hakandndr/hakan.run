@@ -134,19 +134,41 @@ test('PUSH performs one intended top scroll', async ({ page }) => {
   ]);
 });
 
+// The homepage links to /contact only from the footer. Clicking a link outside
+// the viewport makes Playwright scroll the page first, which is a real move
+// away from the position a test saved, so the POP tests leave from a measured
+// position at which the footer link is already in view.
+const footerContactLink = (page: Page) => page.locator('footer a[href="/contact"]');
+
+const scrollToRevealFooterContact = async (page: Page) => {
+  const y = await footerContactLink(page).evaluate((link) => {
+    const rect = link.getBoundingClientRect();
+    const bottom = rect.bottom + window.scrollY;
+    // Just below the link's bottom edge, short of the end of the page, so the
+    // restored value cannot be produced by clamping to the maximum.
+    return Math.ceil(bottom + 40 - window.innerHeight);
+  });
+  const max = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
+  expect(y).toBeGreaterThan(0);
+  expect(y).toBeLessThan(max);
+  await scrollAndSave(page, y);
+  await expect(footerContactLink(page)).toBeInViewport({ ratio: 1 });
+  return y;
+};
+
 test('POP restores the destination entry while hash PUSH scrolls exactly once', async ({ page }) => {
   await installScrollCallLog(page);
   await page.goto('/');
   await waitForPublishedSite(page);
-  await scrollAndSave(page);
+  const departure = await scrollToRevealFooterContact(page);
 
-  await page.locator('a[href="/contact"]').first().click();
+  await footerContactLink(page).click();
   await expect(page).toHaveURL(/\/contact$/);
   await expectScroll(page, 0);
 
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
-  await expectScroll(page);
+  await expectScroll(page, departure);
 
   await page.locator('a[href="/contact"]').first().click();
   await expect(page).toHaveURL(/\/contact$/);
@@ -163,6 +185,27 @@ test('POP restores the destination entry while hash PUSH scrolls exactly once', 
   expect(await page.evaluate(() => window.__scrollCalls)).toEqual([
     { kind: 'scrollIntoView', id: 'services', args: [{ behavior: 'smooth' }] },
   ]);
+});
+
+test('POP restores the position the entry was left at, even when leaving in the same frame as the last scroll', async ({ page }) => {
+  // A scroll event arrives up to a frame after the movement. Scrolling and
+  // following a link in one task leaves before that event, so the entry's
+  // position must be recorded at departure rather than from scroll events.
+  await page.goto('/');
+  await waitForPublishedSite(page);
+  await scrollAndSave(page);
+  const departure = await page.evaluate(() => {
+    const y = 1500;
+    window.scrollTo(0, y);
+    document.querySelector<HTMLAnchorElement>('footer a[href="/contact"]')!.click();
+    return y;
+  });
+  await expect(page).toHaveURL(/\/contact$/);
+  await expectScroll(page, 0);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expectScroll(page, departure);
 });
 
 declare global {

@@ -5,6 +5,10 @@ export const SCROLL_POSITION_KEY = '__hakanRunScroll';
 
 const sessionScrollPositions = new Map();
 
+// The history entry this coordinator currently manages; null until it mounts,
+// so nothing is recorded for the loading shell.
+let managedEntryKey = null;
+
 const finitePosition = (value) =>
   Number.isFinite(value) && value >= 0 ? value : null;
 
@@ -36,6 +40,18 @@ const rememberScrollPosition = (entryKey) => {
   return position;
 };
 
+/**
+ * Record the managed entry's position at the moment it is left. The router
+ * calls this from its history listener, before the next route commits, while
+ * the document still shows the entry being left. Scroll events arrive up to a
+ * frame late, and one that arrives after the history entry changed belongs to
+ * the new entry, so a navigation in the same frame as the last scroll movement
+ * would otherwise leave the previous entry with an older position.
+ */
+export const recordScrollDeparture = () => {
+  if (managedEntryKey !== null) rememberScrollPosition(managedEntryKey);
+};
+
 // Native reload restoration is disabled in index.html before the document body
 // exists. This coordinator is therefore the sole restoration authority. It is
 // mounted only after the published snapshot is READY and the full document has
@@ -60,6 +76,7 @@ const ScrollManager = ({ navigationType, location }) => {
     }
 
     const entryKey = location.key;
+    managedEntryKey = entryKey;
     const remember = () => {
       const currentEntryKey = window.history.state?.key ?? 'default';
       if (currentEntryKey !== entryKey) return null;
@@ -79,6 +96,7 @@ const ScrollManager = ({ navigationType, location }) => {
     window.addEventListener('scrollend', persist, { passive: true });
     window.addEventListener('pagehide', persist);
     return () => {
+      if (managedEntryKey === entryKey) managedEntryKey = null;
       window.removeEventListener('scroll', remember);
       window.removeEventListener('scrollend', persist);
       window.removeEventListener('pagehide', persist);

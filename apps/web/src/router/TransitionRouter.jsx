@@ -2,6 +2,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Router } from 'react-router-dom';
 import { createBrowserHistory } from '@remix-run/router';
+import { recordScrollDeparture } from '@/components/ScrollManager';
 import { canStartViewTransition, commitInRouteTransition, shouldTransitionRoute } from './transition-scope';
 
 // BrowserRouter with one addition: selected pathname changes are committed
@@ -9,7 +10,8 @@ import { canStartViewTransition, commitInRouteTransition, shouldTransitionRoute 
 // the previous rendered state into the new one instead of cutting. PUSH, POP
 // and REPLACE all arrive through the same history listener. The update
 // callback must stay synchronous: rendering is paused until it returns, so
-// waiting on a frame or an animation there would stall the page.
+// waiting on a frame or an animation there would stall the page. The listener
+// first records the scroll position of the entry being left (ScrollManager).
 const TransitionRouter = ({ children }) => {
   const historyRef = useRef(null);
   if (historyRef.current === null) historyRef.current = createBrowserHistory({ v5Compat: true });
@@ -18,6 +20,7 @@ const TransitionRouter = ({ children }) => {
   const pathnameRef = useRef(history.location.pathname);
 
   useLayoutEffect(() => history.listen(({ action, location }) => {
+    recordScrollDeparture();
     const from = pathnameRef.current;
     pathnameRef.current = location.pathname;
     const commit = () => setState({ action, location });
